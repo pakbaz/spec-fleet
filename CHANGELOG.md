@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-04-28
+
+### Changed
+
+- Re-publish via OIDC trusted publisher (`pakbaz/spec-fleet` → `release.yml` → `publish` env). 0.4.0 was published manually with a temporary token while the trusted publisher and registry permissions were still being configured; 0.4.1 is the first version published end-to-end through GitHub Actions OIDC with npm provenance.
+
+### Notes
+
+- No source or runtime changes versus 0.4.0.
+
 ## [0.4.0] — 2026-04-28
 
 Full SpecFleet rebrand and package transition. This release moves the project
@@ -166,6 +176,8 @@ Initial public release.
 - ESM-only, Node 20+.
 - Ships `dist/`, `templates/`, `LICENSE`, `README.md`, `CHANGELOG.md`.
 
-[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/pakbaz/spec-fleet/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/pakbaz/spec-fleet/compare/v0.3.0...v0.4.0
 [0.2.0]: https://github.com/pakbaz/spec-fleet/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/pakbaz/spec-fleet/releases/tag/v0.1.0
