@@ -40,7 +40,7 @@ npm link               # exposes `specfleet` on your PATH
 Verify:
 
 ```bash
-specfleet --version          # → 0.4.1
+specfleet --version          # → 0.5.0
 specfleet --help
 ```
 
