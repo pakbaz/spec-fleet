@@ -1,7 +1,7 @@
 /**
  * Charter signature verification (v0.2 = schema + verifier hook only).
  *
- * Full sigstore wiring lands in v0.3. For now:
+ * Full sigstore wiring lands in v0.4. For now:
  *   - charters MAY carry `signature` and `signed_by` frontmatter fields
  *   - if neither is present, callers treat the charter as "not signed"
  *   - if a signature is present, this verifier returns `not-implemented`
@@ -26,7 +26,7 @@ export function verifyCharterSignature(
   if (!trusted || trusted.keys.length === 0) {
     return { ok: false, reason: "no-trusted-signers", signer: charter.signed_by };
   }
-  // v0.3 will perform real cryptographic verification here. For v0.2 we ship
+  // v0.4 will perform real cryptographic verification here. For v0.2 we ship
   // the schema + verifier hook only so consumers can wire trust without a
   // breaking change later.
   return { ok: false, reason: "not-implemented", signer: charter.signed_by };

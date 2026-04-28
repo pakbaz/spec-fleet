@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>NoviMart domain model — entities, value objects, repository interfaces. No external dependencies.</Description>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

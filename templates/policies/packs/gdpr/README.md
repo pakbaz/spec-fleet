@@ -14,9 +14,9 @@ A redaction-oriented baseline for handling EU/EEA personal data: lawful
 processing principles (Art. 5), data protection by design (Art. 25),
 security of processing (Art. 32), and third-country transfers (Art. 44).
 
-## Control → EAS hook mapping
+## Control → SpecFleet hook mapping
 
-| Article  | Name                                                 | EAS hooks                                                |
+| Article  | Name                                                 | SpecFleet hooks                                                |
 |----------|------------------------------------------------------|----------------------------------------------------------|
 | Art. 5   | Principles relating to processing of personal data   | `ip-guard`, `secret-redaction`, `audit-hashchain`        |
 | Art. 25  | Data protection by design and by default             | `pre-commit-scan`, `ip-guard`                            |
@@ -36,7 +36,7 @@ security of processing (Art. 32), and third-country transfers (Art. 44).
 ## How to enable
 
 ```bash
-eas init --with-pack gdpr
+specfleet init --with-pack gdpr
 ```
 
 Review `egress.json` before allowing non-EEA endpoints — Article 44 requires

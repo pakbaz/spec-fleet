@@ -1,5 +1,5 @@
 /**
- * Policy loaders for `.eas/policies/*.json`.
+ * Policy loaders for `.specfleet/policies/*.json`.
  *
  * Each policy is optional; a missing file is treated as "no enforcement"
  * unless the surrounding feature defines a stricter default (see notes).

@@ -1,4 +1,4 @@
-# EAS Quick Start
+# SpecFleet Quick Start
 
 Get from zero to a working autonomous-agent ALM run in under 10 minutes.
 
@@ -8,33 +8,40 @@ Get from zero to a working autonomous-agent ALM run in under 10 minutes.
 
 | Requirement | Why |
 |---|---|
-| **Node.js ≥ 20** | EAS is ESM + TypeScript |
+| **Node.js ≥ 20** | SpecFleet is ESM + TypeScript |
 | **GitHub Copilot CLI** signed in (`copilot --version`) | The SDK reuses Copilot auth |
 | **A Copilot-enabled GitHub account** (Pro/Business/Enterprise) | Required by the SDK |
-| **Git** | EAS reads `git diff` for `eas review` |
+| **Git** | SpecFleet reads `git diff` for `specfleet review` |
 
-> EAS does **not** ship a separate auth flow. It piggybacks on whatever
+> SpecFleet does **not** ship a separate auth flow. It piggybacks on whatever
 > credentials your local `copilot` CLI has cached.
 
 ---
 
-## 2. Install EAS
+## 2. Install SpecFleet
 
-From source (until we publish to npm):
+From npm:
 
 ```bash
-git clone https://github.com/<your-org>/enterprise-agents-system.git
-cd enterprise-agents-system
+npm install -g @pakbaz/specfleet
+specfleet --version
+```
+
+Or from source:
+
+```bash
+git clone https://github.com/<your-org>/specfleet.git
+cd specfleet
 npm install
 npm run build
-npm link               # exposes `eas` on your PATH
+npm link               # exposes `specfleet` on your PATH
 ```
 
 Verify:
 
 ```bash
-eas --version          # → 0.1.0
-eas --help
+specfleet --version          # → 0.4.0
+specfleet --help
 ```
 
 ---
@@ -44,14 +51,14 @@ eas --help
 ```bash
 mkdir ~/code/todo-api && cd ~/code/todo-api
 git init
-eas init --non-interactive
+specfleet init --non-interactive
 ```
 
 What you get:
 
 ```
-.eas/
-  instruction.md        ← corporate standards (sample Acme Corp included)
+.specfleet/
+  instruction.md        ← corporate standards (sample NoviMart Corp included)
   charters/             ← 29 agent charters (orchestrator + 6 roles + 19 subagents)
   policies/secrets.json ← built-in secret patterns + extension point
   mcp/                  ← scoped MCP server manifests
@@ -66,11 +73,11 @@ What you get:
 Customize the corporate standards before running anything:
 
 ```bash
-$EDITOR .eas/instruction.md       # set your runtimes, frameworks, forbidden libs, contacts
+$EDITOR .specfleet/instruction.md       # set your runtimes, frameworks, forbidden libs, contacts
 ```
 
 > **Tip:** in a real org, drop your team's `instruction.md` into a private
-> repo and pass it via `eas init --instruction /path/to/your-corp.md`. The
+> repo and pass it via `specfleet init --instruction /path/to/your-corp.md`. The
 > file is **immutable** at runtime — agents cannot rewrite it.
 
 ---
@@ -78,10 +85,10 @@ $EDITOR .eas/instruction.md       # set your runtimes, frameworks, forbidden lib
 ## 4. Plan → Implement
 
 ```bash
-eas plan "Build a TODO REST API in Express with file-based JSON storage, full CRUD, request validation, and Vitest tests"
+specfleet plan "Build a TODO REST API in Express with file-based JSON storage, full CRUD, request validation, and Vitest tests"
 ```
 
-The Main Orchestrator returns a YAML task list under `.eas/plans/<timestamp>.md`:
+The Main Orchestrator returns a YAML task list under `.specfleet/plans/<timestamp>.md`:
 
 ```yaml
 ## Tasks
@@ -110,10 +117,10 @@ The Main Orchestrator returns a YAML task list under `.eas/plans/<timestamp>.md`
 Review and edit, then execute:
 
 ```bash
-eas run --all
+specfleet run --all
 ```
 
-EAS spawns each task in an **isolated SDK session** with its own charter
+SpecFleet spawns each task in an **isolated SDK session** with its own charter
 prompt, tool allowlist, and ≤80K token budget. The orchestrator never holds
 the dev's working code; the dev never sees the test runner's stack traces.
 
@@ -123,18 +130,18 @@ the dev's working code; the dev never sees the test runner's stack traces.
 
 ```bash
 cd ~/code/legacy-monolith
-eas init --mode brownfield --non-interactive
+specfleet init --mode brownfield --non-interactive
 ```
 
 Brownfield mode runs a stack heuristic (package.json / pyproject.toml /
-go.mod / pom.xml / Cargo.toml + Dockerfile) and drafts `.eas/project.md` —
+go.mod / pom.xml / Cargo.toml + Dockerfile) and drafts `.specfleet/project.md` —
 the agents' cheat sheet for the codebase. **Edit it** before planning:
 
 ```bash
-eas config edit                            # opens .eas/instruction.md
-$EDITOR .eas/project.md                    # edit the project cheat sheet
-eas plan "Add OpenTelemetry instrumentation to all HTTP handlers"
-eas run --all
+specfleet config edit                            # opens .specfleet/instruction.md
+$EDITOR .specfleet/project.md                    # edit the project cheat sheet
+specfleet plan "Add OpenTelemetry instrumentation to all HTTP handlers"
+specfleet run --all
 ```
 
 ---
@@ -145,41 +152,41 @@ After agents have edited files (or before you commit anything they wrote):
 
 ```bash
 git add -A
-eas review                        # Compliance + Architect re-review the staged diff
+specfleet review                        # Compliance + Architect re-review the staged diff
 ```
 
-Review output is appended to `.eas/decisions.md` and surfaced inline.
+Review output is appended to `.specfleet/decisions.md` and surfaced inline.
 
 ---
 
 ## 7. Observe and audit
 
 ```bash
-eas status                        # snapshot: charters, plans, recent audit, pending gates
-eas log --tail                    # stream JSONL events live
-eas log --since 1h --agent dev/backend
-eas log <sessionId>               # replay one session as a redacted timeline
-eas check                         # validate .eas/ integrity (charter graph, MCP refs, caps)
-eas check --deep                  # also re-verify the audit hash chain
+specfleet status                        # snapshot: charters, plans, recent audit, pending gates
+specfleet log --tail                    # stream JSONL events live
+specfleet log --since 1h --agent dev/backend
+specfleet log <sessionId>               # replay one session as a redacted timeline
+specfleet check                         # validate .specfleet/ integrity (charter graph, MCP refs, caps)
+specfleet check --deep                  # also re-verify the audit hash chain
 ```
 
 Every prompt, tool call, permission decision, and policy block is recorded
-in `.eas/audit/<sessionId>.jsonl`.
+in `.specfleet/audit/<sessionId>.jsonl`.
 
 ---
 
 ## 8. Customize charters and configuration
 
-Everything agent-related lives under `.eas/`. The `eas config` command is
+Everything agent-related lives under `.specfleet/`. The `specfleet config` command is
 the single entry point for inspecting and editing it:
 
 ```bash
-eas config list                                    # every wired config in one table
-eas config show dev                                # print the dev charter
-eas config edit sre                                # open sre charter in $EDITOR
-eas config new charter dev/graphql                 # scaffold a new subagent charter
-eas config validate                                # CI-friendly schema check
-eas config diff                                    # drift vs bundled templates
+specfleet config list                                    # every wired config in one table
+specfleet config show dev                                # print the dev charter
+specfleet config edit sre                                # open sre charter in $EDITOR
+specfleet config new charter dev/graphql                 # scaffold a new subagent charter
+specfleet config validate                                # CI-friendly schema check
+specfleet config diff                                    # drift vs bundled templates
 ```
 
 The mirror to `.github/agents/` is regenerated automatically on save, so
@@ -189,10 +196,10 @@ plain `copilot` users inherit the new agent.
 
 ## 9. CI integration
 
-In your repo root, create `.github/workflows/eas-review.yml`:
+In your repo root, create `.github/workflows/specfleet-review.yml`:
 
 ```yaml
-name: EAS Review
+name: SpecFleet Review
 on: [pull_request]
 jobs:
   review:
@@ -202,16 +209,16 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: npm i -g @pakbaz/eas
-      - run: eas check
-      - run: eas review
+      - run: npm i -g @pakbaz/specfleet
+      - run: specfleet check
+      - run: specfleet review
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 Pair it with a `CODEOWNERS` rule (template at
 `templates/CODEOWNERS.example`) so any PR that touches
-`.eas/instruction.md` requires a security/compliance reviewer.
+`.specfleet/instruction.md` requires a security/compliance reviewer.
 
 ---
 
@@ -219,12 +226,12 @@ Pair it with a `CODEOWNERS` rule (template at
 
 | Symptom | Fix |
 |---|---|
-| `No .eas/ directory found` | Run `eas init` in the repo root |
-| `Charter "x" references missing parent "y"` | Run `eas config validate`; either add `y` or remove the reference |
+| `No .specfleet/ directory found` | Run `specfleet init` in the repo root |
+| `Charter "x" references missing parent "y"` | Run `specfleet config validate`; either add `y` or remove the reference |
 | `TokenBudgetExceededError` | The agent's prompt + history exceeds its `maxContextTokens`. Split the task or raise the cap (≤95K) in its charter. |
 | `policy.block` events in audit log | An agent attempted a write to an immutable path or used a tool outside its allowlist — expected behavior, review the charter |
 | `permissionGate denied: not-in-allowlist` | Add the tool to the charter's `allowedTools` if intended |
-| Agent runs but produces nothing useful | Inspect with `eas log <sessionId>` — every prompt and tool call is there |
+| Agent runs but produces nothing useful | Inspect with `specfleet log <sessionId>` — every prompt and tool call is there |
 
 ---
 

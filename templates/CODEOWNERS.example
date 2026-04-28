@@ -1,3 +1,3 @@
-.eas/instruction.md  @acme-corp/security-leads @acme-corp/compliance
-.eas/charters/        @acme-corp/platform-engineering
-.eas/policies/        @acme-corp/security-leads
+.specfleet/instruction.md  @example-org/security-leads @example-org/compliance
+.specfleet/charters/        @example-org/platform-engineering
+.specfleet/policies/        @example-org/security-leads

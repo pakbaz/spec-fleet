@@ -8,7 +8,7 @@ let tmp: string;
 const cwd = process.cwd();
 
 interface TestPaths {
-  easDir: string;
+  specFleetDir: string;
   decisions: string;
   project: string;
   instruction: string;
@@ -17,16 +17,16 @@ interface TestPaths {
 }
 
 async function setup(): Promise<TestPaths> {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-mcp-"));
-  const easDir = path.join(tmp, ".eas");
-  const chartersDir = path.join(easDir, "charters");
-  const auditDir = path.join(easDir, "audit");
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-mcp-"));
+  const specFleetDir = path.join(tmp, ".specfleet");
+  const chartersDir = path.join(specFleetDir, "charters");
+  const auditDir = path.join(specFleetDir, "audit");
   await fs.mkdir(chartersDir, { recursive: true });
   await fs.mkdir(auditDir, { recursive: true });
-  await fs.writeFile(path.join(easDir, "instruction.md"), "# instruction\n", "utf8");
-  await fs.writeFile(path.join(easDir, "project.md"), "# project\nname: demo\n", "utf8");
+  await fs.writeFile(path.join(specFleetDir, "instruction.md"), "# instruction\n", "utf8");
+  await fs.writeFile(path.join(specFleetDir, "project.md"), "# project\nname: demo\n", "utf8");
   await fs.writeFile(
-    path.join(easDir, "decisions.md"),
+    path.join(specFleetDir, "decisions.md"),
     "## 2024-01-01 · dev · plan · alpha\n\nbody about authentication.\n\n## 2024-01-02 · dev · plan · beta\n\nunrelated paragraph.\n",
     "utf8",
   );
@@ -36,10 +36,10 @@ async function setup(): Promise<TestPaths> {
     "utf8",
   );
   return {
-    easDir,
-    decisions: path.join(easDir, "decisions.md"),
-    project: path.join(easDir, "project.md"),
-    instruction: path.join(easDir, "instruction.md"),
+    specFleetDir,
+    decisions: path.join(specFleetDir, "decisions.md"),
+    project: path.join(specFleetDir, "project.md"),
+    instruction: path.join(specFleetDir, "instruction.md"),
     chartersDir,
     auditDir,
   };
@@ -52,7 +52,7 @@ afterEach(async () => {
   if (tmp) await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas mcp serve — JSON-RPC handler", () => {
+describe("specfleet mcp serve — JSON-RPC handler", () => {
   it("answers initialize", async () => {
     const p = await setup();
     const resp = await handleMcpRequest({ jsonrpc: "2.0", id: 1, method: "initialize" }, p);
@@ -120,10 +120,10 @@ describe("eas mcp serve — JSON-RPC handler", () => {
     const p = await setup();
     const list = await handleMcpRequest({ jsonrpc: "2.0", id: 6, method: "resources/list" }, p);
     const uris = (list!.result as { resources: { uri: string }[] }).resources.map((r) => r.uri);
-    expect(uris).toContain("eas://instruction");
+    expect(uris).toContain("specfleet://instruction");
 
     const read = await handleMcpRequest(
-      { jsonrpc: "2.0", id: 7, method: "resources/read", params: { uri: "eas://project" } },
+      { jsonrpc: "2.0", id: 7, method: "resources/read", params: { uri: "specfleet://project" } },
       p,
     );
     const text = (read!.result as { contents: { text: string }[] }).contents[0]!.text;

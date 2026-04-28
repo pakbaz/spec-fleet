@@ -1,6 +1,0 @@
-{
-  "Acme.Retail.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/pakbaz\/code\/enteprise-agents-system\/sample\/ecommerce-app\/backend\/src\/Acme.Retail.Api",
-  "Acme.Retail.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/pakbaz\/code\/enteprise-agents-system\/sample\/ecommerce-app\/backend\/src\/Acme.Retail.Contracts",
-  "Acme.Retail.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/pakbaz\/code\/enteprise-agents-system\/sample\/ecommerce-app\/backend\/src\/Acme.Retail.Domain",
-  "Acme.Retail.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/pakbaz\/code\/enteprise-agents-system\/sample\/ecommerce-app\/backend\/src\/Acme.Retail.Infrastructure"
-}

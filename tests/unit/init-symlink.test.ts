@@ -7,14 +7,14 @@ import { initCommand } from "../../src/commands/init.js";
 let tmp: string;
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-init-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-init-"));
 });
 
 afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas init --instruction — symlink rejection (regression)", () => {
+describe("specfleet init --instruction — symlink rejection (regression)", () => {
   it("refuses to copy a symlinked source", async () => {
     const real = path.join(tmp, "real.md");
     await fs.writeFile(real, "# real", "utf8");
@@ -49,7 +49,7 @@ describe("eas init --instruction — symlink rejection (regression)", () => {
     // Should not throw.
     await initCommand({ dir: project, nonInteractive: true, instruction: file });
 
-    const dst = await fs.readFile(path.join(project, ".eas", "instruction.md"), "utf8");
+    const dst = await fs.readFile(path.join(project, ".specfleet", "instruction.md"), "utf8");
     expect(dst).toContain("# corp");
   });
 });

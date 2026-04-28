@@ -1,9 +1,9 @@
 ---
 version: "1.0.0"
-organization: "Acme Corp"
+organization: "NoviMart Corp"
 effectiveDate: "2025-01-01"
 owners:
-  - "platform-engineering@acme.example"
+  - "platform-engineering@novimart.example"
 policies:
   coding:
     - "All code MUST follow SOLID principles."
@@ -45,19 +45,19 @@ forbidden:
   - "eval(...)"
   - "shell-injection-prone child_process patterns"
 contacts:
-  security: "secops@acme.example"
-  compliance: "compliance@acme.example"
-  platform: "platform@acme.example"
+  security: "secops@novimart.example"
+  compliance: "compliance@novimart.example"
+  platform: "platform@novimart.example"
 ---
 
-# Acme Corp — Engineering Standards (sample)
+# NoviMart Corp — Engineering Standards (sample)
 
-This is the **immutable** corporate instruction file. All EAS agents read this at
+This is the **immutable** corporate instruction file. All SpecFleet agents read this at
 session start and refuse to violate any policy listed above. Modifying this file
-requires a PR review by `@acme-corp/security-leads` and `@acme-corp/compliance`
+requires a PR review by `@novimart-corp/security-leads` and `@novimart-corp/compliance`
 (enforced by CODEOWNERS at the repo root).
 
 ## How to extend
 1. Open a PR adding rules under the appropriate `policies.*` array.
 2. Required reviewers will be notified automatically.
-3. Once merged, all new agent sessions will pick up the change on next `eas` invocation.
+3. Once merged, all new agent sessions will pick up the change on next `specfleet` invocation.

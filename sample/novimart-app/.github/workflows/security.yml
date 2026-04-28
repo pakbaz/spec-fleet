@@ -1,0 +1,154 @@
+# =============================================================================
+# Security scanning — CodeQL, dependency review, Trivy on container images,
+# and a daily full-repo scan. Secret scanning relies on GitHub Advanced
+# Security (push-protection + repo-wide alerts) — see the README §Security.
+# =============================================================================
+name: security
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * *'   # daily 06:00 UTC full repo scan
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: codeql (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ javascript-typescript, csharp ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET (csharp only)
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+          dotnet-quality: preview
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Build (csharp)
+        if: matrix.language == 'csharp'
+        run: |
+          cd sample/novimart-app
+          dotnet restore backend/NoviMart.sln
+          dotnet build backend/NoviMart.sln --no-restore --configuration Release
+
+      - name: Autobuild (js/ts)
+        if: matrix.language == 'javascript-typescript'
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
+
+  dependency-review:
+    name: dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
+
+  trivy-image:
+    name: trivy (container image)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          cd sample/novimart-app
+          # Use a fallback to .NET 9 in CI if 10 preview tags are unavailable.
+          docker build \
+            --build-arg DOTNET_SDK_TAG=9.0-alpine \
+            --build-arg DOTNET_RUNTIME_TAG=9.0-alpine \
+            -t novimart-api:ci \
+            -f Dockerfile .
+
+      - name: Trivy scan (image)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: novimart-api:ci
+          format: sarif
+          output: trivy-image.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image
+
+  trivy-fs:
+    name: trivy (repo filesystem)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: sample/novimart-app
+          format: sarif
+          output: trivy-fs.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+  secret-scanning-note:
+    name: secret-scanning (GHAS)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Note
+        run: |
+          echo "Secret scanning is enforced repo-wide via GitHub Advanced Security:"
+          echo "  • Push protection blocks commits containing detected secrets."
+          echo "  • Alerts surface in Security → Secret scanning."
+          echo "  • Custom patterns (Cosmos keys, Azure SAS, etc.) configured at org level."
+          echo "This job exists to document the control; no runtime action needed."

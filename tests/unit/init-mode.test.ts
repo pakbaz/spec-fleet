@@ -7,37 +7,50 @@ import { initCommand } from "../../src/commands/init.js";
 let tmp: string;
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-init-mode-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-init-mode-"));
 });
 
 afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas init — v0.3 mode detection & flags", () => {
+describe("specfleet init — v0.4 mode detection & flags", () => {
   it("greenfield: empty dir + --non-interactive scaffolds without prompting", async () => {
     await initCommand({ dir: tmp, nonInteractive: true });
-    const easDir = path.join(tmp, ".eas");
-    expect((await fs.stat(easDir)).isDirectory()).toBe(true);
+    const specFleetDir = path.join(tmp, ".specfleet");
+    expect((await fs.stat(specFleetDir)).isDirectory()).toBe(true);
     // Charter mirroring happens
     const agents = await fs.readdir(path.join(tmp, ".github", "agents"));
     expect(agents.length).toBeGreaterThan(0);
   });
 
-  it("upgrade: re-running with --non-interactive on an existing .eas/ preserves user files", async () => {
+  it("upgrade: re-running with --non-interactive on an existing .specfleet/ preserves user files", async () => {
     await initCommand({ dir: tmp, nonInteractive: true });
     // User edits a skill — must survive upgrade (skills/ is non-charter)
-    const userFile = path.join(tmp, ".eas", "skills", "user-marker.md");
+    const userFile = path.join(tmp, ".specfleet", "skills", "user-marker.md");
     await fs.writeFile(userFile, "marker", "utf8");
     await initCommand({ dir: tmp, nonInteractive: true });
     const stillThere = await fs.readFile(userFile, "utf8").catch(() => null);
     expect(stillThere).toBe("marker");
   });
 
-  it("explicit --mode upgrade works on existing .eas/", async () => {
+  it("explicit --mode upgrade works on existing .specfleet/", async () => {
     await initCommand({ dir: tmp, nonInteractive: true });
     await initCommand({ dir: tmp, nonInteractive: true, mode: "upgrade" });
-    expect((await fs.stat(path.join(tmp, ".eas"))).isDirectory()).toBe(true);
+    expect((await fs.stat(path.join(tmp, ".specfleet"))).isDirectory()).toBe(true);
+  });
+
+  it("legacy .eas/ is migrated to .specfleet/ on upgrade", async () => {
+    const legacyDir = path.join(tmp, ".eas");
+    await fs.mkdir(path.join(legacyDir, "skills"), { recursive: true });
+    await fs.writeFile(path.join(legacyDir, "skills", "legacy.md"), "legacy", "utf8");
+
+    await initCommand({ dir: tmp, nonInteractive: true, mode: "upgrade" });
+
+    await expect(fs.readFile(path.join(tmp, ".specfleet", "skills", "legacy.md"), "utf8")).resolves.toBe(
+      "legacy",
+    );
+    await expect(fs.stat(legacyDir)).resolves.toBeTruthy();
   });
 
   it("--mode overwrite without --force throws", async () => {
@@ -47,9 +60,9 @@ describe("eas init — v0.3 mode detection & flags", () => {
     ).rejects.toThrow(/--force/);
   });
 
-  it("--mode overwrite + --force resets .eas/", async () => {
+  it("--mode overwrite + --force resets .specfleet/", async () => {
     await initCommand({ dir: tmp, nonInteractive: true });
-    const stale = path.join(tmp, ".eas", "skills", "stale-marker.md");
+    const stale = path.join(tmp, ".specfleet", "skills", "stale-marker.md");
     await fs.writeFile(stale, "stale", "utf8");
     await initCommand({ dir: tmp, nonInteractive: true, mode: "overwrite", force: true });
     const gone = await fs.readFile(stale, "utf8").catch(() => null);
@@ -70,18 +83,18 @@ describe("eas init — v0.3 mode detection & flags", () => {
     await fs.mkdir(path.join(tmp, ".git", "hooks"), { recursive: true });
     await initCommand({ dir: tmp, nonInteractive: true });
     const hook = await fs.readFile(path.join(tmp, ".git", "hooks", "pre-commit"), "utf8");
-    expect(hook).toContain("EAS_SCANNER");
-    expect(hook).toContain("eas check --staged");
+    expect(hook).toContain("SPECFLEET_SCANNER");
+    expect(hook).toContain("specfleet check --staged");
   });
 
   it("--hooks-only skips template scaffolding", async () => {
     await fs.mkdir(path.join(tmp, ".git", "hooks"), { recursive: true });
     await initCommand({ dir: tmp, hooksOnly: true });
-    const easExists = await fs
-      .access(path.join(tmp, ".eas"))
+    const specFleetExists = await fs
+      .access(path.join(tmp, ".specfleet"))
       .then(() => true)
       .catch(() => false);
-    expect(easExists).toBe(false);
+    expect(specFleetExists).toBe(false);
     const hookExists = await fs
       .access(path.join(tmp, ".git", "hooks", "pre-commit"))
       .then(() => true)

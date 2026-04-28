@@ -1,17 +1,17 @@
 /**
- * `eas review` — Run Compliance + Architect agents over the current diff.
+ * `specfleet review` — Run Compliance + Architect agents over the current diff.
  * For MVP we collect `git diff --staged` (falling back to working tree) and
  * delegate it to each role agent in an isolated session.
  */
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import chalk from "chalk";
-import { EasRuntime } from "../runtime/index.js";
+import { SpecFleetRuntime } from "../runtime/index.js";
 
 const exec = promisify(execFile);
 
 export async function reviewCommand(): Promise<void> {
-  const rt = await EasRuntime.open();
+  const rt = await SpecFleetRuntime.open();
   try {
     const diff = await collectDiff(rt.root);
     if (!diff.trim()) {

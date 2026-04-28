@@ -1,12 +1,12 @@
 /**
- * `eas charter new|list|validate`
+ * `specfleet config new charter|list|validate`
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
-import { EasRuntime } from "../runtime/index.js";
+import { SpecFleetRuntime } from "../runtime/index.js";
 import { loadAllCharters } from "../runtime/charter.js";
-import { findEasRoot, easPaths, ensureDir } from "../util/paths.js";
+import { findSpecFleetRoot, specFleetPaths, ensureDir } from "../util/paths.js";
 
 interface CharterOptions {
   name?: string;
@@ -22,8 +22,8 @@ export async function charterCommand(action: "new" | "list" | "validate", opts: 
         `Invalid charter name: ${name}. Use kebab-case segments separated by '/' (e.g. dev/frontend).`,
       );
     }
-    const root = await findEasRoot();
-    const p = easPaths(root);
+    const root = await findSpecFleetRoot();
+    const p = specFleetPaths(root);
     const relPath = `${name.includes("/") ? `subagents/${name}` : name}.charter.md`;
     const file = path.resolve(p.chartersDir, relPath);
     // Defense in depth: refuse if resolved path escapes chartersDir.
@@ -47,7 +47,7 @@ export async function charterCommand(action: "new" | "list" | "validate", opts: 
   }
 
   if (action === "list") {
-    const rt = await EasRuntime.open();
+    const rt = await SpecFleetRuntime.open();
     try {
       for (const c of rt.listCharters()) {
         console.log(`${c.tier.padEnd(12)} ${chalk.cyan(c.name.padEnd(30))} cap=${c.maxContextTokens} role=${c.role}`);
@@ -59,8 +59,8 @@ export async function charterCommand(action: "new" | "list" | "validate", opts: 
   }
 
   if (action === "validate") {
-    const root = await findEasRoot();
-    const p = easPaths(root);
+    const root = await findSpecFleetRoot();
+    const p = specFleetPaths(root);
     const charters = await loadAllCharters(p.chartersDir);
     console.log(chalk.green(`✓ ${charters.length} charter(s) valid`));
     return;

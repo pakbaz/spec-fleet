@@ -1,5 +1,5 @@
 {
-  "//": "EAS IP-guard. Blocks or redacts internal codenames / hostnames in tool args & outputs.",
+  "//": "SpecFleet IP-guard. Blocks or redacts internal codenames / hostnames in tool args & outputs.",
   "//mode": "'block' refuses tool calls whose args match; 'redact' replaces matches with [REDACTED:<name>] in args/outputs.",
   "mode": "block",
   "patterns": [

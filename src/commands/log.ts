@@ -1,12 +1,11 @@
 /**
- * `eas log` — v0.3 unified history command. Folds `eas audit tail` and
- * `eas replay` into one verb:
+ * `specfleet log` — v0.4 unified history command. Folds audit tail and
+ * session replay into one verb:
  *
- *   eas log               — tail recent audit events (was `audit tail`)
- *   eas log <sessionId>   — replay a session as a redacted timeline (was `replay`)
+ *   specfleet log               — tail recent audit events
+ *   specfleet log <sessionId>   — replay a session as a redacted timeline
  *
- * Implementation is a thin dispatcher to the existing modules so all
- * v0.2-era tests keep passing untouched.
+ * Implementation is a thin dispatcher to the existing modules.
  */
 import { auditCommand } from "./audit.js";
 import { replayCommand, type ReplayOptions } from "./replay.js";

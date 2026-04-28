@@ -18,7 +18,7 @@ function git(args: string[], opts: { cwd: string }) {
 }
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-precommit-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-precommit-"));
   git(["init", "-q", "-b", "main"], { cwd: tmp });
   git(["config", "user.email", "test@example.com"], { cwd: tmp });
   git(["config", "user.name", "Test"], { cwd: tmp });
@@ -53,11 +53,11 @@ describe("precommit scanStagedDiff", () => {
     expect(r.ok).toBe(true);
   });
 
-  it("respects ip-guard when .eas is present", async () => {
-    await fs.mkdir(path.join(tmp, ".eas", "policies"), { recursive: true });
-    await fs.mkdir(path.join(tmp, ".eas", "charters"), { recursive: true });
+  it("respects ip-guard when .specfleet is present", async () => {
+    await fs.mkdir(path.join(tmp, ".specfleet", "policies"), { recursive: true });
+    await fs.mkdir(path.join(tmp, ".specfleet", "charters"), { recursive: true });
     await fs.writeFile(
-      path.join(tmp, ".eas", "policies", "ip-guard.json"),
+      path.join(tmp, ".specfleet", "policies", "ip-guard.json"),
       JSON.stringify({
         mode: "block",
         patterns: [{ name: "codename", regex: "Project Atlas", flags: "g" }],
@@ -80,7 +80,7 @@ describe("install-hooks command", () => {
     // executable bit
     expect(st.mode & 0o111).toBeGreaterThan(0);
     const content = await fs.readFile(hookPath, "utf8");
-    expect(content).toMatch(/EAS_SCANNER/);
+    expect(content).toMatch(/SPECFLEET_SCANNER/);
     expect(content).toMatch(/precommit-scan/);
   });
 
@@ -102,6 +102,6 @@ describe("install-hooks command", () => {
     await fs.writeFile(hookPath, "#!/bin/sh\necho 'someone else lives here'\n");
     await installHooksCommand({ dir: tmp, force: true });
     const after = await fs.readFile(hookPath, "utf8");
-    expect(after).toMatch(/EAS_SCANNER/);
+    expect(after).toMatch(/SPECFLEET_SCANNER/);
   });
 });

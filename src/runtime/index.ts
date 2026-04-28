@@ -1,5 +1,5 @@
 /**
- * EasRuntime — top-level orchestrator. Loads .eas/, instantiates the SDK client,
+ * SpecFleetRuntime — top-level orchestrator. Loads .specfleet/, instantiates the SDK client,
  * and exposes high-level operations (plan / spawn / delegate / review).
  */
 import path from "node:path";
@@ -7,8 +7,8 @@ import { promises as fs } from "node:fs";
 import { CopilotClient } from "@github/copilot-sdk";
 import { loadAllCharters, mirrorCharters } from "./charter.js";
 import { AuditLog } from "./audit.js";
-import { EasSession } from "./session.js";
-import { findEasRoot, easPaths, ensureDir, readMaybe } from "../util/paths.js";
+import { SpecFleetSession } from "./session.js";
+import { findSpecFleetRoot, specFleetPaths, ensureDir, readMaybe } from "../util/paths.js";
 import { loadCustomPatterns, redact } from "../util/secrets.js";
 import {
   loadEgressPolicy,
@@ -29,11 +29,11 @@ export interface DelegateResult {
   redactedSecrets: number;
 }
 
-export class EasRuntime {
+export class SpecFleetRuntime {
   private client: CopilotClient | null = null;
   private charters: Charter[] = [];
   private chartersByName = new Map<string, Charter>();
-  readonly paths: ReturnType<typeof easPaths>;
+  readonly paths: ReturnType<typeof specFleetPaths>;
   readonly audit: AuditLog;
   egress: EgressPolicy | null = null;
   ipGuard: CompiledIpGuard | null = null;
@@ -41,13 +41,13 @@ export class EasRuntime {
   offline = false;
 
   private constructor(public readonly root: string) {
-    this.paths = easPaths(root);
+    this.paths = specFleetPaths(root);
     this.audit = new AuditLog(this.paths.auditDir);
   }
 
-  static async open(start: string = process.cwd()): Promise<EasRuntime> {
-    const root = await findEasRoot(start);
-    const rt = new EasRuntime(root);
+  static async open(start: string = process.cwd()): Promise<SpecFleetRuntime> {
+    const root = await findSpecFleetRoot(start);
+    const rt = new SpecFleetRuntime(root);
     await rt.load();
     return rt;
   }
@@ -102,11 +102,11 @@ export class EasRuntime {
     return this.client;
   }
 
-  async spawn(charterName: string): Promise<EasSession> {
+  async spawn(charterName: string): Promise<SpecFleetSession> {
     const charter = this.charter(charterName);
     const client = await this.ensureClient();
     const immutablePaths = [this.paths.instruction];
-    return EasSession.create(client, {
+    return SpecFleetSession.create(client, {
       charter,
       workingDirectory: this.root,
       audit: this.audit,

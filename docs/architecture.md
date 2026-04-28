@@ -1,4 +1,4 @@
-# EAS Architecture
+# SpecFleet Architecture
 
 ## Three-tier hierarchy
 
@@ -24,10 +24,10 @@ Each tier runs in an **isolated SDK session**:
 | Layer | Mechanism |
 |---|---|
 | Per-charter cap | `maxContextTokens` in frontmatter (≤ 95K) |
-| Pre-flight check | `EasSession.ask()` estimates + blocks at cap |
+| Pre-flight check | `SpecFleetSession.ask()` estimates + blocks at cap |
 | Compaction | SDK `infiniteSessions: { enabled: true }` |
-| Cross-agent memory | `.eas/decisions.md` + `.eas/checkpoints/` |
-| RAG (Phase 2) | `.eas/index/` — agents query, never dump |
+| Cross-agent memory | `.specfleet/decisions.md` + `.specfleet/checkpoints/` |
+| RAG (Phase 2) | `.specfleet/index/` — agents query, never dump |
 
 ## Governance
 
@@ -38,17 +38,17 @@ Each tier runs in an **isolated SDK session**:
 | MCP scope | Per-charter `mcpServers` list; `doctor` verifies manifests |
 | Secret redaction | `redact()` over delegate output before parent sees it |
 | Human gates | Per-charter `requiresHumanGate: true` |
-| Audit | JSONL stream per session in `.eas/audit/` |
+| Audit | JSONL stream per session in `.specfleet/audit/` |
 
 ## Brownfield routing
 
-`eas onboard` runs a heuristic detector (package.json / pyproject.toml /
+`specfleet onboard` runs a heuristic detector (package.json / pyproject.toml /
 go.mod / pom.xml / Cargo.toml + Dockerfile) and drafts a `project.md`. Phase 2
 will replace this with an Architect-driven RAG-indexed analyzer.
 
 ## Modernization (Phase 3)
 
-`eas modernize` will load the existing project, generate a wave plan, and
+`specfleet modernize` will load the existing project, generate a wave plan, and
 dispatch each wave through the orchestrator. Long-running waves shell out to
 `copilot --no-interactive -p '<brief>' --agent <name>` (read-heavy parallelism)
 or `copilot /delegate` for cloud execution.

@@ -15,7 +15,7 @@ import {
 let tmp: string;
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-policies-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-policies-"));
 });
 afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });

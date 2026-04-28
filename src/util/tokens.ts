@@ -2,9 +2,9 @@
  * Token estimation. We avoid heavyweight tiktoken at runtime; the rough heuristic
  * `chars / 4` is well-established for English-heavy prompts and is fine for budget
  * gating. Charters with multilingual content can override the heuristic via
- * EAS_TOKEN_RATIO.
+ * SPECFLEET_TOKEN_RATIO.
  */
-const RATIO = Number(process.env.EAS_TOKEN_RATIO ?? "4");
+const RATIO = Number(process.env.SPECFLEET_TOKEN_RATIO ?? "4");
 
 export function estimateTokens(text: string): number {
   if (!text) return 0;

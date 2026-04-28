@@ -1,0 +1,27 @@
+# Sample NoviMart CODEOWNERS
+# Copy to .github/CODEOWNERS at the repo root to take effect.
+
+# Default owners
+*                                @novimart/platform-engineering
+
+# Immutable SpecFleet artifacts — restricted to security and compliance
+.specfleet/instruction.md              @novimart/security-leads @novimart/compliance
+.specfleet/policies/                   @novimart/security-leads @novimart/compliance
+.specfleet/charters/                   @novimart/platform-engineering
+.specfleet/charters/subagents/compliance/   @novimart/security-leads @novimart/compliance
+
+# Backend
+backend/                         @novimart/backend-team
+backend/src/NoviMart.Infrastructure/Payments/   @novimart/payments-team @novimart/compliance
+
+# Frontend
+frontend/                        @novimart/frontend-team
+
+# Infrastructure as code
+infra/                           @novimart/platform-engineering @novimart/security-leads
+.github/workflows/               @novimart/platform-engineering
+
+# Compliance docs
+docs/pci-scope-boundary.md       @novimart/compliance
+docs/gdpr-data-flows.md          @novimart/compliance @novimart/dpo
+docs/zero-trust-controls.md      @novimart/security-leads

@@ -59,9 +59,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)
         run: |
           PKG=$(node -p "require('./package.json').version")
-          if npm view "@pakbaz/eas@${PKG}" version >/dev/null 2>&1; then
+          if npm view "@pakbaz/specfleet@${PKG}" version >/dev/null 2>&1; then
             echo "already_published=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::@pakbaz/eas@${PKG} is already on npm — skipping publish."
+            echo "::notice::@pakbaz/specfleet@${PKG} is already on npm — skipping publish."
           else
             echo "already_published=false" >> "$GITHUB_OUTPUT"
           fi

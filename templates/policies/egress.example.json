@@ -1,5 +1,5 @@
 {
-  "//": "EAS egress allowlist. Comments-as-keys (// or #) are stripped at load.",
+  "//": "SpecFleet egress allowlist. Comments-as-keys (// or #) are stripped at load.",
   "//doc": "Hosts can be exact ('api.github.com'), with port ('api.github.com:443'), or subdomain wildcards ('*.github.com'). Empty 'allow' = deny-all.",
   "allow": [
     "api.github.com",

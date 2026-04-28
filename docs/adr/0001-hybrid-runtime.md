@@ -22,9 +22,9 @@ Three options were evaluated:
    audit, or redact.
 
 ## Decision
-Adopt option (1) + (3): a **TypeScript `eas` CLI** built on `@github/copilot-sdk`
-plus a **`.eas/` repo-resident schema**. The runtime is the only path to the
-SDK; charters in `.eas/charters/` are the source of truth and are mirrored to
+Adopt option (1) + (3): a **TypeScript `specfleet` CLI** built on `@github/copilot-sdk`
+plus a **`.specfleet/` repo-resident schema**. The runtime is the only path to the
+SDK; charters in `.specfleet/charters/` are the source of truth and are mirrored to
 `.github/agents/` for graceful degradation when devs run `copilot` directly.
 
 ## Consequences
@@ -32,5 +32,5 @@ SDK; charters in `.eas/charters/` are the source of truth and are mirrored to
 + Everything reviewable in PR (charters + policies + mcp + skills).
 + Graceful degradation via mirror.
 - Higher build effort than a pure wrapper.
-- Two surfaces (`eas` *and* `copilot`) — must keep mirror in sync (handled by
-  `mirrorCharters` on every `EasRuntime.open()`).
+- Two surfaces (`specfleet` *and* `copilot`) — must keep mirror in sync (handled by
+  `mirrorCharters` on every `SpecFleetRuntime.open()`).

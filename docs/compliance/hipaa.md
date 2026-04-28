@@ -1,16 +1,16 @@
-# HIPAA — EAS Coverage
+# HIPAA — SpecFleet Coverage
 
 The U.S. **Health Insurance Portability and Accountability Act (HIPAA)
 Security Rule** (45 CFR Part 164, Subpart C) sets administrative, physical,
 and technical safeguards for electronic Protected Health Information
-(ePHI). EAS focuses on the technical safeguards in §164.312 and a subset of
+(ePHI). SpecFleet focuses on the technical safeguards in §164.312 and a subset of
 administrative safeguards in §164.308 that AI agents directly affect. The
 HIPAA pack ships in **block mode** — violations halt the operation rather
 than redacting it.
 
 ## Coverage matrix
 
-| Control          | Control name                       | EAS hook                                  | Coverage notes                                                                       |
+| Control          | Control name                       | SpecFleet hook                                  | Coverage notes                                                                       |
 |------------------|------------------------------------|-------------------------------------------|--------------------------------------------------------------------------------------|
 | 164.308(a)(1)    | Security management process        | `audit-hashchain`, `pre-commit-scan`      | Audit chain supports risk analysis and review; pre-commit gate enforces sanctions.   |
 | 164.308(a)(4)    | Information access management      | `egress-allowlist`, `ip-guard`            | Default-deny egress + PHI pattern detection enforce minimum-necessary access.        |
@@ -22,10 +22,10 @@ than redacting it.
 ## How to enable
 
 ```bash
-eas init --with-pack hipaa
+specfleet init --with-pack hipaa
 ```
 
-After enabling, edit `.eas/policies/packs/hipaa/egress.json` and add only
+After enabling, edit `.specfleet/policies/packs/hipaa/egress.json` and add only
 endpoints covered by an executed Business Associate Agreement (BAA).
 
 ## Disclaimer

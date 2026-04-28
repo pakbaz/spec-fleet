@@ -28,30 +28,30 @@ jobs:
       - name: Pack and smoke-test
         run: |
           npm pack
-          TGZ=$(ls pakbaz-eas-*.tgz)
-          mkdir -p /tmp/eas-smoke && cd /tmp/eas-smoke
+          TGZ=$(ls pakbaz-specfleet-*.tgz)
+          mkdir -p /tmp/specfleet-smoke && cd /tmp/specfleet-smoke
           npm init -y >/dev/null
           npm install --no-audit --no-fund "$GITHUB_WORKSPACE/$TGZ"
           mkdir target && cd target
-          ../node_modules/.bin/eas --version
-          ../node_modules/.bin/eas init --non-interactive
-          test -d .eas/charters
-          test -d .eas/policies
-          test -f .eas/instruction.md
-          # v0.2 surface: new commands respond
-          ../node_modules/.bin/eas mcp serve --help
-          ../node_modules/.bin/eas eval --help
-          ../node_modules/.bin/eas tune --help
-          ../node_modules/.bin/eas audit verify --help
-          ../node_modules/.bin/eas spec new smoke-spec
-          test -f .eas/specs/smoke-spec.spec.md
-          ../node_modules/.bin/eas audit verify --all
+          ../node_modules/.bin/specfleet --version
+          ../node_modules/.bin/specfleet init --non-interactive
+          test -d .specfleet/charters
+          test -d .specfleet/policies
+          test -f .specfleet/instruction.md
+          # v0.4 surface: simplified commands respond
+          ../node_modules/.bin/specfleet mcp serve --help
+          ../node_modules/.bin/specfleet check --help
+          ../node_modules/.bin/specfleet log --help
+          ../node_modules/.bin/specfleet config --help
+          ../node_modules/.bin/specfleet spec new smoke-spec
+          test -f .specfleet/specs/smoke-spec.spec.md
+          ../node_modules/.bin/specfleet check --audit
           # v0.2 compliance packs ship
-          test -d .eas/policies/packs/soc2
-          test -d .eas/policies/packs/hipaa
-          test -d .eas/policies/packs/pci-dss
-          test -d .eas/policies/packs/iso27001
-          test -d .eas/policies/packs/gdpr
-          # Air-gap: the CLI must boot with EAS_OFFLINE=1
-          EAS_OFFLINE=1 ../node_modules/.bin/eas --version
-          EAS_OFFLINE=1 ../node_modules/.bin/eas doctor || true
+          test -d .specfleet/policies/packs/soc2
+          test -d .specfleet/policies/packs/hipaa
+          test -d .specfleet/policies/packs/pci-dss
+          test -d .specfleet/policies/packs/iso27001
+          test -d .specfleet/policies/packs/gdpr
+          # Air-gap: the CLI must boot with SPECFLEET_OFFLINE=1
+          SPECFLEET_OFFLINE=1 ../node_modules/.bin/specfleet --version
+          SPECFLEET_OFFLINE=1 ../node_modules/.bin/specfleet check || true

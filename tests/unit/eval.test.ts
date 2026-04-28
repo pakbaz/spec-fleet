@@ -9,23 +9,23 @@ let tmp: string;
 const cwd = process.cwd();
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-eval-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-eval-"));
   await initCommand({ dir: tmp, nonInteractive: true });
   process.chdir(tmp);
-  process.env.EAS_EVAL_MOCK = "1";
+  process.env.SPECFLEET_EVAL_MOCK = "1";
 });
 
 afterEach(async () => {
-  delete process.env.EAS_EVAL_MOCK;
+  delete process.env.SPECFLEET_EVAL_MOCK;
   process.chdir(cwd);
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas eval (EAS_EVAL_MOCK=1)", () => {
+describe("specfleet check --eval (SPECFLEET_EVAL_MOCK=1)", () => {
   it("falls back to starter benchmarks and writes scoreboard", async () => {
     const results = await evalCommand({});
     expect(results.length).toBeGreaterThanOrEqual(5);
-    const scoreboard = path.join(tmp, ".eas", "eval", "scoreboard.jsonl");
+    const scoreboard = path.join(tmp, ".specfleet", "eval", "scoreboard.jsonl");
     const raw = await fs.readFile(scoreboard, "utf8");
     const lines = raw.trim().split("\n").filter(Boolean);
     expect(lines.length).toBe(results.length);
@@ -48,7 +48,7 @@ describe("eas eval (EAS_EVAL_MOCK=1)", () => {
 
   it("scores not_contains forbidden words", async () => {
     // Create a custom benchmark that should fail because the prompt itself contains 'forbidden'.
-    const benchDir = path.join(tmp, ".eas", "eval", "benchmarks");
+    const benchDir = path.join(tmp, ".specfleet", "eval", "benchmarks");
     await fs.mkdir(benchDir, { recursive: true });
     await fs.writeFile(
       path.join(benchDir, "fails.md"),

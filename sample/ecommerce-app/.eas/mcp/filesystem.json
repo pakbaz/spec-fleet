@@ -1,9 +1,0 @@
-{
-  "$schema": "https://example.com/eas/mcp-manifest.schema.json",
-  "name": "filesystem",
-  "displayName": "Local filesystem MCP",
-  "description": "Scoped filesystem access — read/write only within the workspace.",
-  "command": "npx",
-  "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
-  "scope": "workspace"
-}

@@ -1,5 +1,5 @@
 /**
- * JSONL audit logger — one file per session under .eas/audit/.
+ * JSONL audit logger — one file per session under .specfleet/audit/.
  *
  * v0.2: tamper-evident hash chain. Every event carries `seq`, `prevHash`, and
  * `hash`. `hash = sha256(prevHash + ":" + canonicalize(event_without_hash))`.

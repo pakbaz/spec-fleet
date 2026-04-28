@@ -35,7 +35,7 @@ Link to source signals (issue #, customer interview, incident).
 
 ### Charters & subagents
 
-Which EAS charters will execute this spec (e.g. `dev/backend`, `test`,
+Which SpecFleet charters will execute this spec (e.g. `dev/backend`, `test`,
 `compliance`). Note any new subagent that needs scaffolding.
 
 ## Risks
@@ -45,6 +45,6 @@ Which EAS charters will execute this spec (e.g. `dev/backend`, `test`,
 
 ## Done When
 
-- All acceptance criteria green in `eas eval`.
-- Compliance review signed off (decision logged in `.eas/decisions.md`).
+- All acceptance criteria green in `specfleet check --eval`.
+- Compliance review signed off (decision logged in `.specfleet/decisions.md`).
 - Runbook updated (if SRE-impacting).

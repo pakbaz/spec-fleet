@@ -1,21 +1,21 @@
 /**
- * `eas status` — Summarize charters, recent audit events, and any pending
+ * `specfleet status` — Summarize charters, recent audit events, and any pending
  * gates from the decisions log.
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
-import { EasRuntime } from "../runtime/index.js";
+import { SpecFleetRuntime } from "../runtime/index.js";
 
 export async function statusCommand(): Promise<void> {
-  const rt = await EasRuntime.open();
+  const rt = await SpecFleetRuntime.open();
   try {
-    console.log(chalk.bold(`EAS @ ${rt.root}`));
+    console.log(chalk.bold(`SpecFleet @ ${rt.root}`));
     const project = await rt.readProject();
     if (project) {
       console.log(`  project: ${chalk.cyan(project.name)} (${project.mode}, ${project.primaryLanguage}/${project.runtime})`);
     } else {
-      console.log(chalk.yellow(`  no project.md (run eas init)`));
+      console.log(chalk.yellow(`  no project.md (run specfleet init)`));
     }
 
     const charters = rt.listCharters();

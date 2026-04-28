@@ -9,7 +9,7 @@ let tmp: string;
 const cwd = process.cwd();
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-tune-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-tune-"));
   await initCommand({ dir: tmp, nonInteractive: true });
   process.chdir(tmp);
 });
@@ -19,14 +19,14 @@ afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas tune", () => {
+describe("specfleet check --tune", () => {
   it("returns null when scoreboard is empty", async () => {
     const out = await tuneCommand({});
     expect(out).toBeNull();
   });
 
   it("writes a diff for the worst charters", async () => {
-    const evalDir = path.join(tmp, ".eas", "eval");
+    const evalDir = path.join(tmp, ".specfleet", "eval");
     await fs.mkdir(evalDir, { recursive: true });
     const rows = [
       { ts: "2024-01-01T00:00:00Z", id: "a", charter: "dev", pass: false, failures: ['forbidden:"password"'], duration_ms: 10 },
@@ -53,7 +53,7 @@ describe("eas tune", () => {
   });
 
   it("--since filters older rows", async () => {
-    const evalDir = path.join(tmp, ".eas", "eval");
+    const evalDir = path.join(tmp, ".specfleet", "eval");
     await fs.mkdir(evalDir, { recursive: true });
     const rows = [
       { ts: "2023-01-01T00:00:00Z", id: "old", charter: "dev", pass: false, failures: ['forbidden:"x"'], duration_ms: 10 },

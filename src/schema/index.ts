@@ -1,5 +1,5 @@
 /**
- * Zod schemas for .eas/ artifacts. The runtime validates every charter, instruction,
+ * Zod schemas for .specfleet/ artifacts. The runtime validates every charter, instruction,
  * and project file against these before any agent session is created.
  */
 import { z } from "zod";
@@ -86,15 +86,15 @@ export const CharterSchema = z.object({
   tier: CharterTierSchema,
   parent: z.string().optional(),
   description: z.string().min(1),
-  // Token budget enforced by EAS runtime. Hard ceiling 95K (5K headroom under 100K).
+  // Token budget enforced by SpecFleet runtime. Hard ceiling 95K (5K headroom under 100K).
   maxContextTokens: z.number().int().positive().max(95_000).default(80_000),
   // Allowlist of CLI/SDK tool names. Anything else is excludedTools at session boundary.
   allowedTools: z.array(z.string()).default([]),
   // Subagents this charter may spawn. Used to plan delegation graph.
   spawns: z.array(z.string()).default([]),
-  // MCP servers this charter is allowed to use, by manifest name in .eas/mcp/.
+  // MCP servers this charter is allowed to use, by manifest name in .specfleet/mcp/.
   mcpServers: z.array(z.string()).default([]),
-  // Skills to lazy-load on demand (filenames in .eas/skills/, no extension).
+  // Skills to lazy-load on demand (filenames in .specfleet/skills/, no extension).
   skills: z.array(z.string()).default([]),
   // Model selection. Optional; runtime picks a default if absent.
   model: z.string().optional(),
@@ -102,7 +102,7 @@ export const CharterSchema = z.object({
   requiresHumanGate: z.boolean().default(false),
   // The free-form prompt body (everything after the YAML frontmatter).
   body: z.string().min(20),
-  // Optional cryptographic signature over the charter (full v0.3 sigstore wiring;
+  // Optional cryptographic signature over the charter (full v0.4 sigstore wiring;
   // v0.2 ships the schema + verifier hook only).
   signature: z.string().optional(),
   signed_by: z.string().optional(),

@@ -1,16 +1,16 @@
 /**
- * `eas sre triage` — Dispatches the `sre` charter to triage recent failures.
+ * `specfleet sre triage` — Dispatches the `sre` charter to triage recent failures.
  * Inputs: an optional SARIF file (defaults to globbing **\/*.sarif) and the
  * last 50 audit events with kind=error/policy.block. Output: a triage report
- * written to .eas/triage/<ISO>.md.
+ * written to .specfleet/triage/<ISO>.md.
  *
- * Set EAS_SRE_MOCK=1 to skip live SDK delegation (tests / offline).
+ * Set SPECFLEET_SRE_MOCK=1 to skip live SDK delegation (tests / offline).
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
 import fg from "fast-glob";
-import { EasRuntime } from "../runtime/index.js";
+import { SpecFleetRuntime } from "../runtime/index.js";
 import { ensureDir, writeFileAtomic, readMaybe } from "../util/paths.js";
 
 export interface SreOptions {
@@ -20,7 +20,7 @@ export interface SreOptions {
 export async function sreCommand(action: "triage", opts: SreOptions): Promise<void> {
   if (action !== "triage") throw new Error(`Unknown sre action: ${action}`);
 
-  const rt = await EasRuntime.open();
+  const rt = await SpecFleetRuntime.open();
   try {
     const sarifContent = await collectSarif(rt.root, opts.sarif);
     const events = await rt.audit.readAll();
@@ -43,7 +43,7 @@ export async function sreCommand(action: "triage", opts: SreOptions): Promise<vo
     ].join("\n");
 
     let report: string;
-    if (process.env.EAS_SRE_MOCK === "1") {
+    if (process.env.SPECFLEET_SRE_MOCK === "1") {
       report = `# Triage (mock)\n\n${failures.length} failure(s) reviewed. SARIF: ${
         sarifContent ? "present" : "absent"
       }.\n`;
@@ -53,7 +53,7 @@ export async function sreCommand(action: "triage", opts: SreOptions): Promise<vo
     }
 
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    const triageDir = path.join(rt.paths.easDir, "triage");
+    const triageDir = path.join(rt.paths.specFleetDir, "triage");
     await ensureDir(triageDir);
     const outPath = path.join(triageDir, `${ts}.md`);
     await writeFileAtomic(outPath, `# SRE Triage ${ts}\n\n${report}\n`);

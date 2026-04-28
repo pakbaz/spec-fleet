@@ -1,12 +1,12 @@
 /**
- * `eas plan <goal>` — Ask the orchestrator to decompose a goal into role-agent
- * tasks. Writes a markdown plan to .eas/plans/<timestamp>.md.
+ * `specfleet plan <goal>` — Ask the orchestrator to decompose a goal into role-agent
+ * tasks. Writes a markdown plan to .specfleet/plans/<timestamp>.md.
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
 import ora from "ora";
-import { EasRuntime } from "../runtime/index.js";
+import { SpecFleetRuntime } from "../runtime/index.js";
 import { readSpec } from "./spec.js";
 
 interface PlanOptions {
@@ -27,14 +27,14 @@ export async function planCommand(goal: string, opts: PlanOptions): Promise<void
     }
   }
   if (!effectiveGoal.trim()) throw new Error("goal is required (or pass --from-spec <id>)");
-  const rt = await EasRuntime.open();
+  const rt = await SpecFleetRuntime.open();
   const spinner = ora(`Planning: ${chalk.bold(effectiveGoal)}`).start();
   try {
     const orchestrator = await rt.spawn(rt.rootCharter().name);
     const project = await rt.readProject();
     const projectCtx = project
       ? `<project>\n${JSON.stringify(project, null, 2)}\n</project>`
-      : "<project>(not initialized — run eas init)</project>";
+      : "<project>(not initialized — run specfleet init)</project>";
 
     const prompt = [
       projectCtx,

@@ -1,6 +1,6 @@
 /**
  * Secret detection. Defense-in-depth on tool inputs/outputs. Patterns kept in one
- * place so they are auditable and can be extended via .eas/policies/secrets.json.
+ * place so they are auditable and can be extended via .specfleet/policies/secrets.json.
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";

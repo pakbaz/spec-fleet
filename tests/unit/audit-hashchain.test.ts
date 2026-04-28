@@ -7,7 +7,7 @@ import { AuditLog } from "../../src/runtime/audit.js";
 let tmp: string;
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-audit-hash-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-audit-hash-"));
 });
 afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });

@@ -1,9 +1,9 @@
 /**
  * Architect guided interview — collects project metadata via stdin (or prefilled
- * answers from EAS_INTERVIEW_JSON for non-interactive smoke tests) and writes
- * .eas/project.md.
+ * answers from SPECFLEET_INTERVIEW_JSON for non-interactive smoke tests) and writes
+ * .specfleet/project.md.
  *
- * In a future phase this will be implemented as a real EAS subagent that asks the
+ * In a future phase this will be implemented as a real SpecFleet subagent that asks the
  * user via session.ui.elicitation. For MVP we use a deterministic interview to
  * keep tests stable.
  */
@@ -12,16 +12,16 @@ import { promises as fs } from "node:fs";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import matter from "gray-matter";
-import { easPaths } from "../util/paths.js";
+import { specFleetPaths } from "../util/paths.js";
 import { ProjectSchema, type Project } from "../schema/index.js";
 
 export async function runInterview(root: string): Promise<Project> {
-  const p = easPaths(root);
+  const p = specFleetPaths(root);
   let answers: Partial<Project> | null = null;
 
-  // Test escape hatch: EAS_INTERVIEW_JSON='{...}' bypasses prompts.
-  if (process.env.EAS_INTERVIEW_JSON) {
-    answers = JSON.parse(process.env.EAS_INTERVIEW_JSON) as Partial<Project>;
+  // Test escape hatch: SPECFLEET_INTERVIEW_JSON='{...}' bypasses prompts.
+  if (process.env.SPECFLEET_INTERVIEW_JSON) {
+    answers = JSON.parse(process.env.SPECFLEET_INTERVIEW_JSON) as Partial<Project>;
   } else if (input.isTTY) {
     answers = await prompt();
   } else {

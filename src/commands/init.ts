@@ -1,11 +1,12 @@
 /**
- * `eas init` — v0.3 unified bootstrap. Detects on-disk state and offers:
+ * `specfleet init` — v0.4 unified bootstrap. Detects on-disk state and offers:
  *
  *   • greenfield  — empty repo, scaffold templates + run guided interview
- *   • brownfield  — code present, no .eas/, scaffold + analyze + draft project.md
- *   • modify      — code present, no .eas/, scaffold without analysis (bare)
- *   • upgrade     — .eas/ exists, refresh templates non-destructively
- *   • overwrite   — .eas/ exists, full reset (requires --force)
+ *   • brownfield  — code present, no .specfleet/, scaffold + analyze + draft project.md
+ *   • modify      — code present, no .specfleet/, scaffold without analysis (bare)
+ *   • upgrade     — .specfleet/ exists, refresh templates non-destructively
+ *                  or legacy .eas/ exists, migrate it to .specfleet/
+ *   • overwrite   — .specfleet/ exists, full reset (requires --force)
  *
  * Always installs the git pre-commit hook when `.git/` is present, unless
  * `--no-hooks` is passed.
@@ -19,7 +20,7 @@ import { promises as fs } from "node:fs";
 import { fileURLToPath } from "node:url";
 import readline from "node:readline/promises";
 import chalk from "chalk";
-import { ensureDir, easPaths, readMaybe } from "../util/paths.js";
+import { ensureDir, specFleetPaths, readMaybe } from "../util/paths.js";
 import { mirrorCharters, loadAllCharters } from "../runtime/charter.js";
 import { runInterview } from "../runtime/interview.js";
 
@@ -53,9 +54,9 @@ const CODE_MARKERS = [
 
 export async function initCommand(opts: InitOptions): Promise<void> {
   const root = path.resolve(opts.dir ?? process.cwd());
-  const p = easPaths(root);
+  const p = specFleetPaths(root);
 
-  // --hooks-only is a fast-path for `eas install-hooks` callers.
+  // --hooks-only is a fast-path for `specfleet init --hooks-only` callers.
   if (opts.hooksOnly) {
     const { installHooksCommand } = await import("./install-hooks.js");
     await installHooksCommand({ dir: root, force: opts.force });
@@ -66,16 +67,17 @@ export async function initCommand(opts: InitOptions): Promise<void> {
   const state = await detectState(root);
   const mode = await chooseMode(state, opts);
 
-  console.log(chalk.cyan(`▸ Initializing EAS in ${root}  (mode: ${mode})`));
+  console.log(chalk.cyan(`▸ Initializing SpecFleet in ${root}  (mode: ${mode})`));
 
   // 2. Branch on mode.
   if (mode === "overwrite") {
     if (!opts.force) {
-      throw new Error("--mode overwrite requires --force (it will delete .eas/)");
+      throw new Error("--mode overwrite requires --force (it will delete .specfleet/)");
     }
-    await fs.rm(p.easDir, { recursive: true, force: true });
+    await fs.rm(p.specFleetDir, { recursive: true, force: true });
     await scaffoldTemplates(p);
   } else if (mode === "upgrade") {
+    await migrateLegacyEas(root, p);
     // Refresh bundled templates non-destructively. User-edited charters/specs/audit
     // are preserved (copyDirRecursive skips files that already exist).
     await scaffoldTemplates(p);
@@ -130,23 +132,25 @@ export async function initCommand(opts: InitOptions): Promise<void> {
   // 7. Friendly next-step.
   const next =
     mode === "upgrade"
-      ? "eas check"
+      ? "specfleet check"
       : mode === "brownfield"
-        ? "review .eas/project.md, then `eas review`"
-        : 'eas plan "<your goal>"';
+        ? "review .specfleet/project.md, then `specfleet review`"
+        : 'specfleet plan "<your goal>"';
   console.log(chalk.green(`✓ Initialized (${mode}). Next: ${next}`));
 }
 
 // -- state detection ---------------------------------------------------------
 
 interface RepoState {
-  hasEas: boolean;
+  hasSpecFleet: boolean;
+  hasLegacyEas: boolean;
   hasCode: boolean;
   isEmpty: boolean;
 }
 
 async function detectState(root: string): Promise<RepoState> {
-  const hasEas = await pathExists(path.join(root, ".eas"));
+  const hasSpecFleet = await pathExists(path.join(root, ".specfleet"));
+  const hasLegacyEas = await pathExists(path.join(root, ".eas"));
   let hasCode = false;
   for (const m of CODE_MARKERS) {
     if (await pathExists(path.join(root, m))) {
@@ -158,13 +162,13 @@ async function detectState(root: string): Promise<RepoState> {
   try {
     const entries = await fs.readdir(root);
     const meaningful = entries.filter(
-      (e) => e !== ".git" && e !== ".DS_Store" && !e.startsWith(".eas"),
+      (e) => e !== ".git" && e !== ".DS_Store" && !e.startsWith(".specfleet") && !e.startsWith(".eas"),
     );
     isEmpty = meaningful.length === 0;
   } catch {
     isEmpty = true;
   }
-  return { hasEas, hasCode, isEmpty };
+  return { hasSpecFleet, hasLegacyEas, hasCode, isEmpty };
 }
 
 async function chooseMode(state: RepoState, opts: InitOptions): Promise<InitMode> {
@@ -174,7 +178,7 @@ async function chooseMode(state: RepoState, opts: InitOptions): Promise<InitMode
   // Non-interactive defaults — these match v0.2 behaviour for the existing
   // test fixtures (empty tmpdir → greenfield, no prompts).
   if (opts.nonInteractive) {
-    if (state.hasEas) return "upgrade";
+    if (state.hasSpecFleet || state.hasLegacyEas) return "upgrade";
     return "greenfield";
   }
 
@@ -182,11 +186,18 @@ async function chooseMode(state: RepoState, opts: InitOptions): Promise<InitMode
   if (state.isEmpty) return "greenfield";
 
   // Ambiguous — prompt.
-  if (state.hasEas) {
+  if (state.hasSpecFleet || state.hasLegacyEas) {
     return promptOne(
-      ".eas/ already exists. What would you like to do?",
+      state.hasLegacyEas && !state.hasSpecFleet
+        ? "Legacy .eas/ exists. What would you like to do?"
+        : ".specfleet/ already exists. What would you like to do?",
       [
-        { value: "upgrade", label: "upgrade — refresh templates, keep my charters/specs/audit (default)" },
+        {
+          value: "upgrade",
+          label: state.hasLegacyEas && !state.hasSpecFleet
+            ? "upgrade — migrate .eas/ to .specfleet/ and refresh templates (default)"
+            : "upgrade — refresh templates, keep my charters/specs/audit (default)",
+        },
         { value: "overwrite", label: "overwrite — full reset (requires --force)" },
         { value: "cancel", label: "cancel" },
       ],
@@ -217,7 +228,7 @@ async function promptOne(
   defaultValue: InitMode,
 ): Promise<InitMode> {
   // Test escape hatch — same pattern as runtime/interview.ts.
-  const envAnswer = process.env.EAS_INIT_MODE;
+  const envAnswer = process.env.SPECFLEET_INIT_MODE;
   if (envAnswer) {
     const m = choices.find((c) => c.value === envAnswer);
     if (m && m.value !== "cancel") return m.value;
@@ -247,13 +258,21 @@ async function promptOne(
 
 // -- helpers -----------------------------------------------------------------
 
-async function scaffoldTemplates(p: ReturnType<typeof easPaths>): Promise<void> {
-  await ensureDir(p.easDir);
-  await copyDirRecursive(TEMPLATES_DIR, p.easDir);
+async function scaffoldTemplates(p: ReturnType<typeof specFleetPaths>): Promise<void> {
+  await ensureDir(p.specFleetDir);
+  await copyDirRecursive(TEMPLATES_DIR, p.specFleetDir);
   for (const d of [p.auditDir, p.checkpointsDir, p.indexDir, p.plansDir]) {
     await ensureDir(d);
     await fs.writeFile(path.join(d, ".gitkeep"), "", "utf8").catch(() => {});
   }
+}
+
+async function migrateLegacyEas(root: string, p: ReturnType<typeof specFleetPaths>): Promise<void> {
+  const legacy = path.join(root, ".eas");
+  if (!(await pathExists(legacy)) || (await pathExists(p.specFleetDir))) return;
+  await ensureDir(p.specFleetDir);
+  await copyDirRecursive(legacy, p.specFleetDir);
+  console.log(chalk.gray(`  migrated .eas/ to .specfleet/ (legacy directory left in place)`));
 }
 
 async function applyCustomInstruction(srcArg: string, dst: string): Promise<void> {

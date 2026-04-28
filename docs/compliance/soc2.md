@@ -1,15 +1,15 @@
-# SOC 2 — EAS Coverage
+# SOC 2 — SpecFleet Coverage
 
 The American Institute of Certified Public Accountants (AICPA) **SOC 2**
 report attests to a service organization's controls relevant to the Trust
 Services Criteria (TSC): Security, Availability, Processing Integrity,
-Confidentiality, and Privacy. The EAS SOC 2 starter pack focuses on the
+Confidentiality, and Privacy. The SpecFleet SOC 2 starter pack focuses on the
 Common Criteria (CC) Security category, which is the only category required
 for every SOC 2 engagement.
 
 ## Coverage matrix
 
-| Control | Control name                                          | EAS hook                                            | Coverage notes                                                                         |
+| Control | Control name                                          | SpecFleet hook                                            | Coverage notes                                                                         |
 |---------|-------------------------------------------------------|-----------------------------------------------------|----------------------------------------------------------------------------------------|
 | CC6.1   | Logical and physical access controls                  | `egress-allowlist`, `ip-guard`, `secret-redaction`  | Default-deny egress + secret/PII redaction enforce least-privilege at the agent edge.  |
 | CC6.6   | Restrict transmission of sensitive information        | `egress-allowlist`, `ip-guard`                      | Outbound traffic restricted to the allow list; sensitive payloads scrubbed.            |
@@ -21,15 +21,15 @@ for every SOC 2 engagement.
 ## How to enable
 
 ```bash
-eas init --with-pack soc2
+specfleet init --with-pack soc2
 ```
 
 The pack writes `egress.json`, `ip-guard.json`, and `pack.json` under
-`.eas/policies/packs/soc2/` and registers the controls in
-`.eas/instruction.md` under `policies.compliance`.
+`.specfleet/policies/packs/soc2/` and registers the controls in
+`.specfleet/instruction.md` under `policies.compliance`.
 
 ## Disclaimer
 
-Starter pack only — tune to your compliance program. EAS hooks are technical
+Starter pack only — tune to your compliance program. SpecFleet hooks are technical
 controls; SOC 2 also requires policies, vendor management, risk assessment,
 and HR controls that live outside this repository.

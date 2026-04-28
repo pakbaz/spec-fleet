@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <Description>NoviMart BFF API — minimal API host serving the React SPA.</Description>
+    <UserSecretsId>novimart-api-dev</UserSecretsId>
+    <!-- Cosmos SDK 3.x emits a build error unless Newtonsoft.Json is referenced OR this flag is set.
+         We DO NOT use Newtonsoft.Json (forbidden by .specfleet/instruction.md) — the API uses
+         System.Text.Json end-to-end. Cosmos itself is configured with
+         UseSystemTextJsonSerializerWithOptions in CosmosClientFactory. -->
+    <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NoviMart.Domain\NoviMart.Domain.csproj" />
+    <ProjectReference Include="..\NoviMart.Contracts\NoviMart.Contracts.csproj" />
+    <ProjectReference Include="..\NoviMart.Infrastructure\NoviMart.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
+</Project>

@@ -1,9 +1,9 @@
 /**
- * `eas install-hooks` — install a git pre-commit hook that runs the EAS
+ * `specfleet init --hooks-only` — install a git pre-commit hook that runs the SpecFleet
  * staged-diff scanner (secret detection + IP-guard) before allowing a commit.
  *
  * The hook shells out to `node <path>/dist/commands/precommit-scan.js`
- * (resolved at install time relative to this file) so it works whether EAS
+ * (resolved at install time relative to this file) so it works whether SpecFleet
  * is installed globally, locally, or run from source via tsx.
  */
 import { promises as fs } from "node:fs";
@@ -38,15 +38,15 @@ export async function installHooksCommand(opts: InstallHooksOptions = {}): Promi
 
   const script = [
     "#!/bin/sh",
-    "# Installed by `eas init` (or `eas install-hooks`) — runs the EAS staged-diff scanner.",
+    "# Installed by `specfleet init` (or `specfleet init --hooks-only`) — runs the SpecFleet staged-diff scanner.",
     "# Skip with: git commit --no-verify   (NOT recommended)",
-    `EAS_SCANNER=${JSON.stringify(scannerJs)}`,
-    'if command -v eas >/dev/null 2>&1; then',
-    '  exec eas check --staged "$@"',
-    'elif [ -f "$EAS_SCANNER" ]; then',
-    '  exec node "$EAS_SCANNER" "$@"',
+    `SPECFLEET_SCANNER=${JSON.stringify(scannerJs)}`,
+    'if command -v specfleet >/dev/null 2>&1; then',
+    '  exec specfleet check --staged "$@"',
+    'elif [ -f "$SPECFLEET_SCANNER" ]; then',
+    '  exec node "$SPECFLEET_SCANNER" "$@"',
     'else',
-    '  echo "eas pre-commit hook: scanner not found; skipping (reinstall with: eas init --no-hooks=false)" >&2',
+    '  echo "specfleet pre-commit hook: scanner not found; skipping (reinstall with: specfleet init --no-hooks=false)" >&2',
     '  exit 0',
     'fi',
     "",
@@ -56,9 +56,9 @@ export async function installHooksCommand(opts: InstallHooksOptions = {}): Promi
     try {
       await fs.access(hookPath);
       const existing = await fs.readFile(hookPath, "utf8");
-      if (!existing.includes("EAS_SCANNER")) {
+      if (!existing.includes("SPECFLEET_SCANNER")) {
         console.error(
-          chalk.red(`✖ ${hookPath} already exists (not installed by EAS). Use --force to overwrite.`),
+          chalk.red(`✖ ${hookPath} already exists (not installed by SpecFleet). Use --force to overwrite.`),
         );
         process.exitCode = 1;
         return;

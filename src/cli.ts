@@ -1,15 +1,11 @@
 #!/usr/bin/env node
 /**
- * eas — Enterprise Agents System CLI (v0.3 surface)
+ * specfleet — SpecFleet CLI (v0.4 surface)
  *
  * 10 visible commands:
  *   Lifecycle:   init · plan · run · review · status
  *   Reflection:  check · log · config · spec
  *   Services:    mcp serve   (+ specialized: sre triage)
- *
- * Hidden deprecated aliases (removed in v0.4):
- *   onboard, implement, doctor, audit, replay, eval, tune, precommit-scan,
- *   install-hooks, charter
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -18,27 +14,16 @@ import { Command } from "commander";
 import chalk from "chalk";
 
 import { initCommand } from "./commands/init.js";
-import { onboardCommand } from "./commands/onboard.js";
 import { planCommand } from "./commands/plan.js";
 import { runCommand } from "./commands/run.js";
-import { implementCommand } from "./commands/implement.js";
 import { statusCommand } from "./commands/status.js";
 import { reviewCommand } from "./commands/review.js";
 import { checkCommand } from "./commands/check.js";
 import { logCommand } from "./commands/log.js";
 import { configCommand } from "./commands/config.js";
-import { auditCommand, auditVerifyCommand } from "./commands/audit.js";
-import { charterCommand } from "./commands/charter.js";
-import { doctorCommand } from "./commands/doctor.js";
 import { mcpServeCommand } from "./commands/mcp-serve.js";
 import { specCommand } from "./commands/spec.js";
 import { sreCommand } from "./commands/sre.js";
-import { evalCommand } from "./commands/eval.js";
-import { tuneCommand } from "./commands/tune.js";
-import { replayCommand } from "./commands/replay.js";
-import { installHooksCommand } from "./commands/install-hooks.js";
-import { precommitScanCommand } from "./commands/precommit-scan.js";
-import { warnDeprecated } from "./util/deprecate.js";
 
 const __filename = fileURLToPath(import.meta.url);
 // dist/cli.js -> ../package.json
@@ -55,12 +40,12 @@ const PKG_VERSION = (() => {
 const program = new Command();
 
 program
-  .name("eas")
-  .description("Enterprise Agents System — autonomous ALM with hierarchical Copilot agents")
+  .name("specfleet")
+  .description("SpecFleet — autonomous ALM with hierarchical Copilot agents")
   .version(PKG_VERSION)
   .option("--offline", "Air-gap mode: deny all egress regardless of allowlist")
   .hook("preAction", (thisCmd) => {
-    if (thisCmd.opts().offline) process.env.EAS_OFFLINE = "1";
+    if (thisCmd.opts().offline) process.env.SPECFLEET_OFFLINE = "1";
   });
 
 // =====================================================================
@@ -69,7 +54,7 @@ program
 
 program
   .command("init")
-  .description("Bootstrap or upgrade .eas/ — detects greenfield / brownfield / existing repos")
+  .description("Bootstrap or upgrade .specfleet/ — detects greenfield / brownfield / existing repos")
   .option("-d, --dir <path>", "Target directory (default: cwd)")
   .option(
     "--mode <mode>",
@@ -85,8 +70,8 @@ program
 program
   .command("plan [goal...]")
   .description("Decompose a goal into tasks across role agents")
-  .option("--out <path>", "Write plan to file (default: .eas/plans/<timestamp>.md)")
-  .option("--from-spec <id>", "Seed the plan from .eas/specs/<id>.spec.md")
+  .option("--out <path>", "Write plan to file (default: .specfleet/plans/<timestamp>.md)")
+  .option("--from-spec <id>", "Seed the plan from .specfleet/specs/<id>.spec.md")
   .action((goal: string[], opts) => planCommand((goal ?? []).join(" "), opts));
 
 program
@@ -116,6 +101,8 @@ program
   .description("Health & quality: doctor + chain verify (default), --eval, --tune, --staged, --deep")
   .option("--deep", "Run doctor + audit-chain verify across all sessions")
   .option("--audit", "Only run audit-chain verify")
+  .option("--session <id>", "(--audit) Verify one audit session")
+  .option("--all", "(--audit) Verify every audit session")
   .option("--eval", "Run the evaluation harness against benchmarks")
   .option("--tune", "Aggregate eval failures and emit advisory charter-edit diff")
   .option("--staged", "Scan the staged git diff (used by the pre-commit hook)")
@@ -170,7 +157,7 @@ config
 const spec = program.command("spec").description("Author and list specs (GSD / Spec-Kit shape)");
 spec
   .command("new <name>")
-  .description("Scaffold a new spec under .eas/specs/")
+  .description("Scaffold a new spec under .specfleet/specs/")
   .action((name: string) => specCommand("new", { name }));
 spec
   .command("list")
@@ -184,7 +171,7 @@ spec
 const mcp = program.command("mcp").description("Model Context Protocol integrations");
 mcp
   .command("serve")
-  .description("Run the EAS MCP server over stdio")
+  .description("Run the SpecFleet MCP server over stdio")
   .option("-d, --dir <path>", "Project root (default: cwd)")
   .action((opts) => mcpServeCommand(opts));
 
@@ -195,127 +182,8 @@ sre
   .option("--sarif <path>", "Path to a SARIF file (defaults to globbing **/*.sarif)")
   .action((opts) => sreCommand("triage", opts));
 
-// =====================================================================
-// Hidden deprecated aliases (removed in v0.4)
-// =====================================================================
-
-// onboard → init --mode brownfield
-program
-  .command("onboard", { hidden: true })
-  .option("-d, --dir <path>")
-  .action(async (opts) => {
-    warnDeprecated("onboard", "init --mode brownfield");
-    await onboardCommand(opts);
-  });
-
-// implement → run
-program
-  .command("implement", { hidden: true })
-  .option("--task <id>")
-  .option("--all")
-  .option("--no-gates")
-  .action(async (opts) => {
-    warnDeprecated("implement", "run");
-    await implementCommand(opts);
-  });
-
-// doctor → check
-program
-  .command("doctor", { hidden: true })
-  .action(async () => {
-    warnDeprecated("doctor", "check");
-    await doctorCommand();
-  });
-
-// audit (tail/verify) → log / check --audit
-const auditAlias = program
-  .command("audit", { hidden: true })
-  .description("(deprecated) use `eas log` or `eas check --audit`");
-auditAlias
-  .command("tail", { isDefault: true })
-  .option("--since <iso>")
-  .option("--agent <name>")
-  .option("--tail")
-  .action(async (opts) => {
-    warnDeprecated("audit tail", "log");
-    await auditCommand(opts);
-  });
-auditAlias
-  .command("verify")
-  .option("--session <id>")
-  .option("--all")
-  .action(async (opts) => {
-    warnDeprecated("audit verify", "check --audit");
-    await auditVerifyCommand(opts);
-  });
-
-// replay → log <id>
-program
-  .command("replay <sessionId>", { hidden: true })
-  .option("--from <seq>", "Start sequence index", (v: string) => parseInt(v, 10))
-  .option("--limit <n>", "Max events to print", (v: string) => parseInt(v, 10))
-  .action(async (sessionId: string, opts) => {
-    warnDeprecated("replay", "log <sessionId>");
-    await replayCommand(sessionId, opts);
-  });
-
-// eval → check --eval
-program
-  .command("eval", { hidden: true })
-  .option("--charter <role>")
-  .option("--bench <path>")
-  .option("--limit <n>", "Cap number of benchmarks", (v: string) => parseInt(v, 10))
-  .action(async (opts) => {
-    warnDeprecated("eval", "check --eval");
-    await evalCommand(opts);
-  });
-
-// tune → check --tune
-program
-  .command("tune", { hidden: true })
-  .option("--since <iso>")
-  .action(async (opts) => {
-    warnDeprecated("tune", "check --tune");
-    await tuneCommand(opts);
-  });
-
-// precommit-scan → check --staged   (kept forever — already-installed hooks call this)
-program
-  .command("precommit-scan", { hidden: true })
-  .description("(internal) staged-diff scanner used by the git pre-commit hook")
-  .action(precommitScanCommand);
-
-// install-hooks → init --hooks-only
-program
-  .command("install-hooks", { hidden: true })
-  .option("-d, --dir <path>")
-  .option("--force")
-  .action(async (opts) => {
-    warnDeprecated("install-hooks", "init --hooks-only");
-    await installHooksCommand(opts);
-  });
-
-// charter → config
-const charterAlias = program
-  .command("charter", { hidden: true })
-  .description("(deprecated) use `eas config`");
-charterAlias.command("new <name>").action(async (name: string) => {
-  warnDeprecated("charter new", "config new charter <name>");
-  await charterCommand("new", { name });
-});
-charterAlias.command("list").action(async () => {
-  warnDeprecated("charter list", "config list");
-  await charterCommand("list", {});
-});
-charterAlias.command("validate").action(async () => {
-  warnDeprecated("charter validate", "config validate");
-  await charterCommand("validate", {});
-});
-
-// =====================================================================
-
 program.parseAsync(process.argv).catch((err: Error) => {
   console.error(chalk.red(`✖ ${err.message}`));
-  if (process.env.EAS_DEBUG) console.error(err.stack);
+  if (process.env.SPECFLEET_DEBUG) console.error(err.stack);
   process.exit(1);
 });

@@ -3,7 +3,7 @@
 There are four common ways to ground an AI coding agent in your
 organization's standards, product knowledge, and business goals. Each has a
 different trade-off between **freshness**, **governance**, **per-role
-fidelity**, and **operational cost**. EAS combines two of them — read on for
+fidelity**, and **operational cost**. SpecFleet combines two of them — read on for
 why.
 
 ---
@@ -70,7 +70,7 @@ machine-facing context.
 
 ## 3. Custom agents / charters
 
-Per-role markdown contracts with frontmatter. The EAS approach: every
+Per-role markdown contracts with frontmatter. The SpecFleet approach: every
 agent (Architect, Dev, Test, Compliance, SRE…) has a versioned
 `*.charter.md` that declares its tools, MCP scopes, token cap, and prompt
 body. The CLI fleet's `*.agent.md` format is the same shape.
@@ -83,8 +83,8 @@ session's system prompt, and enforces the declared `allowedTools` /
 
 - **Per-role tone and scope.** Dev sees coding standards; Compliance sees
   the SOC 2 control map. Neither carries the other's payload.
-- **Centralized governance.** Charters live in `.eas/charters/`, owned by
-  CODEOWNERS, validated by `eas charter validate`.
+- **Centralized governance.** Charters live in `.specfleet/charters/`, owned by
+  CODEOWNERS, validated by `specfleet config validate`.
 - **Deterministic.** Same charter + same brief → same boundaries on every
   run, on every developer's machine.
 - **Layered.** A charter can `extends:` another, so a baseline org charter
@@ -98,7 +98,7 @@ session's system prompt, and enforces the declared `allowedTools` /
   real failure mode (see `docs/harness-management.md`).
 
 **When to use.** Whenever you need different agents to behave differently
-under governance. This is EAS's primary mechanism.
+under governance. This is SpecFleet's primary mechanism.
 
 ---
 
@@ -114,7 +114,7 @@ At runtime, the model sees a tool list (`query_decisions`,
 The server returns fresh data from whatever backing store you point it at
 — filesystem, database, internal API.
 
-EAS ships `eas mcp serve` (v0.2) which exposes the org's `decisions.md`,
+SpecFleet ships `specfleet mcp serve` (v0.2) which exposes the org's `decisions.md`,
 charters, project notes, and audit log over stdio MCP for any consumer
 that supports MCP (Copilot CLI, VS Code, Claude Desktop, etc.).
 
@@ -160,7 +160,7 @@ Legend: ✅ strong fit · ⚠️ partial / depends · ❌ poor fit.
 
 ---
 
-## EAS recommendation
+## SpecFleet recommendation
 
 > **Use (3) for governance and (4) for fresh data.**
 
@@ -170,13 +170,13 @@ moves faster than the charter file does.
 
 Concretely:
 
-- Author one charter per role under `.eas/charters/` (strategy 3).
-- Run `eas mcp serve` to expose `decisions.md`, project notes, and the
+- Author one charter per role under `.specfleet/charters/` (strategy 3).
+- Run `specfleet mcp serve` to expose `decisions.md`, project notes, and the
   charter library to every agent (strategy 4).
 - Optionally also publish a thin `.github/copilot-instructions.md`
-  (strategy 1) for developers using Copilot directly without the EAS
+  (strategy 1) for developers using Copilot directly without the SpecFleet
   runtime.
 - Use Copilot Spaces (strategy 2) for human onboarding docs that don't
   need to feed automated runs.
 
-This is the architecture EAS v0.2 ships out of the box.
+This is the architecture SpecFleet v0.2 ships out of the box.

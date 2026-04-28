@@ -1,8 +1,8 @@
-# PCI DSS v4.0 — EAS Coverage
+# PCI DSS v4.0 — SpecFleet Coverage
 
 The **Payment Card Industry Data Security Standard (PCI DSS) v4.0**, issued
 by the PCI Security Standards Council, specifies 12 high-level requirements
-for any system that stores, processes, or transmits cardholder data. EAS
+for any system that stores, processes, or transmits cardholder data. SpecFleet
 addresses the requirements that an AI agent can affect at runtime —
 primarily data protection, transmission security, secure development, and
 access control. The pack ships in **block mode** with a default-deny egress
@@ -10,7 +10,7 @@ posture.
 
 ## Coverage matrix
 
-| Requirement | Name                                                                 | EAS hook                            | Coverage notes                                                                  |
+| Requirement | Name                                                                 | SpecFleet hook                            | Coverage notes                                                                  |
 |-------------|----------------------------------------------------------------------|-------------------------------------|---------------------------------------------------------------------------------|
 | Req-3       | Protect stored account data                                          | `ip-guard`, `secret-redaction`      | PAN / CVV / track-data patterns blocked at the agent boundary.                  |
 | Req-4       | Protect cardholder data with strong cryptography during transmission | `egress-allowlist`, `ip-guard`      | Only allow-listed, in-CDE endpoints reachable; PAN-shaped payloads blocked.     |
@@ -22,7 +22,7 @@ posture.
 ## How to enable
 
 ```bash
-eas init --with-pack pci-dss
+specfleet init --with-pack pci-dss
 ```
 
 The egress allow list ships **empty** — add only endpoints that have been

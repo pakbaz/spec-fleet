@@ -5,7 +5,7 @@ import os from "node:os";
 import { loadAllCharters } from "../../src/runtime/charter.js";
 
 async function tmpdir(): Promise<string> {
-  return fs.mkdtemp(path.join(os.tmpdir(), "eas-charter-"));
+  return fs.mkdtemp(path.join(os.tmpdir(), "specfleet-charter-"));
 }
 
 async function writeCharter(dir: string, rel: string, frontmatter: Record<string, unknown>, body: string) {

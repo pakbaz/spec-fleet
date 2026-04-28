@@ -9,22 +9,22 @@ let tmp: string;
 const cwd = process.cwd();
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-sre-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-sre-"));
   await initCommand({ dir: tmp, nonInteractive: true });
   process.chdir(tmp);
-  process.env.EAS_SRE_MOCK = "1";
+  process.env.SPECFLEET_SRE_MOCK = "1";
 });
 
 afterEach(async () => {
-  delete process.env.EAS_SRE_MOCK;
+  delete process.env.SPECFLEET_SRE_MOCK;
   process.chdir(cwd);
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas sre triage", () => {
-  it("writes a triage report under .eas/triage/", async () => {
+describe("specfleet sre triage", () => {
+  it("writes a triage report under .specfleet/triage/", async () => {
     // Seed an audit file with one error event.
-    const auditDir = path.join(tmp, ".eas", "audit");
+    const auditDir = path.join(tmp, ".specfleet", "audit");
     await fs.mkdir(auditDir, { recursive: true });
     const evt = {
       ts: new Date().toISOString(),
@@ -36,7 +36,7 @@ describe("eas sre triage", () => {
     await fs.writeFile(path.join(auditDir, "sess-1.jsonl"), JSON.stringify(evt) + "\n", "utf8");
 
     await sreCommand("triage", {});
-    const triageDir = path.join(tmp, ".eas", "triage");
+    const triageDir = path.join(tmp, ".specfleet", "triage");
     const entries = await fs.readdir(triageDir);
     const md = entries.find((f) => f.endsWith(".md"));
     expect(md).toBeTruthy();
@@ -53,7 +53,7 @@ describe("eas sre triage", () => {
       "utf8",
     );
     await sreCommand("triage", { sarif });
-    const triageDir = path.join(tmp, ".eas", "triage");
+    const triageDir = path.join(tmp, ".specfleet", "triage");
     const entries = await fs.readdir(triageDir);
     expect(entries.find((f) => f.endsWith(".md"))).toBeTruthy();
   });

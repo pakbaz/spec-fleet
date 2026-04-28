@@ -1,10 +1,10 @@
 /**
- * `eas eval` — Continuous evaluation harness. Runs benchmark prompts against
+ * `specfleet check --eval` — Continuous evaluation harness. Runs benchmark prompts against
  * charters and scores the results against expectations declared in the
  * benchmark frontmatter. Appends one JSONL row per result to
- * `.eas/eval/scoreboard.jsonl`.
+ * `.specfleet/eval/scoreboard.jsonl`.
  *
- * Set EAS_EVAL_MOCK=1 to bypass the SDK and echo the prompt as the result —
+ * Set SPECFLEET_EVAL_MOCK=1 to bypass the SDK and echo the prompt as the result —
  * lets the harness run offline (used by tests and pack-smoke).
  */
 import path from "node:path";
@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import chalk from "chalk";
 import fg from "fast-glob";
 import matter from "gray-matter";
-import { EasRuntime } from "../runtime/index.js";
+import { SpecFleetRuntime } from "../runtime/index.js";
 import { ensureDir } from "../util/paths.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -50,9 +50,9 @@ interface EvalResult {
 }
 
 export async function evalCommand(opts: EvalOptions = {}): Promise<EvalResult[]> {
-  const rt = await EasRuntime.open();
+  const rt = await SpecFleetRuntime.open();
   try {
-    const evalDir = path.join(rt.paths.easDir, "eval");
+    const evalDir = path.join(rt.paths.specFleetDir, "eval");
     const benchDir = opts.bench ? path.resolve(opts.bench) : path.join(evalDir, "benchmarks");
     await ensureDir(benchDir);
     let benchmarks = await loadBenchmarks(benchDir);
@@ -72,7 +72,7 @@ export async function evalCommand(opts: EvalOptions = {}): Promise<EvalResult[]>
       let output: string;
       let toolCalls = 0;
       try {
-        if (process.env.EAS_EVAL_MOCK === "1") {
+        if (process.env.SPECFLEET_EVAL_MOCK === "1") {
           output = b.prompt;
         } else {
           const r = await rt.delegate(rt.rootCharter().name, b.charter, b.prompt);

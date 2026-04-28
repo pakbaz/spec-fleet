@@ -1,5 +1,5 @@
 /**
- * `eas mcp serve` — Stdio JSON-RPC 2.0 MCP server that exposes EAS context
+ * `specfleet mcp serve` — Stdio JSON-RPC 2.0 MCP server that exposes SpecFleet context
  * (decisions, charters, project, audit) as MCP tools and resources so a
  * Copilot CLI / VS Code instance can query org context without re-reading
  * files. Pure Node, no extra deps.
@@ -16,7 +16,7 @@ import path from "node:path";
 import readline from "node:readline";
 import fg from "fast-glob";
 import matter from "gray-matter";
-import { findEasRoot, easPaths, readMaybe } from "../util/paths.js";
+import { findSpecFleetRoot, specFleetPaths, readMaybe } from "../util/paths.js";
 import { AuditLog } from "../runtime/audit.js";
 
 export interface McpServeOptions {
@@ -38,12 +38,12 @@ interface JsonRpcResponse {
 }
 
 const PROTOCOL_VERSION = "2024-11-05";
-const SERVER_INFO = { name: "eas-mcp", version: "0.2.0" } as const;
+const SERVER_INFO = { name: "specfleet-mcp", version: "0.2.0" } as const;
 
 const TOOLS = [
   {
     name: "query_decisions",
-    description: "Search .eas/decisions.md for paragraphs matching a substring (case-insensitive).",
+    description: "Search .specfleet/decisions.md for paragraphs matching a substring (case-insensitive).",
     inputSchema: {
       type: "object",
       properties: { q: { type: "string", description: "Substring to search for" } },
@@ -61,7 +61,7 @@ const TOOLS = [
   },
   {
     name: "query_project",
-    description: "Return the contents of .eas/project.md.",
+    description: "Return the contents of .specfleet/project.md.",
     inputSchema: { type: "object", properties: {} },
   },
   {
@@ -77,13 +77,13 @@ const TOOLS = [
   },
   {
     name: "list_charters",
-    description: "List every charter in .eas/charters as { role, path, summary }.",
+    description: "List every charter in .specfleet/charters as { role, path, summary }.",
     inputSchema: { type: "object", properties: {} },
   },
 ] as const;
 
 interface PathsLike {
-  easDir: string;
+  specFleetDir: string;
   decisions: string;
   project: string;
   instruction: string;
@@ -139,9 +139,9 @@ async function dispatch(
     case "resources/list":
       return {
         resources: [
-          { uri: "eas://instruction", name: "instruction.md", mimeType: "text/markdown" },
-          { uri: "eas://decisions", name: "decisions.md", mimeType: "text/markdown" },
-          { uri: "eas://project", name: "project.md", mimeType: "text/markdown" },
+          { uri: "specfleet://instruction", name: "instruction.md", mimeType: "text/markdown" },
+          { uri: "specfleet://decisions", name: "decisions.md", mimeType: "text/markdown" },
+          { uri: "specfleet://project", name: "project.md", mimeType: "text/markdown" },
         ],
       };
     case "resources/read": {
@@ -157,11 +157,11 @@ async function dispatch(
 
 function resolveResourceUri(uri: string, p: PathsLike): string {
   switch (uri) {
-    case "eas://instruction":
+    case "specfleet://instruction":
       return p.instruction;
-    case "eas://decisions":
+    case "specfleet://decisions":
       return p.decisions;
-    case "eas://project":
+    case "specfleet://project":
       return p.project;
     default:
       throw new Error(`Unknown resource uri: ${uri}`);
@@ -210,7 +210,7 @@ async function callTool(
         const data = fm.data as { name?: string; description?: string };
         out.push({
           role: data.name ?? path.basename(f, ".charter.md"),
-          path: path.relative(p.easDir, f),
+          path: path.relative(p.specFleetDir, f),
           summary: (data.description ?? "").slice(0, 200),
         });
       }
@@ -222,8 +222,8 @@ async function callTool(
 }
 
 export async function mcpServeCommand(opts: McpServeOptions = {}): Promise<void> {
-  const root = await findEasRoot(opts.dir ?? process.cwd());
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot(opts.dir ?? process.cwd());
+  const p = specFleetPaths(root);
 
   const rl = readline.createInterface({ input: process.stdin, terminal: false });
   rl.on("line", async (line) => {

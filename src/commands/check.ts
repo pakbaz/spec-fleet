@@ -1,15 +1,15 @@
 /**
- * `eas check` — v0.3 unified health/quality command. Folds:
+ * `specfleet check` — v0.4 unified health/quality command. Folds:
  *
- *   doctor          → eas check                 (default, fast)
- *   audit verify    → eas check --audit         (or --deep)
- *   eval            → eas check --eval
- *   tune            → eas check --tune          (implies --eval if scoreboard empty)
- *   precommit-scan  → eas check --staged
+ *   doctor          → specfleet check                 (default, fast)
+ *   audit verify    → specfleet check --audit         (or --deep)
+ *   eval            → specfleet check --eval
+ *   tune            → specfleet check --tune          (implies --eval if scoreboard empty)
+ *   precommit-scan  → specfleet check --staged
  *
- * Default behaviour (no flags) runs the v0.2 `doctor` checks. `--deep` runs
+ * Default behaviour (no flags) runs the doctor checks. `--deep` runs
  * doctor + audit-chain verification across every session. Other flags route
- * to the matching v0.2 module so existing tests stay green.
+ * to the matching implementation module.
  */
 import chalk from "chalk";
 import path from "node:path";
@@ -23,6 +23,8 @@ import { precommitScanCommand } from "./precommit-scan.js";
 export interface CheckOptions {
   deep?: boolean;
   audit?: boolean;
+  session?: string;
+  all?: boolean;
   eval?: boolean;
   tune?: boolean;
   staged?: boolean;
@@ -85,10 +87,10 @@ export async function checkCommand(opts: CheckOptions = {}): Promise<void> {
     // Trivial auto-fix: re-mirror charters to .github/agents/ in case they drifted.
     // (This is a low-risk operation that mirrors what `init` does.)
     try {
-      const { findEasRoot, easPaths } = await import("../util/paths.js");
+      const { findSpecFleetRoot, specFleetPaths } = await import("../util/paths.js");
       const { mirrorCharters, loadAllCharters } = await import("../runtime/charter.js");
-      const root = await findEasRoot();
-      const p = easPaths(root);
+      const root = await findSpecFleetRoot();
+      const p = specFleetPaths(root);
       const charters = await loadAllCharters(p.chartersDir);
       await mirrorCharters(charters, p.githubAgentsDir);
       console.log(chalk.green(`✓ re-mirrored ${charters.length} charter(s) to .github/agents/`));

@@ -9,7 +9,7 @@ let tmp: string;
 let cwd: string;
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-config-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-config-"));
   await initCommand({ dir: tmp, nonInteractive: true });
   cwd = process.cwd();
   process.chdir(tmp);
@@ -20,7 +20,7 @@ afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas config", () => {
+describe("specfleet config", () => {
   it("list prints a header and at least one charter row", async () => {
     const log: string[] = [];
     const orig = console.log;
@@ -76,7 +76,7 @@ describe("eas config", () => {
     } finally {
       console.log = origLog;
     }
-    const file = path.join(tmp, ".eas", "charters", "my-test-role.charter.md");
+    const file = path.join(tmp, ".specfleet", "charters", "my-test-role.charter.md");
     expect((await fs.stat(file)).isFile()).toBe(true);
   });
 
@@ -88,7 +88,7 @@ describe("eas config", () => {
     } finally {
       console.log = origLog;
     }
-    const file = path.join(tmp, ".eas", "policies", "custom.json");
+    const file = path.join(tmp, ".specfleet", "policies", "custom.json");
     const raw = await fs.readFile(file, "utf8");
     expect(() => JSON.parse(raw)).not.toThrow();
   });

@@ -14,9 +14,9 @@ A strict baseline for environments that may handle electronic Protected
 Health Information (ePHI). The pack ships in **block mode** — violations halt
 the agent action rather than redact it — and uses **default-deny egress**.
 
-## Control → EAS hook mapping
+## Control → SpecFleet hook mapping
 
-| Control          | Name                              | EAS hooks                                  |
+| Control          | Name                              | SpecFleet hooks                                  |
 |------------------|-----------------------------------|--------------------------------------------|
 | 164.308(a)(1)    | Security management process       | `audit-hashchain`, `pre-commit-scan`       |
 | 164.308(a)(4)    | Information access management     | `egress-allowlist`, `ip-guard`             |
@@ -35,9 +35,9 @@ the agent action rather than redact it — and uses **default-deny egress**.
 ## How to enable
 
 ```bash
-eas init --with-pack hipaa
+specfleet init --with-pack hipaa
 ```
 
-After enabling, review `.eas/policies/egress.json` and add the FQDNs of the
+After enabling, review `.specfleet/policies/egress.json` and add the FQDNs of the
 BAA-covered services (e.g. specific Azure private endpoints) your workload
 needs.

@@ -1,15 +1,15 @@
-# GDPR — EAS Coverage
+# GDPR — SpecFleet Coverage
 
 **Regulation (EU) 2016/679 — the General Data Protection Regulation
 (GDPR)** — governs the processing of personal data of individuals in the
-EU/EEA. EAS focuses on technical and organisational measures from
+EU/EEA. SpecFleet focuses on technical and organisational measures from
 Article 32, data protection by design from Article 25, and the
 third-country transfer rules from Article 44. The GDPR pack ships in
 **redact mode** with an EU/EEA-biased egress allow list.
 
 ## Coverage matrix
 
-| Article  | Name                                                | EAS hook                                                | Coverage notes                                                                |
+| Article  | Name                                                | SpecFleet hook                                                | Coverage notes                                                                |
 |----------|-----------------------------------------------------|---------------------------------------------------------|-------------------------------------------------------------------------------|
 | Art. 5   | Principles relating to processing of personal data  | `ip-guard`, `secret-redaction`, `audit-hashchain`       | Lawfulness, data minimisation, integrity, and accountability supported.       |
 | Art. 25  | Data protection by design and by default            | `pre-commit-scan`, `ip-guard`                           | Default-on PII patterns; risky changes blocked at commit time.                |
@@ -21,10 +21,10 @@ third-country transfer rules from Article 44. The GDPR pack ships in
 ## How to enable
 
 ```bash
-eas init --with-pack gdpr
+specfleet init --with-pack gdpr
 ```
 
-After enabling, review `.eas/policies/packs/gdpr/egress.json`. Article 44
+After enabling, review `.specfleet/policies/packs/gdpr/egress.json`. Article 44
 requires an adequacy decision, Standard Contractual Clauses (SCCs), or
 Binding Corporate Rules (BCRs) before personal data may flow to a
 third country.
@@ -34,4 +34,4 @@ third country.
 Starter pack only — tune to your compliance program. GDPR compliance also
 requires lawful bases for processing, data subject rights workflows, DPIAs
 where applicable, and (often) a Data Protection Officer — none of which are
-produced by EAS.
+produced by SpecFleet.

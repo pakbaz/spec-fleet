@@ -1,9 +1,9 @@
-# Publishing `@pakbaz/eas`
+# Publishing `@pakbaz/specfleet`
 
-This document is for **maintainers** cutting a new release of the EAS CLI to
-[npmjs.com](https://www.npmjs.com/package/@pakbaz/eas).
+This document is for **maintainers** cutting a new release of the SpecFleet CLI to
+[npmjs.com](https://www.npmjs.com/package/@pakbaz/specfleet).
 
-End users do not need any of this — they install with `npm i -g @pakbaz/eas`.
+End users do not need any of this — they install with `npm i -g @pakbaz/specfleet`.
 
 ## Versioning policy
 
@@ -11,36 +11,26 @@ We follow [Semantic Versioning](https://semver.org/):
 
 | Bump | When |
 |---|---|
-| **MAJOR** (`1.0.0 → 2.0.0`) | Breaking change to a CLI flag, charter schema, or `.eas/` layout |
+| **MAJOR** (`1.0.0 → 2.0.0`) | Breaking change to a CLI flag, charter schema, or `.specfleet/` layout |
 | **MINOR** (`0.1.0 → 0.2.0`) | New command, new charter type, new template, additive policy field |
 | **PATCH** (`0.1.0 → 0.1.1`) | Bug fix, doc fix, dependency bump that doesn't change behaviour |
 
 While we're on `0.x`, *every* release may technically break things — we still
 try to honour the table above and call out breaks in `CHANGELOG.md`.
 
-## One-time setup (per maintainer)
+## One-time setup
 
-The npm scope `@pakbaz` is owned by the **`pakbaz` organization** on npmjs.com.
-Maintainers publish using their personal npm account (e.g. `pakbaz82`) which
-must be a member of that org with **Developer** or higher rights.
+SpecFleet publishes through **npm Trusted Publishing (OIDC)**. Do not create or
+store long-lived npm tokens for release automation.
 
-1. **Confirm org membership.** `npm org ls pakbaz` should list your username.
-   If not, an org admin must invite you at
-   <https://www.npmjs.com/settings/pakbaz/members>.
-2. **Generate an automation `NPM_TOKEN`** at
-   <https://www.npmjs.com/settings/~/tokens/granular-access-tokens> (`~`
-   resolves to your logged-in user, currently `pakbaz82`):
-   - Type: **Granular access token**
-   - Packages and scopes: **Read and write** for `@pakbaz/*`
-   - Check **Bypass two-factor authentication when publishing** (lets CI publish
-     non-interactively)
-   - Expiration: 90 days (rotate on calendar)
-3. **Add it as a repo secret:** GitHub → Settings → Secrets and variables →
-   Actions → `NPM_TOKEN`. Make it part of the `npm-publish` environment so
-   tagged-release runs require an environment approval.
-4. **Confirm 2FA mode is `auth-only`** (npmjs.com → settings → 2FA). Combined
-   with the bypass-2fa flag on the automation token, this lets the CI publish
-   while still requiring OTP for sensitive account operations.
+1. Create or reserve the `@pakbaz/specfleet` package on npmjs.com.
+2. In npm package settings, add GitHub trusted publisher:
+   - Repository: `pakbaz/specfleet`
+   - Workflow: `release.yml`
+   - Environment: `publish`
+3. In GitHub, create the `publish` environment if it does not already exist.
+4. Confirm `.github/workflows/release.yml` has `id-token: write` and does not
+   set `NODE_AUTH_TOKEN` for the publish step.
 
 ## Cutting a release
 
@@ -51,7 +41,7 @@ must be a member of that org with **Developer** or higher rights.
 git switch main && git pull
 
 # 2. Publish — provenance is OFF locally (only works in CI with OIDC)
-cd /path/to/enterprise-agents-system
+cd /path/to/specfleet
 npm publish --provenance=false --otp=<your-6-digit-2fa-code>
 ```
 
@@ -105,7 +95,7 @@ gh workflow run release.yml --field dry_run=true
    forever burned. Prefer publishing a patch.
 2. **Deprecate the bad version**:
    ```bash
-   npm deprecate @pakbaz/eas@0.1.3 "Critical bug in eas init; use 0.1.4+"
+   npm deprecate @pakbaz/specfleet@0.1.3 "Critical bug in specfleet init; use 0.1.4+"
    ```
 3. Cut a `0.1.4` patch with the fix and call it out in `CHANGELOG.md`.
 
@@ -113,20 +103,20 @@ gh workflow run release.yml --field dry_run=true
 
 ```bash
 # Wait ~30s for the registry to propagate, then:
-npx @pakbaz/eas@latest --version
+npx @pakbaz/specfleet@latest --version
 # In a scratch dir:
-mkdir /tmp/eas-postpub && cd /tmp/eas-postpub
-npx @pakbaz/eas@latest init --non-interactive
-ls .eas/charters | wc -l   # should be ≥ 8
+mkdir /tmp/specfleet-postpub && cd /tmp/specfleet-postpub
+npx @pakbaz/specfleet@latest init --non-interactive
+ls .specfleet/charters | wc -l   # should be ≥ 8
 ```
 
 ## Troubleshooting
 
-- **`E403 Forbidden` on publish** — `NPM_TOKEN` lacks write scope on `@pakbaz/eas`,
-  or the token expired.
+- **`E403 Forbidden` on publish** — the npm Trusted Publisher does not match
+  `pakbaz/specfleet`, `release.yml`, or the `publish` environment.
 - **`E402 Payment Required`** — `publishConfig.access` isn't `public` (it is, but
   if someone "fixes" it later, scoped packages default to private).
 - **Provenance fails** — `id-token: write` is missing from the workflow's
   `permissions` block, or the workflow is running on a fork.
 - **Smoke job fails in CI** — likely a real bug; the smoke job installs the
-  packed tarball into a temp consumer and runs `eas init`. Read the job logs.
+  packed tarball into a temp consumer and runs `specfleet init`. Read the job logs.

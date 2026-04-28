@@ -1,7 +1,7 @@
 /**
- * `eas spec new <name>` and `eas spec list` — Spec-Kit / GSD-style spec
- * authoring. Specs live under .eas/specs/<slug>.spec.md and are seeded from
- * templates/spec.md. `eas plan --from-spec <id>` (wired in cli.ts) reads a
+ * `specfleet spec new <name>` and `specfleet spec list` — Spec-Kit / GSD-style spec
+ * authoring. Specs live under .specfleet/specs/<slug>.spec.md and are seeded from
+ * templates/spec.md. `specfleet plan --from-spec <id>` (wired in cli.ts) reads a
  * spec into the planner prompt.
  */
 import path from "node:path";
@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import chalk from "chalk";
 import fg from "fast-glob";
 import matter from "gray-matter";
-import { findEasRoot, ensureDir, writeFileAtomic, readMaybe } from "../util/paths.js";
+import { findSpecFleetRoot, ensureDir, writeFileAtomic, readMaybe } from "../util/paths.js";
 
 const __filename = fileURLToPath(import.meta.url);
 // dist/commands/spec.js → ../../templates/spec.md
@@ -21,13 +21,13 @@ export interface SpecOptions {
 }
 
 export async function specCommand(action: "new" | "list", opts: SpecOptions): Promise<void> {
-  const root = await findEasRoot();
-  const specsDir = path.join(root, ".eas", "specs");
+  const root = await findSpecFleetRoot();
+  const specsDir = path.join(root, ".specfleet", "specs");
   await ensureDir(specsDir);
 
   if (action === "new") {
     const name = opts.name;
-    if (!name) throw new Error("spec name required (e.g. eas spec new payment-flow)");
+    if (!name) throw new Error("spec name required (e.g. specfleet spec new payment-flow)");
     const slug = slugify(name);
     if (!slug) throw new Error(`Invalid spec name: ${name}`);
     const file = path.join(specsDir, `${slug}.spec.md`);
@@ -71,11 +71,11 @@ export async function specCommand(action: "new" | "list", opts: SpecOptions): Pr
 
 /**
  * Read a spec by id and return its raw markdown (frontmatter + body).
- * Used by `eas plan --from-spec`.
+ * Used by `specfleet plan --from-spec`.
  */
 export async function readSpec(specId: string): Promise<string> {
-  const root = await findEasRoot();
-  const file = path.join(root, ".eas", "specs", `${slugify(specId)}.spec.md`);
+  const root = await findSpecFleetRoot();
+  const file = path.join(root, ".specfleet", "specs", `${slugify(specId)}.spec.md`);
   const raw = await readMaybe(file);
   if (!raw) throw new Error(`spec not found: ${specId} (looked at ${file})`);
   return raw;

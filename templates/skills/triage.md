@@ -2,7 +2,7 @@
 
 The `triage` skill standardises how the SRE charter reviews recent failures
 (audit log + SARIF findings) and produces an actionable triage report. The
-output is consumed by humans and by `eas tune` to suggest charter edits.
+output is consumed by humans and by `specfleet check --tune` to suggest charter edits.
 
 # Procedure
 
@@ -32,5 +32,5 @@ output is consumed by humans and by `eas tune` to suggest charter edits.
    - recommended action: <imperative>
    - refs: <audit ids / SARIF rule ids>
    ```
-6. End with a **Top-3 recommendations** section so `eas tune` can act on it.
+6. End with a **Top-3 recommendations** section so `specfleet check --tune` can act on it.
 7. Never propose auto-applying charter edits. All changes are advisory.

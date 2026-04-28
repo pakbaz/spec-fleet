@@ -1,11 +1,11 @@
 /**
- * `eas doctor` — Validate .eas/ integrity, charter caps, MCP scopes, and
+ * `specfleet check` — Validate .specfleet/ integrity, charter caps, MCP scopes, and
  * presence of required files. Exits non-zero on hard failures.
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
-import { findEasRoot, easPaths } from "../util/paths.js";
+import { findSpecFleetRoot, specFleetPaths } from "../util/paths.js";
 import { loadAllCharters } from "../runtime/charter.js";
 import {
   loadEgressPolicy,
@@ -30,16 +30,16 @@ export async function doctorCommand(): Promise<void> {
   };
   const ok = (m: string) => console.log(chalk.green(`  ✓ ${m}`));
 
-  console.log(chalk.bold("EAS doctor"));
+  console.log(chalk.bold("SpecFleet doctor"));
   let root: string;
   try {
-    root = await findEasRoot();
+    root = await findSpecFleetRoot();
   } catch (e) {
     console.log(chalk.red(`  ✖ ${(e as Error).message}`));
     process.exitCode = 2;
     return;
   }
-  const p = easPaths(root);
+  const p = specFleetPaths(root);
   ok(`root: ${root}`);
 
   // Required files
@@ -84,9 +84,9 @@ export async function doctorCommand(): Promise<void> {
         signedCount++;
         const v = verifyCharterSignature(c, trusted);
         if (!v.ok && v.reason === "no-trusted-signers") {
-          warn(`${c.name}: charter is signed but .eas/policies/trusted-signers.json is absent`);
+          warn(`${c.name}: charter is signed but .specfleet/policies/trusted-signers.json is absent`);
         } else if (!v.ok && v.reason === "not-implemented") {
-          warn(`${c.name}: signature present (full verification lands in v0.3)`);
+          warn(`${c.name}: signature present (full verification lands in v0.4)`);
         }
       }
     }
@@ -118,9 +118,9 @@ export async function doctorCommand(): Promise<void> {
 
   // Offline mode
   if (isOfflineMode()) {
-    ok(`offline mode ENABLED (EAS_OFFLINE=1) — all egress will be denied`);
+    ok(`offline mode ENABLED (SPECFLEET_OFFLINE=1) — all egress will be denied`);
   } else {
-    ok(`offline mode disabled (set EAS_OFFLINE=1 to deny all egress)`);
+    ok(`offline mode disabled (set SPECFLEET_OFFLINE=1 to deny all egress)`);
   }
 
   console.log("");

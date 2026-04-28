@@ -22,6 +22,6 @@ namespace.
 ## Consequences
 + Reviewable (PR-friendly).
 + Mirrors cleanly into the CLI's expected format.
-+ Easy to scaffold (`eas charter new`).
++ Easy to scaffold (`specfleet config new charter`).
 - Two paths to the same agent (charter + mirror) — must keep in sync;
-  `mirrorCharters` runs on every `EasRuntime.open()`.
+  `mirrorCharters` runs on every `SpecFleetRuntime.open()`.

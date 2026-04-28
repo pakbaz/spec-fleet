@@ -1,12 +1,12 @@
 /**
- * `eas replay <sessionId>` — Read-only timeline pretty-print of an audit JSONL
+ * `specfleet log <sessionId>` — Read-only timeline pretty-print of an audit JSONL
  * file. Args are redacted via the existing secret patterns. Supports
  * --from <seq> and --limit N.
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
-import { findEasRoot, easPaths } from "../util/paths.js";
+import { findSpecFleetRoot, specFleetPaths } from "../util/paths.js";
 import { redact, loadCustomPatterns } from "../util/secrets.js";
 
 export interface ReplayOptions {
@@ -24,8 +24,8 @@ interface AuditLine {
 
 export async function replayCommand(sessionId: string, opts: ReplayOptions = {}): Promise<void> {
   if (!sessionId) throw new Error("sessionId required");
-  const root = await findEasRoot();
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot();
+  const p = specFleetPaths(root);
   await loadCustomPatterns(p.policiesDir);
 
   const file = path.join(p.auditDir, `${sessionId}.jsonl`);

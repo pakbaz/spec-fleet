@@ -1,5 +1,5 @@
 /**
- * `eas precommit-scan` — scans the staged git diff for secrets and IP-guard
+ * `specfleet check --staged` — scans the staged git diff for secrets and IP-guard
  * pattern matches in *added* lines only. Exits non-zero (blocking the commit)
  * when matches are found.
  *
@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { findSecrets } from "../util/secrets.js";
 import { findIpGuardMatches, loadIpGuardPolicy, type CompiledIpGuard } from "../util/policies.js";
-import { findEasRoot, easPaths } from "../util/paths.js";
+import { findSpecFleetRoot, specFleetPaths } from "../util/paths.js";
 
 interface ScanResult {
   ok: boolean;
@@ -33,11 +33,11 @@ export async function scanStagedDiff(repoRoot: string): Promise<ScanResult> {
   // Try to load IP-guard policy (best-effort).
   let ipGuard: CompiledIpGuard | null = null;
   try {
-    const easRoot = await findEasRoot(repoRoot);
-    const p = easPaths(easRoot);
+    const easRoot = await findSpecFleetRoot(repoRoot);
+    const p = specFleetPaths(easRoot);
     ipGuard = await loadIpGuardPolicy(p.policiesDir);
   } catch {
-    // No .eas/ dir in this repo — fine; secret scan still runs.
+    // No .specfleet/ dir in this repo — fine; secret scan still runs.
   }
 
   let currentFile = "";
@@ -94,7 +94,7 @@ export async function precommitScanCommand(): Promise<void> {
     return;
   }
   process.stderr.write(
-    `\u2716 EAS pre-commit scan blocked your commit — ${r.findings.length} finding(s):\n`,
+    `\u2716 SpecFleet pre-commit scan blocked your commit — ${r.findings.length} finding(s):\n`,
   );
   for (const f of r.findings) {
     process.stderr.write(`  ${f.file}:${f.line}  [${f.rule}]  ${f.preview}\n`);

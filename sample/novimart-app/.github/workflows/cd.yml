@@ -1,0 +1,101 @@
+# =============================================================================
+# CD — deploys to Azure on push to main, after CI passes.
+#
+# Authentication: OIDC federated credentials from GitHub Actions to Entra
+# (zero-trust §1 — no PAT, no client secrets). The federated SP needs the
+# following on the *resource group* (NEVER subscription scope):
+#
+#   • Contributor                       (provision RG-scoped resources)
+#   • User Access Administrator         (assign RBAC roles inside the RG)
+#   • Monitoring Metrics Publisher      (write App Insights from CI smoke tests)
+#
+# Or, if your governance allows: Owner on the resource group only.
+#
+# Required GitHub Actions secrets (set at repo or environment level):
+#   AZURE_CLIENT_ID         — Federated app registration's clientId
+#   AZURE_TENANT_ID         — Entra tenant
+#   AZURE_SUBSCRIPTION_ID   — Target subscription
+#   AZURE_ENV_NAME          — azd env name (e.g. dev / staging / prod)
+#   AZURE_LOCATION          — e.g. eastus2
+#
+# Optional (recommended for prod):
+#   AZURE_PRINCIPAL_ID      — User/Group object ID granted KV Administrator
+# =============================================================================
+name: cd
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: azd environment to deploy
+        required: true
+        default: dev
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write     # required for OIDC federated login
+  contents: read
+
+defaults:
+  run:
+    working-directory: sample/novimart-app
+
+jobs:
+  wait-for-ci:
+    name: wait for CI
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI required-checks gate is enforced via branch protection."
+
+  deploy:
+    name: azd up
+    needs: wait-for-ci
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    env:
+      AZURE_ENV_NAME: ${{ secrets.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_PRINCIPAL_ID: ${{ secrets.AZURE_PRINCIPAL_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: azd auth (federated)
+        run: |
+          azd auth login \
+            --client-id "${AZURE_CLIENT_ID}" \
+            --federated-credential-provider github \
+            --tenant-id "${AZURE_TENANT_ID}"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+          dotnet-quality: preview
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Provision + deploy
+        run: azd up --no-prompt

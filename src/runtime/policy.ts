@@ -8,7 +8,7 @@
  *   - offline mode (deny-all egress regardless of allowlist)
  *   - immutable file paths
  *
- * It is invoked from `EasSession`'s `onPreToolUse` / `onPostToolUse` hooks.
+ * It is invoked from `SpecFleetSession`'s `onPreToolUse` / `onPostToolUse` hooks.
  * Pure data in / pure data out — no SDK types leak through, so the unit tests
  * exercise it directly.
  */
@@ -105,7 +105,7 @@ export function enforcePreTool(
         kind: "policy.block",
         payload: { reason: "immutable", file: abs, tool: toolName },
       });
-      return { decision: "deny", reason: `Path ${abs} is immutable per .eas policy` };
+      return { decision: "deny", reason: `Path ${abs} is immutable per .specfleet policy` };
     }
   }
 
@@ -129,7 +129,7 @@ export function enforcePreTool(
         decision: "deny",
         reason: `Refusing to invoke ${toolName}: arguments contain a secret (${secretMatches
           .map((m) => m.rule)
-          .join(", ")}). EAS will not write secrets to disk or shell.`,
+          .join(", ")}). SpecFleet will not write secrets to disk or shell.`,
       };
     }
     ctx.audit.emit({
@@ -157,7 +157,7 @@ export function enforcePreTool(
         });
         return {
           decision: "deny",
-          reason: `Offline mode (EAS_OFFLINE=1): refusing network access to ${host}`,
+          reason: `Offline mode (SPECFLEET_OFFLINE=1): refusing network access to ${host}`,
         };
       }
       if (ctx.egress && !isHostAllowed(host, ctx.egress)) {
@@ -169,7 +169,7 @@ export function enforcePreTool(
         });
         return {
           decision: "deny",
-          reason: `Host ${host} not in .eas/policies/egress.json allowlist`,
+          reason: `Host ${host} not in .specfleet/policies/egress.json allowlist`,
         };
       }
     }
@@ -296,7 +296,7 @@ export function enforcePostTool(
 // ---------------- Offline detection ----------------
 
 export function isOfflineMode(): boolean {
-  if (process.env.EAS_OFFLINE === "1" || process.env.EAS_OFFLINE === "true") return true;
+  if (process.env.SPECFLEET_OFFLINE === "1" || process.env.SPECFLEET_OFFLINE === "true") return true;
   if (process.argv.includes("--offline")) return true;
   return false;
 }

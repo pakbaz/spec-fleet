@@ -1,11 +1,11 @@
 /**
- * `eas audit` — Tail/filter audit events from .eas/audit/.
- *               `eas audit verify` — verify the per-session hash chain.
+ * `specfleet log` — Tail/filter audit events from .specfleet/audit/.
+ *               `specfleet check --audit` — verify the per-session hash chain.
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import chalk from "chalk";
-import { EasRuntime } from "../runtime/index.js";
+import { SpecFleetRuntime } from "../runtime/index.js";
 
 interface AuditOptions {
   since?: string;
@@ -19,7 +19,7 @@ interface AuditVerifyOptions {
 }
 
 export async function auditCommand(opts: AuditOptions): Promise<void> {
-  const rt = await EasRuntime.open();
+  const rt = await SpecFleetRuntime.open();
   try {
     const events = await rt.audit.readAll({ since: opts.since, agent: opts.agent });
     for (const e of events) {
@@ -73,12 +73,12 @@ function colorFor(kind: string): (s: string) => string {
 }
 
 /**
- * `eas audit verify` — recompute the per-session hash chain and report
+ * `specfleet check --audit` — recompute the per-session hash chain and report
  * tamper-evidence status. Pass `--session <id>` for a single session, or
- * `--all` to verify every session under .eas/audit/.
+ * `--all` to verify every session under .specfleet/audit/.
  */
 export async function auditVerifyCommand(opts: AuditVerifyOptions): Promise<void> {
-  const rt = await EasRuntime.open();
+  const rt = await SpecFleetRuntime.open();
   let exitCode = 0;
   try {
     let sessions: string[];

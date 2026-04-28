@@ -8,8 +8,8 @@ let tmp: string;
 const cwd = process.cwd();
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-spec-"));
-  await fs.mkdir(path.join(tmp, ".eas"), { recursive: true });
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-spec-"));
+  await fs.mkdir(path.join(tmp, ".specfleet"), { recursive: true });
   process.chdir(tmp);
 });
 
@@ -18,10 +18,10 @@ afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas spec", () => {
+describe("specfleet spec", () => {
   it("creates a spec from the template", async () => {
     await specCommand("new", { name: "Payment Flow" });
-    const file = path.join(tmp, ".eas", "specs", "payment-flow.spec.md");
+    const file = path.join(tmp, ".specfleet", "specs", "payment-flow.spec.md");
     const raw = await fs.readFile(file, "utf8");
     expect(raw).toContain("id: payment-flow");
     expect(raw).toContain("title: Payment Flow");

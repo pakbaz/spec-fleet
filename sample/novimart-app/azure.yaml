@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: novimart-ecommerce
+metadata:
+  template: novimart@0.1.0
+services:
+  api:
+    project: ./backend/src/NoviMart.Api
+    language: dotnet
+    host: containerapp
+    docker:
+      path: ../../../Dockerfile
+      context: ../../../
+  web:
+    project: ./frontend
+    language: js
+    host: staticwebapp
+    dist: dist
+hooks:
+  preprovision:
+    shell: sh
+    run: ./infra/hooks/preprovision.sh
+    interactive: false
+    continueOnError: false
+  postprovision:
+    shell: sh
+    run: ./infra/hooks/postprovision.sh
+    interactive: false
+    continueOnError: true

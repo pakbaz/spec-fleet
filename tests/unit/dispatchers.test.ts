@@ -6,13 +6,12 @@ import { initCommand } from "../../src/commands/init.js";
 import { checkCommand } from "../../src/commands/check.js";
 import { logCommand } from "../../src/commands/log.js";
 import { runCommand } from "../../src/commands/run.js";
-import { implementCommand } from "../../src/commands/implement.js";
 
 let tmp: string;
 let cwd: string;
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-dispatch-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-dispatch-"));
   await initCommand({ dir: tmp, nonInteractive: true });
   cwd = process.cwd();
   process.chdir(tmp);
@@ -23,7 +22,7 @@ afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas check (v0.3 dispatcher)", () => {
+describe("specfleet check (v0.4 dispatcher)", () => {
   it("default invocation runs doctor and exits without throwing", async () => {
     const origLog = console.log;
     console.log = () => {};
@@ -59,7 +58,7 @@ describe("eas check (v0.3 dispatcher)", () => {
   });
 });
 
-describe("eas log (v0.3 dispatcher)", () => {
+describe("specfleet log (v0.4 dispatcher)", () => {
   it("with no sessionId tails audit (no throw)", async () => {
     const origLog = console.log;
     console.log = () => {};
@@ -86,8 +85,8 @@ describe("eas log (v0.3 dispatcher)", () => {
   });
 });
 
-describe("eas run (v0.3 verb)", () => {
-  it("runCommand is the same as implementCommand (re-export)", () => {
-    expect(runCommand).toBe(implementCommand);
+describe("specfleet run", () => {
+  it("exports the run command implementation", () => {
+    expect(typeof runCommand).toBe("function");
   });
 });

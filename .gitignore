@@ -5,12 +5,18 @@ dist/
 .vscode/
 .idea/
 coverage/
-.eas/audit/*.jsonl
-.eas/checkpoints/*.md
-.eas/index/
-!.eas/audit/.gitkeep
-!.eas/checkpoints/.gitkeep
-!.eas/index/.gitkeep
+.specfleet/audit/*.jsonl
+.specfleet/checkpoints/*.md
+.specfleet/index/
+!.specfleet/audit/.gitkeep
+!.specfleet/checkpoints/.gitkeep
+!.specfleet/index/.gitkeep
 .env
 .env.*
 !.env.example
+
+# Sample build artifacts
+sample/novimart-app/**/bin/
+sample/novimart-app/**/obj/
+sample/novimart-app/**/TestResults/
+sample/novimart-app/frontend/node_modules/

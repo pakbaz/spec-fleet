@@ -1,22 +1,22 @@
 /**
- * `eas config` — v0.3 single entry point for inspecting and editing the
+ * `specfleet config` — v0.4 single entry point for inspecting and editing the
  * orchestrator instructions, subagent charters, policies, MCP wiring, and
  * skills.
  *
  * Subcommands:
- *   eas config show [target]    — print one config (default: orchestrator)
- *   eas config list             — table of all configs (kind / name / path)
- *   eas config edit [target]    — open in $EDITOR, re-validate on close
- *   eas config new <kind> <n>   — scaffold (kinds: charter | policy | mcp | skill)
- *   eas config validate         — schema-check everything; non-zero on failure
- *   eas config diff             — drift between local configs and reference templates
+ *   specfleet config show [target]    — print one config (default: orchestrator)
+ *   specfleet config list             — table of all configs (kind / name / path)
+ *   specfleet config edit [target]    — open in $EDITOR, re-validate on close
+ *   specfleet config new <kind> <n>   — scaffold (kinds: charter | policy | mcp | skill)
+ *   specfleet config validate         — schema-check everything; non-zero on failure
+ *   specfleet config diff             — drift between local configs and reference templates
  *
  * Targets:
- *   "orchestrator"        → .eas/instruction.md (default)
- *   "<charter-name>"      → .eas/charters/<n>.charter.md (or subagents/...)
- *   "policy:<file>"       → .eas/policies/<file>
- *   "mcp:<file>"          → .eas/mcp/<file>
- *   "skill:<file>"        → .eas/skills/<file>
+ *   "orchestrator"        → .specfleet/instruction.md (default)
+ *   "<charter-name>"      → .specfleet/charters/<n>.charter.md (or subagents/...)
+ *   "policy:<file>"       → .specfleet/policies/<file>
+ *   "mcp:<file>"          → .specfleet/mcp/<file>
+ *   "skill:<file>"        → .specfleet/skills/<file>
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
@@ -24,7 +24,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import chalk from "chalk";
 import fg from "fast-glob";
-import { findEasRoot, easPaths, ensureDir } from "../util/paths.js";
+import { findSpecFleetRoot, specFleetPaths, ensureDir } from "../util/paths.js";
 import { loadAllCharters } from "../runtime/charter.js";
 import {
   loadEgressPolicy,
@@ -85,8 +85,8 @@ export async function configCommand(
 // -- show --------------------------------------------------------------------
 
 async function showConfig(t: ResolvedTarget, opts: ConfigOptions): Promise<void> {
-  const root = await findEasRoot();
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot();
+  const p = specFleetPaths(root);
   // Load secret patterns so any leaked credential gets masked before printing.
   await loadCustomPatterns(p.policiesDir);
   let raw: string;
@@ -106,8 +106,8 @@ async function showConfig(t: ResolvedTarget, opts: ConfigOptions): Promise<void>
 // -- list --------------------------------------------------------------------
 
 async function listConfigs(): Promise<void> {
-  const root = await findEasRoot();
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot();
+  const p = specFleetPaths(root);
   const rows: Array<{ kind: string; name: string; path: string; mtime: string }> = [];
 
   // orchestrator
@@ -215,7 +215,7 @@ async function editConfig(t: ResolvedTarget): Promise<void> {
     console.log(chalk.red(`✖ ${t.display} failed validation: ${(err as Error).message}`));
     console.log(
       chalk.yellow(
-        `  Your edits are saved on disk. Re-run \`eas config edit ${quoteTarget(t)}\` to fix, or \`eas config validate\` to recheck.`,
+        `  Your edits are saved on disk. Re-run \`specfleet config edit ${quoteTarget(t)}\` to fix, or \`specfleet config validate\` to recheck.`,
       ),
     );
     process.exitCode = 1;
@@ -238,7 +238,7 @@ async function newConfig(opts: ConfigOptions): Promise<void> {
   const kind = opts.kind;
   const name = opts.name;
   if (!kind || !name) {
-    throw new Error("usage: eas config new <kind> <name>  (kinds: charter | policy | mcp | skill)");
+    throw new Error("usage: specfleet config new <kind> <name>  (kinds: charter | policy | mcp | skill)");
   }
   if (kind === "charter") {
     // Reuse the charter-new path which already has hardened name validation.
@@ -249,8 +249,8 @@ async function newConfig(opts: ConfigOptions): Promise<void> {
   if (!/^[a-zA-Z0-9_.-]+$/.test(name)) {
     throw new Error(`invalid name: ${name}. Use [a-zA-Z0-9_.-] only.`);
   }
-  const root = await findEasRoot();
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot();
+  const p = specFleetPaths(root);
   let file: string;
   let body: string;
   if (kind === "policy") {
@@ -283,8 +283,8 @@ async function newConfig(opts: ConfigOptions): Promise<void> {
 // -- validate ----------------------------------------------------------------
 
 async function validateConfigs(): Promise<void> {
-  const root = await findEasRoot();
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot();
+  const p = specFleetPaths(root);
   let errors = 0;
   let warnings = 0;
 
@@ -361,8 +361,8 @@ async function validateConfigs(): Promise<void> {
 }
 
 async function validateOne(t: ResolvedTarget): Promise<void> {
-  const root = await findEasRoot();
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot();
+  const p = specFleetPaths(root);
   if (t.kind === "orchestrator") {
     await fs.access(t.file);
     return;
@@ -402,8 +402,8 @@ async function validateOne(t: ResolvedTarget): Promise<void> {
 // -- diff --------------------------------------------------------------------
 
 async function diffConfigs(): Promise<void> {
-  const root = await findEasRoot();
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot();
+  const p = specFleetPaths(root);
   let drifted = 0;
   let total = 0;
 
@@ -465,8 +465,8 @@ async function diffConfigs(): Promise<void> {
 // -- target resolution -------------------------------------------------------
 
 async function resolveTarget(spec: string): Promise<ResolvedTarget> {
-  const root = await findEasRoot();
-  const p = easPaths(root);
+  const root = await findSpecFleetRoot();
+  const p = specFleetPaths(root);
   if (spec === "orchestrator" || spec === "instruction") {
     return { kind: "orchestrator", display: "orchestrator", file: p.instruction };
   }
@@ -499,5 +499,5 @@ async function resolveTarget(spec: string): Promise<ResolvedTarget> {
       `ambiguous charter "${spec}" (matches: ${matches.map((f) => path.relative(root, f)).join(", ")})`,
     );
   }
-  throw new Error(`unknown target: ${spec}. Try \`eas config list\` to see available configs.`);
+  throw new Error(`unknown target: ${spec}. Try \`specfleet config list\` to see available configs.`);
 }

@@ -1,6 +1,6 @@
-# EAS Security Model
+# SpecFleet Security Model
 
-EAS runs autonomous agents against a real codebase with real credentials.
+SpecFleet runs autonomous agents against a real codebase with real credentials.
 This document describes the threat model and the 13 hardening controls
 that ship in v0.2.
 
@@ -12,15 +12,15 @@ that ship in v0.2.
 | ----------------------------- | ----------------------------------------------------- | --------------------------------------------------- |
 | Source code & IP              | Exfiltration to a third-party model or MCP server     | Egress allowlist; IP-guard; air-gap mode            |
 | Credentials & tokens          | Leak into a prompt, log, or commit                    | Secret redaction on all tool I/O; pre-commit hook   |
-| Repository integrity          | Unintended writes to immutable files                  | Permission gate; CODEOWNERS on `.eas/`              |
-| Audit log                     | Tampering to hide a policy block                      | Hash-chained JSONL; `eas audit verify`              |
-| Charter library               | Substitution / supply-chain attack on charter content | Charter signature schema (v0.2 schema, v0.3 enforce)|
+| Repository integrity          | Unintended writes to immutable files                  | Permission gate; CODEOWNERS on `.specfleet/`              |
+| Audit log                     | Tampering to hide a policy block                      | Hash-chained JSONL; `specfleet check --audit`              |
+| Charter library               | Substitution / supply-chain attack on charter content | Charter signature schema and trusted-signer policy |
 | Build artefacts               | Tampered dependency in `dist/`                        | SBOM (SPDX), npm provenance                         |
-| Runtime configuration         | Hostile policy file added to a fork                   | `eas doctor` validates schemas; pre-commit scan     |
+| Runtime configuration         | Hostile policy file added to a fork                   | `specfleet check` validates schemas; pre-commit scan     |
 | Telemetry                     | Silent phone-home from runtime or deps                | No-telemetry policy; CI grep gate                   |
 
-EAS assumes the operator's machine is trusted, the GitHub Copilot CLI
-auth is trusted, and the `.eas/` directory is reviewed by humans.
+SpecFleet assumes the operator's machine is trusted, the GitHub Copilot CLI
+auth is trusted, and the `.specfleet/` directory is reviewed by humans.
 Everything outside that perimeter is treated as hostile.
 
 ---
@@ -36,12 +36,12 @@ or file write is run through `redact()` (matchers in
 `[REDACTED:<rule>]`. The v0.2 release fixes a critical off-by-one that
 left part of every secret visible in v0.1.
 
-**Enable / extend.** Add patterns to `.eas/policies/secrets.json`:
+**Enable / extend.** Add patterns to `.specfleet/policies/secrets.json`:
 
 ```json
 {
   "patterns": [
-    { "name": "acme-internal-key", "regex": "ACME_[A-Z0-9]{32}" },
+    { "name": "novimart-internal-key", "regex": "NOVIMART_[A-Z0-9]{32}" },
     { "name": "github-pat",         "regex": "ghp_[A-Za-z0-9]{36}" }
   ]
 }
@@ -71,7 +71,7 @@ aborts the tool call.
   "patterns": [
     { "name": "codename",   "regex": "Project[- ]Nightingale" },
     { "name": "internal-host","regex": "[a-z0-9-]+\\.corp\\.example\\.net" },
-    { "name": "jira-key",   "regex": "ACME-\\d{3,6}" }
+    { "name": "jira-key",   "regex": "NOVIMART-\\d{3,6}" }
   ],
   "onMatch": "block"
 }
@@ -114,42 +114,41 @@ See [`templates/policies/egress.example.json`](../templates/policies/egress.exam
 policy block, a tool use, or a permission grant.
 
 **How it works.** Each `AuditEvent` line in
-`.eas/audit/<sessionId>.jsonl` carries `prevHash` and `hash` fields.
+`.specfleet/audit/<sessionId>.jsonl` carries `prevHash` and `hash` fields.
 `hash = sha256(prevHash || canonical(event))`. The first line's
-`prevHash` is the empty string. `eas audit verify` walks every session
+`prevHash` is the empty string. `specfleet check --audit` walks every session
 file, recomputes, and reports any line whose hash chain breaks.
 
 **Use.**
 
 ```bash
-eas audit verify                      # all sessions
-eas audit verify --session <id>       # one session
-eas audit verify --since 2025-04-01   # rolling window
+specfleet check --audit                      # all sessions
+specfleet check --audit --session <id>       # one session
 ```
 
-A non-zero exit code from `eas audit verify` is a hard fail in CI and
+A non-zero exit code from `specfleet check --audit` is a hard fail in CI and
 is the canonical signal for SOC 2 evidence collection.
 
 ---
 
-## 5. Air-gap mode (`EAS_OFFLINE=1`)
+## 5. Air-gap mode (`SPECFLEET_OFFLINE=1`)
 
 **Protects against.** Any unintended network egress, including from
 buggy MCP servers or transitively-pulled deps.
 
-**How it works.** When `EAS_OFFLINE=1` (or `--offline` is passed), the
+**How it works.** When `SPECFLEET_OFFLINE=1` (or `--offline` is passed), the
 runtime:
 
 - Refuses to start if a charter declares an MCP that requires network.
 - Disables every tool whose manifest declares network use.
 - Forces the egress allowlist to empty regardless of policy file.
-- Reports air-gap readiness from `eas doctor`.
+- Reports air-gap readiness from `specfleet check`.
 
 **Use.**
 
 ```bash
-EAS_OFFLINE=1 eas plan "Ship a hello-world endpoint"
-eas doctor --offline    # verify air-gap correctness
+SPECFLEET_OFFLINE=1 specfleet plan "Ship a hello-world endpoint"
+specfleet check --offline      # verify air-gap correctness
 ```
 
 ---
@@ -159,32 +158,32 @@ eas doctor --offline    # verify air-gap correctness
 **Protects against.** Secrets or IP-guard hits making it into a commit
 and pushed before CI catches them.
 
-**How it works.** `eas install-hooks` writes `.git/hooks/pre-commit`
+**How it works.** `specfleet init --hooks-only` writes `.git/hooks/pre-commit`
 that runs `findSecrets` + IP-guard against the staged diff and aborts
 the commit on any match. Shebang is `#!/bin/sh` for portability.
 
 **Enable.**
 
 ```bash
-eas install-hooks
+specfleet init --hooks-only
 git add .
 git commit -m "..."   # blocked if a match is found
 ```
 
 ---
 
-## 7. Charter signing (schema in v0.2; enforcement in v0.3)
+## 7. Charter signing
 
 **Protects against.** Substituted or unauthorized charters
 (supply-chain or insider).
 
 **How it works.** Charter frontmatter accepts an optional
 `signature: <sigstore bundle>` field; `policies/trusted-signers.json`
-lists accepted signing identities; `eas doctor` verifies presented
+lists accepted signing identities; `specfleet check` verifies presented
 signatures and warns when a charter is unsigned. Verification is **not
 required** in v0.2 — the goal is to ship the schema, the verifier, and
 the workflow so teams can opt in. Required-signature enforcement
-arrives in v0.3.
+is part of the SpecFleet policy model.
 
 ```yaml
 ---
@@ -201,10 +200,10 @@ signature: |
 
 ## 8. No-telemetry policy
 
-**Protects against.** Silent phone-home from EAS itself or from a
+**Protects against.** Silent phone-home from SpecFleet itself or from a
 dependency.
 
-**Policy.** EAS ships **zero outbound calls** other than:
+**Policy.** SpecFleet ships **zero outbound calls** other than:
 
 - The Copilot SDK's authenticated calls (which the user has already
   opted into via `copilot login`).
@@ -239,7 +238,7 @@ artefacts; regulator demand for a Software Bill of Materials.
 Consume with:
 
 ```bash
-npm view @pakbaz/eas dist
+npm view @pakbaz/specfleet dist
 # verify provenance
 gh attestation verify <tarball> --owner pakbaz
 ```
@@ -249,9 +248,9 @@ gh attestation verify <tarball> --owner pakbaz
 ## 10. Compliance packs
 
 Per-framework bundles of policies and skills under
-`templates/policies/packs/<name>/`. `eas init --with-pack <name>`
+`templates/policies/packs/<name>/`. `specfleet init --with-pack <name>`
 seeds the right rules during bootstrap. Each pack has a one-page map
-of regulator controls → EAS hooks under `docs/compliance/`:
+of regulator controls → SpecFleet hooks under `docs/compliance/`:
 
 - [`docs/compliance/soc2.md`](compliance/soc2.md)
 - [`docs/compliance/iso27001.md`](compliance/iso27001.md)
@@ -260,8 +259,8 @@ of regulator controls → EAS hooks under `docs/compliance/`:
 - [`docs/compliance/gdpr.md`](compliance/gdpr.md)
 
 ```bash
-eas init --with-pack soc2
-eas init --with-pack hipaa --with-pack gdpr
+specfleet init --with-pack soc2
+specfleet init --with-pack hipaa --with-pack gdpr
 ```
 
 ---
@@ -271,7 +270,7 @@ eas init --with-pack hipaa --with-pack gdpr
 Per-charter `allowedTools` and `mcpServers` lists are enforced at the
 SDK permission boundary. A charter without `shell` cannot run
 commands; a charter without `write` cannot mutate the repo. Immutable
-files (e.g. `.eas/instruction.md`) are rejected at the gate
+files (e.g. `.specfleet/instruction.md`) are rejected at the gate
 regardless of charter.
 
 ---
@@ -287,15 +286,15 @@ log.
 
 ## 13. Path & symlink hardening
 
-`eas charter new` rejects names containing `..` or absolute paths.
-`eas init --instruction <path>` `lstat`s the source, refuses
+`specfleet config new charter` rejects names containing `..` or absolute paths.
+`specfleet init --instruction <path>` `lstat`s the source, refuses
 symlinks, and refuses non-files. Both fixes ship in v0.2.
 
 ---
 
 ## Support status
 
-`@pakbaz/eas` is provided AS-IS with no security support, no
+`specfleet` is provided AS-IS with no security support, no
 maintenance commitment, and no vulnerability-response process. See
 [`SECURITY.md`](../SECURITY.md) and [`LICENSE`](../LICENSE). Operators
 are responsible for their own review, hardening, monitoring, and

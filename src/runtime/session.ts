@@ -1,11 +1,11 @@
 /**
- * EasSession — internal abstraction over @github/copilot-sdk's CopilotSession that
+ * SpecFleetSession — internal abstraction over @github/copilot-sdk's CopilotSession that
  * adds (a) per-charter token budget enforcement, (b) immutable-file protection,
  * (c) tool allowlist enforcement, (d) secret redaction in tool outputs, and
  * (e) audit logging for every lifecycle event.
  *
  * This is the *single* policy enforcement point in the system: developers cannot
- * reach the SDK directly — they go through `eas` commands which always wrap
+ * reach the SDK directly — they go through `specfleet` commands which always wrap
  * sessions in this class.
  */
 import path from "node:path";
@@ -23,7 +23,7 @@ import { checkBudget, estimateMessagesTokens, TokenBudgetExceededError } from ".
 import { enforcePostTool, enforcePreTool, isOfflineMode, type PolicyContext } from "./policy.js";
 import type { CompiledIpGuard, EgressPolicy } from "../util/policies.js";
 
-export interface EasSessionOptions {
+export interface SpecFleetSessionOptions {
   charter: Charter;
   workingDirectory: string;
   audit: AuditLog;
@@ -35,7 +35,7 @@ export interface EasSessionOptions {
   onPermissionRequest?: (req: PermissionRequest) => PermissionRequestResult | Promise<PermissionRequestResult>;
 }
 
-export class EasSession {
+export class SpecFleetSession {
   readonly charter: Charter;
   readonly sessionId: string;
   private readonly session: CopilotSession;
@@ -57,7 +57,7 @@ export class EasSession {
     this.immutablePaths = args.immutablePaths;
   }
 
-  static async create(client: CopilotClient, opts: EasSessionOptions): Promise<EasSession> {
+  static async create(client: CopilotClient, opts: SpecFleetSessionOptions): Promise<SpecFleetSession> {
     const { charter, workingDirectory, audit, immutablePaths } = opts;
     const offline = opts.offline ?? isOfflineMode();
     const egress = opts.egress ?? null;
@@ -120,7 +120,7 @@ export class EasSession {
           if (verdict.decision === "deny") {
             return {
               permissionDecision: "deny",
-              permissionDecisionReason: verdict.reason ?? "Blocked by EAS policy",
+              permissionDecisionReason: verdict.reason ?? "Blocked by SpecFleet policy",
             };
           }
           audit.emit({
@@ -176,7 +176,7 @@ export class EasSession {
     }
 
     const session = await client.createSession(config);
-    return new EasSession({
+    return new SpecFleetSession({
       charter,
       sessionId: session.sessionId,
       session,
@@ -222,7 +222,7 @@ function buildSystemPrompt(c: Charter): string {
     `</charter>`,
     `<allowedTools>${c.allowedTools.join(", ") || "(default set)"}</allowedTools>`,
     c.spawns.length > 0
-      ? `<canSpawn>${c.spawns.join(", ")}</canSpawn>\n<rule>To delegate work to a sub-agent, output a fenced block:\n\`\`\`eas-delegate\n{"to": "<charterName>", "task": "<concise brief>"}\n\`\`\`\nThe orchestrator will spawn the sub-agent in an isolated session and return its result.</rule>`
+      ? `<canSpawn>${c.spawns.join(", ")}</canSpawn>\n<rule>To delegate work to a sub-agent, output a fenced block:\n\`\`\`specfleet-delegate\n{"to": "<charterName>", "task": "<concise brief>"}\n\`\`\`\nThe orchestrator will spawn the sub-agent in an isolated session and return its result.</rule>`
       : "",
   ]
     .filter(Boolean)

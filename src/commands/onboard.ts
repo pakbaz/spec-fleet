@@ -1,14 +1,14 @@
 /**
- * `eas onboard` — Brownfield mode. For MVP this is a heuristic analyzer that
+ * `specfleet onboard` — Brownfield mode. For MVP this is a heuristic analyzer that
  * infers stack from package.json / pyproject.toml / pom.xml / go.mod and emits
- * a draft .eas/project.md. A real Phase-2 implementation will spawn the
+ * a draft .specfleet/project.md. A real Phase-2 implementation will spawn the
  * Architect agent with a codebase-walking subagent and build a RAG index.
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
 import matter from "gray-matter";
-import { ensureDir, easPaths, readMaybe } from "../util/paths.js";
+import { ensureDir, specFleetPaths, readMaybe } from "../util/paths.js";
 import { ProjectSchema, type Project } from "../schema/index.js";
 import { mirrorCharters, loadAllCharters } from "../runtime/charter.js";
 import { fileURLToPath } from "node:url";
@@ -22,12 +22,12 @@ interface OnboardOptions {
 
 export async function onboardCommand(opts: OnboardOptions): Promise<void> {
   const root = path.resolve(opts.dir ?? process.cwd());
-  const p = easPaths(root);
+  const p = specFleetPaths(root);
   console.log(chalk.cyan(`▸ Onboarding ${root} (brownfield)`));
 
-  await ensureDir(p.easDir);
+  await ensureDir(p.specFleetDir);
   // Copy templates non-destructively (so we get charters + policies + skills).
-  await copyDirRecursive(TEMPLATES_DIR, p.easDir);
+  await copyDirRecursive(TEMPLATES_DIR, p.specFleetDir);
   for (const d of [p.auditDir, p.checkpointsDir, p.indexDir, p.plansDir]) {
     await ensureDir(d);
   }
@@ -50,7 +50,7 @@ export async function onboardCommand(opts: OnboardOptions): Promise<void> {
   await mirrorCharters(charters, p.githubAgentsDir);
 
   console.log(chalk.green(`✓ Drafted ${path.relative(root, p.project)} (${project.primaryLanguage}/${project.runtime})`));
-  console.log(chalk.gray(`  Next: review .eas/project.md, then run \`eas review\` for compliance audit.`));
+  console.log(chalk.gray(`  Next: review .specfleet/project.md, then run \`specfleet review\` for compliance audit.`));
 }
 
 async function detect(root: string): Promise<Partial<Project>> {

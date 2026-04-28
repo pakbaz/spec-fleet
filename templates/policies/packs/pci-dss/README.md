@@ -13,9 +13,9 @@ Patterns and egress posture appropriate for the **Cardholder Data
 Environment (CDE)** or any service that may incidentally process Primary
 Account Numbers (PANs), CVVs, or magstripe data. Ships in **block mode**.
 
-## Control → EAS hook mapping
+## Control → SpecFleet hook mapping
 
-| Control | Name                                                                       | EAS hooks                              |
+| Control | Name                                                                       | SpecFleet hooks                              |
 |---------|----------------------------------------------------------------------------|----------------------------------------|
 | Req-3   | Protect stored account data                                                | `ip-guard`, `secret-redaction`         |
 | Req-4   | Protect cardholder data with strong cryptography during transmission       | `egress-allowlist`, `ip-guard`         |
@@ -34,7 +34,7 @@ Account Numbers (PANs), CVVs, or magstripe data. Ships in **block mode**.
 ## How to enable
 
 ```bash
-eas init --with-pack pci-dss
+specfleet init --with-pack pci-dss
 ```
 
 After enabling, scope the allow list to validated, in-CDE endpoints only.

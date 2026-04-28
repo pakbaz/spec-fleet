@@ -14,9 +14,9 @@ A baseline of organizational and technical controls from the 2022 revision
 relevant to AI-agent operations: access, cloud services, logging, data leak
 prevention, and secure coding.
 
-## Control → EAS hook mapping
+## Control → SpecFleet hook mapping
 
-| Control | Name                                              | EAS hooks                                            |
+| Control | Name                                              | SpecFleet hooks                                            |
 |---------|---------------------------------------------------|------------------------------------------------------|
 | A.5.15  | Access control                                    | `egress-allowlist`, `ip-guard`                       |
 | A.5.23  | Information security for use of cloud services    | `egress-allowlist`                                   |
@@ -36,5 +36,5 @@ prevention, and secure coding.
 ## How to enable
 
 ```bash
-eas init --with-pack iso27001
+specfleet init --with-pack iso27001
 ```

@@ -8,8 +8,8 @@ let tmp: string;
 const cwd = process.cwd();
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-charter-"));
-  await fs.mkdir(path.join(tmp, ".eas", "charters", "subagents"), { recursive: true });
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-charter-"));
+  await fs.mkdir(path.join(tmp, ".specfleet", "charters", "subagents"), { recursive: true });
   process.chdir(tmp);
 });
 
@@ -18,7 +18,7 @@ afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas charter new — name validation (path traversal regression)", () => {
+describe("specfleet config new charter — name validation (path traversal regression)", () => {
   it("rejects '..' segments", async () => {
     await expect(charterCommand("new", { name: "../../etc/passwd" })).rejects.toThrow(
       /Invalid charter name/,
@@ -49,7 +49,7 @@ describe("eas charter new — name validation (path traversal regression)", () =
   it("accepts valid kebab-case role names", async () => {
     await charterCommand("new", { name: "data-science" });
     const exists = await fs
-      .stat(path.join(tmp, ".eas", "charters", "data-science.charter.md"))
+      .stat(path.join(tmp, ".specfleet", "charters", "data-science.charter.md"))
       .then(() => true)
       .catch(() => false);
     expect(exists).toBe(true);
@@ -58,7 +58,7 @@ describe("eas charter new — name validation (path traversal regression)", () =
   it("accepts valid subagent paths", async () => {
     await charterCommand("new", { name: "dev/frontend" });
     const exists = await fs
-      .stat(path.join(tmp, ".eas", "charters", "subagents", "dev", "frontend.charter.md"))
+      .stat(path.join(tmp, ".specfleet", "charters", "subagents", "dev", "frontend.charter.md"))
       .then(() => true)
       .catch(() => false);
     expect(exists).toBe(true);

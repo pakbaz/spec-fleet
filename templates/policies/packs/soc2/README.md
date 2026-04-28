@@ -11,12 +11,12 @@
 ## What this pack covers
 
 A pragmatic baseline for the **Common Criteria (CC) Security** category that
-is exercised most often by EAS agents: logical access, transmission of
+is exercised most often by SpecFleet agents: logical access, transmission of
 sensitive data, change management, and monitoring.
 
-## Control → EAS hook mapping
+## Control → SpecFleet hook mapping
 
-| Control | Name                                                | EAS hooks                                            |
+| Control | Name                                                | SpecFleet hooks                                            |
 |---------|-----------------------------------------------------|------------------------------------------------------|
 | CC6.1   | Logical and physical access controls                | `egress-allowlist`, `ip-guard`, `secret-redaction`   |
 | CC6.6   | Restrict transmission of sensitive information      | `egress-allowlist`, `ip-guard`                       |
@@ -35,8 +35,8 @@ sensitive data, change management, and monitoring.
 ## How to enable
 
 ```bash
-eas init --with-pack soc2
+specfleet init --with-pack soc2
 ```
 
-This copies the pack contents into `.eas/policies/` and merges the control
-list into your `.eas/instruction.md` compliance scope.
+This copies the pack contents into `.specfleet/policies/` and merges the control
+list into your `.specfleet/instruction.md` compliance scope.

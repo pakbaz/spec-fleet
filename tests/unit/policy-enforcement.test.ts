@@ -22,7 +22,7 @@ const baseCtx = (overrides: Partial<PolicyContext> = {}): PolicyContext => ({
 });
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-policy-"));
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-policy-"));
   audit = new AuditLog(path.join(tmp, "audit"));
   await audit.init();
 });

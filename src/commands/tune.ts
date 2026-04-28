@@ -1,12 +1,12 @@
 /**
- * `eas tune` — Read scoreboard + audit + decisions, aggregate failures per
- * charter, and write a unified-diff suggestion to `.eas/tune/<ts>.diff`.
+ * `specfleet check --tune` — Read scoreboard + audit + decisions, aggregate failures per
+ * charter, and write a unified-diff suggestion to `.specfleet/tune/<ts>.diff`.
  * Advisory only — never auto-applied.
  */
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
-import { EasRuntime } from "../runtime/index.js";
+import { SpecFleetRuntime } from "../runtime/index.js";
 import { ensureDir, writeFileAtomic, readMaybe } from "../util/paths.js";
 
 export interface TuneOptions {
@@ -31,9 +31,9 @@ interface CharterStats {
 }
 
 export async function tuneCommand(opts: TuneOptions = {}): Promise<string | null> {
-  const rt = await EasRuntime.open();
+  const rt = await SpecFleetRuntime.open();
   try {
-    const scoreboardPath = path.join(rt.paths.easDir, "eval", "scoreboard.jsonl");
+    const scoreboardPath = path.join(rt.paths.specFleetDir, "eval", "scoreboard.jsonl");
     const raw = (await readMaybe(scoreboardPath)) ?? "";
     const rows: ScoreRow[] = [];
     for (const line of raw.split("\n")) {
@@ -48,7 +48,7 @@ export async function tuneCommand(opts: TuneOptions = {}): Promise<string | null
     }
 
     if (rows.length === 0) {
-      console.log(chalk.yellow("(scoreboard empty — run `eas eval` first)"));
+      console.log(chalk.yellow("(scoreboard empty — run `specfleet check --eval` first)"));
       return null;
     }
 
@@ -82,7 +82,7 @@ export async function tuneCommand(opts: TuneOptions = {}): Promise<string | null
 
     const diff = await buildDiff(worst, rt.paths.chartersDir);
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    const tuneDir = path.join(rt.paths.easDir, "tune");
+    const tuneDir = path.join(rt.paths.specFleetDir, "tune");
     await ensureDir(tuneDir);
     const outPath = path.join(tuneDir, `${ts}.diff`);
     await writeFileAtomic(outPath, diff);
@@ -96,7 +96,7 @@ export async function tuneCommand(opts: TuneOptions = {}): Promise<string | null
 
 async function buildDiff(worst: CharterStats[], chartersDir: string): Promise<string> {
   const chunks: string[] = [
-    `# eas tune — advisory charter edits`,
+    `# specfleet check --tune — advisory charter edits`,
     `# generated: ${new Date().toISOString()}`,
     `# review carefully; never apply blindly.`,
     ``,

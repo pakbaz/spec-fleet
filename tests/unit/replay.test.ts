@@ -8,7 +8,7 @@ let tmp: string;
 const cwd = process.cwd();
 
 async function seedAudit(events: Record<string, unknown>[]) {
-  const auditDir = path.join(tmp, ".eas", "audit");
+  const auditDir = path.join(tmp, ".specfleet", "audit");
   await fs.mkdir(auditDir, { recursive: true });
   await fs.writeFile(
     path.join(auditDir, "sess-1.jsonl"),
@@ -18,8 +18,8 @@ async function seedAudit(events: Record<string, unknown>[]) {
 }
 
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "eas-replay-"));
-  await fs.mkdir(path.join(tmp, ".eas"), { recursive: true });
+  tmp = await fs.mkdtemp(path.join(os.tmpdir(), "specfleet-replay-"));
+  await fs.mkdir(path.join(tmp, ".specfleet"), { recursive: true });
   process.chdir(tmp);
 });
 
@@ -28,7 +28,7 @@ afterEach(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-describe("eas replay", () => {
+describe("specfleet log", () => {
   it("prints all events for a session", async () => {
     await seedAudit([
       { ts: "2024-01-01T00:00:00Z", sessionId: "sess-1", agent: "dev", kind: "session.start", payload: {} },
