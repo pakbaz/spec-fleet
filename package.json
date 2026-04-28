@@ -1,6 +1,6 @@
 {
   "name": "@pakbaz/specfleet",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "SpecFleet — autonomous ALM CLI built on GitHub Copilot SDK + CLI fleet. Ships hierarchical agent charters, policy gates, and audit trails for greenfield, brownfield, and modernization workloads.",
   "type": "module",
   "bin": {
