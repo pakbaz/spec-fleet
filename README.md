@@ -18,23 +18,33 @@ project executed by a hierarchy of role agents (Architect, Dev, Test, DevSecOps,
 Compliance, SRE) → subagents → sub-subagents — each in **its own SDK session**
 with an enforced **<100K token context budget**.
 
-## What's new in v0.4
+> Current release: **v<!-- x-version -->0.5.1<!-- /x-version -->** —
+> `npm install -g @pakbaz/specfleet`
 
-v0.4 is the full SpecFleet rebrand. The npm package is `@pakbaz/specfleet`
-and the command is `specfleet`.
+## What's new in v0.5
 
-- **SpecFleet positioning.** The product now centers on spec-first agent
-  delivery: specs → orchestrated plans → isolated agent execution → policy and
-  audit loops.
-- **New package + command.** Install `@pakbaz/specfleet`; run `specfleet`.
-- **New project state.** Generated state lives in `.specfleet/`.
-- **Migration path.** Existing `.eas/` projects can run
-  `specfleet init --mode upgrade` to copy state into `.specfleet/`. The legacy
-  directory is left in place for review.
-- **Clean command surface.** The simplified command set remains, now without
-  legacy subcommand aliases.
-- **NoviMart sample.** The sample app is now the fictional NoviMart
-  retail commerce app.
+v0.5 hardens the toolchain and supply chain on top of the v0.4 SpecFleet
+rebrand. v0.5.1 is a docs patch — see below.
+
+- **Stricter TypeScript.** `noUncheckedIndexedAccess` is on across `src/`.
+  Every array/index access is null-guarded, eliminating an entire class of
+  "undefined is not a function" runtime bugs.
+- **Supply-chain hygiene.** `.github/dependabot.yml` keeps GitHub Actions and
+  npm dependencies current on a weekly cadence with grouped PRs. CI cancels
+  obsolete runs via `concurrency.cancel-in-progress`.
+- **Docs stay in sync with `package.json`.** `scripts/sync-docs-version.mjs`
+  runs on `npm version <X.Y.Z>` and rewrites version literals in the README,
+  quickstart, and any markdown that opts in via
+  `<!-- x-version -->X.Y.Z<!-- /x-version -->` markers. CI fails the build if
+  docs drift.
+- **Security & robustness fixes.** `sync-docs-version.mjs` no longer
+  shell-interpolates filenames (uses `execFileSync` with an argv array);
+  `SPECFLEET_TOKEN_RATIO` is clamped against 0/negative/`NaN`;
+  `precommit-scan` surfaces real `git` failures instead of silently passing;
+  `specfleet status` resolves `$HOME` via `os.homedir()` so it works in
+  minimal containers and on Windows.
+- **v0.5.1 patch.** README's "What's new" section now tracks v0.5 (was still
+  describing the v0.4 rebrand). No source changes vs 0.5.0.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full diff and
 [`docs/cli.md`](docs/cli.md) for the complete command reference.

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-04-28
+
+### Fixed
+
+- README's "What's new" section advertised v0.4 (the rebrand) even after
+  v0.5.0 shipped. Replaced with a v0.5 summary covering
+  `noUncheckedIndexedAccess`, Dependabot + CI concurrency, the docs
+  auto-sync flow, and the security/robustness fixes from 0.5.0.
+
+### Changed
+
+- README now carries a `<!-- x-version -->` marker for the current release
+  line, so future `npm version <X.Y.Z>` bumps keep the badge text honest via
+  `scripts/sync-docs-version.mjs`.
+
+### Notes
+
+- No source or runtime changes versus 0.5.0.
+
 ## [0.5.0] — 2026-04-28
 
 ### Added
