@@ -24,6 +24,17 @@ jobs:
       - run: npm run build
       - run: npm test
 
+      # Guard: docs/READMEs are kept in sync with package.json version.
+      # If this fails, run `npm run version:sync` locally and commit the result.
+      - name: Verify docs are in sync with package.json version
+        run: |
+          npm run version:sync
+          if ! git diff --quiet; then
+            echo "::error::docs/version drift detected — run 'npm run version:sync' and commit"
+            git --no-pager diff
+            exit 1
+          fi
+
       # Prove the published tarball is installable + functional
       - name: Pack and smoke-test
         run: |

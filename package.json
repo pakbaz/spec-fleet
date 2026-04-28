@@ -29,6 +29,8 @@
     "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
     "check": "node ./dist/cli.js check",
     "verify:no-telemetry": "node scripts/check-no-telemetry.mjs",
+    "version:sync": "node scripts/sync-docs-version.mjs",
+    "version": "node scripts/sync-docs-version.mjs",
     "prepublishOnly": "npm run build && npm test && npm run verify:no-telemetry"
   },
   "engines": {

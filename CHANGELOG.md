@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Docs and READMEs are now kept in lockstep with `package.json` version. `scripts/sync-docs-version.mjs` runs automatically on `npm version <X.Y.Z>` (via the `version` lifecycle hook) and stages updated docs into the version commit. CI fails the build if docs drift from `package.json`. Add `<!-- x-version -->X.Y.Z<!-- /x-version -->` markers in any new doc to opt that location into automatic sync.
+
 ## [0.4.1] — 2026-04-28
 
 ### Changed
