@@ -94,7 +94,7 @@ server, the eval/tune harness, and 13 hardening controls.
   13 hardening controls with config snippets.
 - New: 5 compliance pages under `docs/compliance/` (`soc2.md`,
   `iso27001.md`, `hipaa.md`, `pci-dss.md`, `gdpr.md`).
-- New: [`SECURITY.md`](SECURITY.md) — vulnerability reporting policy.
+- New: [`SECURITY.md`](SECURITY.md) — AS-IS / no-support statement.
 - Updated: README — "What's new in v0.2", security one-pager
   checklist, command table, air-gap snippet.
 - Updated: [`docs/specs.md`](docs/specs.md) — appended "How EAS v0.2

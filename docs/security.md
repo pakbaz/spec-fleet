@@ -293,9 +293,10 @@ symlinks, and refuses non-files. Both fixes ship in v0.2.
 
 ---
 
-## Reporting vulnerabilities
+## Support status
 
-Please report security issues privately. See
-[`SECURITY.md`](../SECURITY.md) for the contact and disclosure
-policy. Do **not** open a public GitHub issue for a vulnerability
-report.
+`@pakbaz/eas` is provided AS-IS with no security support, no
+maintenance commitment, and no vulnerability-response process. See
+[`SECURITY.md`](../SECURITY.md) and [`LICENSE`](../LICENSE). Operators
+are responsible for their own review, hardening, monitoring, and
+incident response.

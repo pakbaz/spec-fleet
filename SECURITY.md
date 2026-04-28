@@ -1,51 +1,32 @@
 # Security Policy
 
-## Supported versions
+## No support — AS-IS software
 
-| Version | Supported |
-| ------- | :-------: |
-| 0.2.x   | ✅         |
-| 0.1.x   | ⚠️ critical fixes only |
-| < 0.1   | ❌         |
+`@pakbaz/eas` is provided **AS-IS**, without warranty of any kind, express
+or implied — including but not limited to the warranties of
+merchantability, fitness for a particular purpose, and non-infringement.
+See the [`LICENSE`](LICENSE) for the full disclaimer.
 
-## Reporting a vulnerability
+There is **no security support, no maintenance commitment, no
+service-level agreement, and no triage or response process** at this
+time. The author does not provide a security contact and does not
+accept private vulnerability reports through any channel.
 
-Please report security issues **privately**. Do not open a public
-GitHub issue, discussion, or PR for vulnerabilities.
+If you adopt EAS in a production or regulated environment, you do so
+entirely at your own risk and are responsible for your own security
+review, hardening, monitoring, and incident response.
 
-- **Email:** `sepehr@pakbaz.dev` (the address listed in `package.json`)
-- **Subject:** `[eas-security] <short title>`
+## Hardening reference
 
-Include:
+The threat model and the hardening controls shipped with the runtime
+are documented in [`docs/security.md`](docs/security.md). Operators are
+expected to read that document and configure policies, allowlists, and
+hooks appropriately for their environment before use.
 
-- Affected version (`eas --version`).
-- A minimal reproducer or proof of concept.
-- Impact assessment (what an attacker could achieve).
-- Your preferred attribution (or "anonymous").
+## Out of scope
 
-## Disclosure timeline
-
-We aim to:
-
-- Acknowledge the report within **3 business days**.
-- Provide a remediation plan or patch ETA within **14 days**.
-- Coordinate public disclosure after a fix is released; credit the
-  reporter unless they request anonymity.
-
-## Scope
-
-In scope:
-
-- The `@pakbaz/eas` runtime, CLI commands, and shipped templates.
-- The `eas mcp serve` MCP server.
-- The hardening controls described in
-  [`docs/security.md`](docs/security.md).
-
-Out of scope:
-
-- Vulnerabilities in `@github/copilot-sdk`, the GitHub Copilot CLI,
-  or other upstream dependencies — please report those to their
-  respective maintainers.
+- Vulnerabilities in `@github/copilot-sdk`, the GitHub Copilot CLI, or
+  any other upstream dependency.
 - Issues that require an already-compromised local machine.
-
-Thank you for helping keep EAS users safe.
+- Any expectation of a fix, response, advisory, CVE assignment, or
+  coordinated disclosure from this project.

@@ -173,8 +173,8 @@ See [`docs/architecture.md`](docs/architecture.md) and the ADRs under
 
 ### v0.2 hardening checklist
 
-Full details in [`docs/security.md`](docs/security.md). Vulnerability
-reports: [`SECURITY.md`](SECURITY.md).
+Full details in [`docs/security.md`](docs/security.md). EAS is provided
+AS-IS — see [`SECURITY.md`](SECURITY.md).
 
 - [x] Secret redaction on **all** tool I/O (`onPreToolUse` + `onPostToolUse`)
 - [x] IP-guard for proprietary identifiers (`policies/ip-guard.json`)
@@ -226,7 +226,7 @@ See [`sample/ecommerce-app/README.md`](sample/ecommerce-app/README.md) for the f
 - [`docs/harness-management.md`](docs/harness-management.md) — eval → tune → review loop
 - [`docs/compliance/`](docs/compliance/) — one page per pack (SOC 2, ISO 27001, HIPAA, PCI-DSS, GDPR)
 - [`docs/publishing.md`](docs/publishing.md) — release & npm OIDC publishing flow
-- [`SECURITY.md`](SECURITY.md) — vulnerability reporting
+- [`SECURITY.md`](SECURITY.md) — AS-IS / no-support statement
 
 ## Contributing
 
