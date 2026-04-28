@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-05
+
+CLI surface simplification + new reflection command. v0.2 → v0.3 cuts the
+visible command count from 17 to 10 and ships `eas config` as a single entry
+point for inspecting and editing every piece of agent configuration.
+
+### Breaking
+
+- None at runtime. v0.2 commands still work as **deprecated hidden aliases**
+  with a one-line yellow warning. `EAS_NO_DEPRECATION_WARN=1` suppresses.
+  Aliases will be **removed in v0.4** — migrate now.
+- The pre-commit hook installed by `eas init` now invokes
+  `eas check --staged` instead of `eas precommit-scan`. Existing repos do not
+  break because `eas precommit-scan` remains as an alias forever (the hook is
+  on disk and we don't want to require re-installs).
+
+### Added
+
+- **`eas config`** — show / list / edit / new / validate / diff for the
+  orchestrator instruction, charters, policies, MCP manifests, and skills.
+  `edit` opens `$EDITOR` and re-validates on close. `show` redacts secrets
+  before printing.
+- **`eas check`** — single health & quality entrypoint. Default = doctor.
+  `--deep` adds full audit chain verification. `--eval`, `--tune`, `--staged`,
+  `--audit`, `--fix` flag-dispatch to existing implementations.
+- **`eas log [sessionId]`** — no-arg = tail audit events (formerly
+  `eas audit tail`). With sessionId = redacted replay (formerly
+  `eas replay <id>`).
+- **`eas run`** — replaces `eas implement` (clearer verb).
+- **`eas init` state detection** — empty repo → greenfield, code without
+  `.eas/` → prompt brownfield/modify/cancel, existing `.eas/` → prompt
+  upgrade/overwrite/cancel. New flags: `--mode greenfield|brownfield|modify|upgrade|overwrite`,
+  `--no-hooks`, `--hooks-only`, `--force`. `EAS_INIT_MODE` env var bypasses
+  the prompt for scripted use.
+- `eas init` now **auto-installs the git pre-commit hook** unless
+  `--no-hooks`. Use `eas init --hooks-only` to install just the hook.
+- `tests/unit/init-mode.test.ts`, `tests/unit/config.test.ts`, and
+  `tests/unit/dispatchers.test.ts` — 22 new tests covering the new surface.
+
+### Changed
+
+- `eas --help` now shows 10 visible commands (init, plan, run, review, status,
+  check, log, config, spec, mcp, sre). Aliases hidden from help.
+- Hook script in `templates/git-hooks/` (rendered by `eas init`) now calls
+  `eas check --staged` and falls back to the bundled `precommit-scan.js`.
+
+### Deprecated (removed in v0.4)
+
+| v0.2 | v0.3 |
+|---|---|
+| `eas onboard` | `eas init --mode brownfield` |
+| `eas implement` | `eas run` |
+| `eas doctor` | `eas check` |
+| `eas audit tail` | `eas log` |
+| `eas audit verify` | `eas check --audit` |
+| `eas replay <id>` | `eas log <id>` |
+| `eas eval` | `eas check --eval` |
+| `eas tune` | `eas check --tune` |
+| `eas precommit-scan` | `eas check --staged` *(kept indefinitely as hook target)* |
+| `eas install-hooks` | `eas init --hooks-only` |
+| `eas charter new\|list\|validate` | `eas config new charter\|list\|validate` |
+
 ## [0.2.0] — 2026-04-27
 
 Enterprise hardening + spec-coverage release. Closes the four spec

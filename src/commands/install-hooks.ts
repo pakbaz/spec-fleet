@@ -38,15 +38,15 @@ export async function installHooksCommand(opts: InstallHooksOptions = {}): Promi
 
   const script = [
     "#!/bin/sh",
-    "# Installed by `eas install-hooks` — runs the EAS staged-diff scanner.",
+    "# Installed by `eas init` (or `eas install-hooks`) — runs the EAS staged-diff scanner.",
     "# Skip with: git commit --no-verify   (NOT recommended)",
     `EAS_SCANNER=${JSON.stringify(scannerJs)}`,
     'if command -v eas >/dev/null 2>&1; then',
-    '  exec eas precommit-scan "$@"',
+    '  exec eas check --staged "$@"',
     'elif [ -f "$EAS_SCANNER" ]; then',
     '  exec node "$EAS_SCANNER" "$@"',
     'else',
-    '  echo "eas pre-commit hook: scanner not found; skipping (reinstall with: eas install-hooks)" >&2',
+    '  echo "eas pre-commit hook: scanner not found; skipping (reinstall with: eas init --no-hooks=false)" >&2',
     '  exit 0',
     'fi',
     "",
