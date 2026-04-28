@@ -46,7 +46,7 @@ export class AuditLog {
         const raw = readFileSync(file, "utf8");
         const lines = raw.split("\n").filter((l) => l.trim().length > 0);
         if (lines.length > 0) {
-          const last = JSON.parse(lines[lines.length - 1]) as Partial<AuditEvent>;
+          const last = JSON.parse(lines[lines.length - 1]!) as Partial<AuditEvent>;
           if (typeof last.hash === "string" && typeof last.seq === "number") {
             st.lastHash = last.hash;
             st.lastSeq = last.seq;
@@ -145,7 +145,7 @@ export class AuditLog {
     for (let i = 0; i < lines.length; i++) {
       let parsed: AuditEvent;
       try {
-        parsed = AuditEventSchema.parse(JSON.parse(lines[i]));
+        parsed = AuditEventSchema.parse(JSON.parse(lines[i]!));
       } catch (e) {
         return { ok: false, brokenAt: i, reason: `line ${i}: malformed (${(e as Error).message})` };
       }

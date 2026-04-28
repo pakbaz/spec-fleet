@@ -7,9 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-04-28
+
+### Added
+
+- `tsconfig.json` now sets `noUncheckedIndexedAccess: true`. All array/index
+  accesses across `src/` are explicitly null-guarded — runtime "undefined is not
+  a function" classes of bugs are no longer reachable from index access.
+- `.github/dependabot.yml` keeps GitHub Actions and npm dependencies up to date
+  on a weekly cadence with grouped PRs. Combined with SHA-pinning (recommended
+  for enterprise), this closes the supply-chain gap on workflow actions.
+- CI workflow now sets `concurrency.cancel-in-progress: true`, so rapid pushes
+  to the same ref cancel obsolete runs instead of racing.
+
 ### Changed
 
-- Docs and READMEs are now kept in lockstep with `package.json` version. `scripts/sync-docs-version.mjs` runs automatically on `npm version <X.Y.Z>` (via the `version` lifecycle hook) and stages updated docs into the version commit. CI fails the build if docs drift from `package.json`. Add `<!-- x-version -->X.Y.Z<!-- /x-version -->` markers in any new doc to opt that location into automatic sync.
+- Docs and READMEs are kept in lockstep with `package.json` version.
+  `scripts/sync-docs-version.mjs` runs automatically on `npm version <X.Y.Z>`
+  (via the `version` lifecycle hook) and stages updated docs into the version
+  commit. CI fails the build if docs drift from `package.json`. Add
+  `<!-- x-version -->X.Y.Z<!-- /x-version -->` markers in any new doc to opt
+  that location into automatic sync — placeholders like `X.Y.Z` in
+  documentation are *not* rewritten (the regex requires a SemVer-shaped
+  literal).
+
+### Fixed
+
+- `scripts/sync-docs-version.mjs` no longer shell-interpolates filenames into
+  `git add`. Switched to `execFileSync` with an argv array, eliminating a
+  command-injection risk if a malicious filename ever entered the working tree.
+- `scripts/sync-docs-version.mjs` constructs a fresh regex per file so
+  `/g.lastIndex` state cannot leak across iterations and skip matches.
+- `src/util/tokens.ts` clamps `SPECFLEET_TOKEN_RATIO` against 0, negative, and
+  `NaN` inputs. Previously a misconfigured env var produced `Infinity` token
+  estimates and confusing budget-exhausted errors.
+- `src/commands/precommit-scan.ts` now surfaces real git failures (`spawnSync`
+  `error` field) instead of treating them as "no staged changes" and silently
+  green-lighting the commit. Missing `git` binary or corrupted `.git` directory
+  fails loud.
+- `src/commands/status.ts` resolves the home directory via `os.homedir()`
+  instead of a bare `process.env.HOME`. Status now works correctly in minimal
+  containers where `HOME` is unset, and supports Windows (`USERPROFILE`).
 
 ## [0.4.1] — 2026-04-28
 
@@ -180,7 +218,8 @@ Initial public release.
 - ESM-only, Node 20+.
 - Ships `dist/`, `templates/`, `LICENSE`, `README.md`, `CHANGELOG.md`.
 
-[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/pakbaz/spec-fleet/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/pakbaz/spec-fleet/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/pakbaz/spec-fleet/compare/v0.3.0...v0.4.0
 [0.2.0]: https://github.com/pakbaz/spec-fleet/compare/v0.1.0...v0.2.0

@@ -3,6 +3,7 @@
  * gates from the decisions log.
  */
 import path from "node:path";
+import os from "node:os";
 import { promises as fs } from "node:fs";
 import chalk from "chalk";
 import { SpecFleetRuntime } from "../runtime/index.js";
@@ -47,10 +48,15 @@ export async function statusCommand(): Promise<void> {
       for (const g of gates.slice(-5)) console.log(`  ${g}`);
     }
 
-    // Local Copilot session workspaces
-    const sessionRoot = path.join(process.env.HOME ?? "", ".copilot", "session-state");
-    const sessions = await fs.readdir(sessionRoot).catch(() => [] as string[]);
-    console.log(`\n${chalk.bold("Local Copilot sessions")} (${sessions.length})`);
+    // Local Copilot session workspaces. Use os.homedir() rather than $HOME
+    // directly so that minimal containers (where HOME may be unset) still
+    // resolve to a real path on Windows (USERPROFILE) or Linux/Mac.
+    const home = os.homedir();
+    if (home) {
+      const sessionRoot = path.join(home, ".copilot", "session-state");
+      const sessions = await fs.readdir(sessionRoot).catch(() => [] as string[]);
+      console.log(`\n${chalk.bold("Local Copilot sessions")} (${sessions.length})`);
+    }
   } finally {
     await rt.dispose();
   }

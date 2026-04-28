@@ -1,0 +1,34 @@
+version: 2
+updates:
+  # Keep GitHub Actions pinned and updated. When you accept a Dependabot PR
+  # for an action, it bumps the SHA + tag pair in workflow files. Pin actions
+  # to SHAs in workflows (with the version as a trailing comment) and let
+  # Dependabot manage the churn — that's the supply-chain safe pattern.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # npm dependencies. Group non-major updates so we don't drown in PRs; majors
+  # get individual PRs because they often need code changes.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      production-dependencies:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+      development-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch

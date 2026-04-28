@@ -4,7 +4,18 @@
  * gating. Charters with multilingual content can override the heuristic via
  * SPECFLEET_TOKEN_RATIO.
  */
-const RATIO = Number(process.env.SPECFLEET_TOKEN_RATIO ?? "4");
+function resolveRatio(): number {
+  const raw = process.env.SPECFLEET_TOKEN_RATIO;
+  if (!raw) return 4;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    // Invalid value (NaN, 0, negative) → fall back to default rather than
+    // producing Infinity/NaN budget calculations.
+    return 4;
+  }
+  return parsed;
+}
+const RATIO = resolveRatio();
 
 export function estimateTokens(text: string): number {
   if (!text) return 0;

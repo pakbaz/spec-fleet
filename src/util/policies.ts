@@ -108,12 +108,12 @@ export function hostMatches(host: string, pattern: string): boolean {
   const p = pattern.toLowerCase();
   if (p.startsWith("*.")) {
     const tail = p.slice(2);
-    const hostNoPort = h.split(":")[0];
+    const hostNoPort = h.split(":")[0] ?? h;
     return hostNoPort === tail || hostNoPort.endsWith("." + tail);
   }
   if (p.includes(":")) return h === p;
   // Pattern has no port: match host part only.
-  return h.split(":")[0] === p;
+  return (h.split(":")[0] ?? h) === p;
 }
 
 export function isHostAllowed(host: string, policy: EgressPolicy): boolean {
@@ -128,7 +128,9 @@ export function extractHosts(text: string): string[] {
   const out: string[] = [];
   URL_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
-  while ((m = URL_RE.exec(text)) !== null) out.push(m[1]);
+  while ((m = URL_RE.exec(text)) !== null) {
+    if (m[1]) out.push(m[1]);
+  }
   return out;
 }
 

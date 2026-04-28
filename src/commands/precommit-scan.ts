@@ -25,7 +25,14 @@ export async function scanStagedDiff(repoRoot: string): Promise<ScanResult> {
     maxBuffer: 256 * 1024 * 1024,
   });
   if (out.status !== 0) {
-    // No staged changes or git error — nothing to scan; treat as ok.
+    // Distinguish "no staged changes" (status 0/1, no error) from a real failure
+    // (git missing, repo corrupted). Surface real failures so we don't silently
+    // pass the commit when the scan couldn't actually run.
+    if (out.error) {
+      throw new Error(`git diff failed to run: ${out.error.message}`);
+    }
+    // status !== 0 with no error = git diff exited cleanly with no diff or a
+    // non-fatal condition (e.g. not a git repo). Treat as nothing to scan.
     return { ok: true, findings };
   }
   const diff = out.stdout ?? "";
@@ -46,12 +53,12 @@ export async function scanStagedDiff(repoRoot: string): Promise<ScanResult> {
     if (line.startsWith("+++ ")) {
       // +++ b/path/to/file
       const m = /^\+\+\+ (?:b\/)?(.+)$/.exec(line);
-      currentFile = m ? m[1] : "";
+      currentFile = m?.[1] ?? "";
       continue;
     }
     if (line.startsWith("@@")) {
       const m = /\+(\d+)(?:,\d+)?/.exec(line);
-      newLineNo = m ? parseInt(m[1], 10) : 0;
+      newLineNo = m?.[1] ? parseInt(m[1], 10) : 0;
       continue;
     }
     if (line.startsWith("+") && !line.startsWith("+++")) {

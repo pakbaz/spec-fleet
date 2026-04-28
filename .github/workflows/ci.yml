@@ -9,6 +9,12 @@ on:
 permissions:
   contents: read
 
+# Cancel in-progress runs on the same ref when a new commit is pushed. Saves
+# CI minutes on rapid PR pushes and avoids racing test artifacts.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
     runs-on: ubuntu-latest

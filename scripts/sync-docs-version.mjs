@@ -9,7 +9,7 @@
 // Markers are auto-rewritten regardless of file path (any *.md under repo).
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -50,13 +50,25 @@ for (const t of targets) {
   }
 }
 
-// Marker pass: any markdown file with <!-- x-version -->...<!-- /x-version -->
-const markerRe = /<!--\s*x-version\s*-->[^<]*<!--\s*\/x-version\s*-->/g;
-const markerReplacement = `<!-- x-version -->${version}<!-- /x-version -->`;
-const allMd = execSync(
-  "git ls-files '*.md'",
-  { cwd: repoRoot, encoding: "utf8" }
-).trim().split("\n").filter(Boolean);
+// Marker pass: any markdown file with <!-- x-version -->X.Y.Z<!-- /x-version -->.
+// Use execFileSync with an argv array — never shell-interpolate user-controlled
+// strings. Construct a fresh regex inside the loop so /g lastIndex state from
+// earlier files cannot leak into later ones.
+let allMd;
+try {
+  allMd = execFileSync("git", ["ls-files", "*.md"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  })
+    .trim()
+    .split("\n")
+    .filter(Boolean);
+} catch (err) {
+  // Not a git repo, or git missing. Markers can still be edited manually; just
+  // skip this pass rather than crashing the version bump.
+  console.warn(`[sync-docs-version] skipping marker pass: ${err.message}`);
+  allMd = [];
+}
 
 for (const rel of allMd) {
   const path = resolve(repoRoot, rel);
@@ -66,10 +78,13 @@ for (const rel of allMd) {
   } catch {
     continue;
   }
-  if (!markerRe.test(content)) continue;
-  // reset lastIndex (regex with /g is stateful)
-  markerRe.lastIndex = 0;
-  const next = content.replace(markerRe, markerReplacement);
+  // Tighten the inner content match to a SemVer-shaped literal (digits + dots
+  // + optional prerelease/build). This way doc examples that show the marker
+  // with placeholders like X.Y.Z are not rewritten — only real version
+  // literals are touched.
+  const markerRe =
+    /(<!--\s*x-version\s*-->)\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?(<!--\s*\/x-version\s*-->)/g;
+  const next = content.replace(markerRe, `$1${version}$2`);
   if (next !== content) {
     writeFileSync(path, next);
     if (!changed.includes(rel)) changed.push(rel);
@@ -84,10 +99,11 @@ if (changed.length === 0) {
 }
 
 // When run from the npm `version` lifecycle, stage the changes so they land
-// in the version commit npm is about to make.
+// in the version commit npm is about to make. Pass paths as argv (never shell
+// interpolation) so filenames containing $, backticks, or quotes are safe.
 if (process.env.npm_lifecycle_event === "version" && changed.length > 0) {
   try {
-    execSync(`git add ${changed.map((f) => JSON.stringify(f)).join(" ")}`, {
+    execFileSync("git", ["add", "--", ...changed], {
       cwd: repoRoot,
       stdio: "inherit",
     });

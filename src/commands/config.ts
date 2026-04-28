@@ -492,7 +492,7 @@ async function resolveTarget(spec: string): Promise<ResolvedTarget> {
   // Bare name → assume charter. Glob the charters dir to find any match.
   const matches = await fg(`**/${spec}.charter.md`, { cwd: p.chartersDir, absolute: true });
   if (matches.length === 1) {
-    return { kind: "charter", display: spec, file: matches[0] };
+    return { kind: "charter", display: spec, file: matches[0]! };
   }
   if (matches.length > 1) {
     throw new Error(
