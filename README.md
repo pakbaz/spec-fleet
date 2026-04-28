@@ -2,8 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/@pakbaz/specfleet.svg?logo=npm)](https://www.npmjs.com/package/@pakbaz/specfleet)
 [![npm downloads](https://img.shields.io/npm/dm/@pakbaz/specfleet.svg)](https://www.npmjs.com/package/@pakbaz/specfleet)
-[![CI](https://github.com/pakbaz/specfleet/actions/workflows/ci.yml/badge.svg)](https://github.com/pakbaz/specfleet/actions/workflows/ci.yml)
-[![Release](https://github.com/pakbaz/specfleet/actions/workflows/release.yml/badge.svg)](https://github.com/pakbaz/specfleet/actions/workflows/release.yml)
+[![CI](https://github.com/pakbaz/spec-fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/pakbaz/spec-fleet/actions/workflows/ci.yml)
+[![Release](https://github.com/pakbaz/spec-fleet/actions/workflows/release.yml/badge.svg)](https://github.com/pakbaz/spec-fleet/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/node/v/@pakbaz/specfleet.svg)](package.json)
 [![Provenance](https://img.shields.io/badge/npm-provenance-success?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)

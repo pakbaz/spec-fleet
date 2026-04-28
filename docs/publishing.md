@@ -25,7 +25,7 @@ store long-lived npm tokens for release automation.
 
 1. Create or reserve the `@pakbaz/specfleet` package on npmjs.com.
 2. In npm package settings, add GitHub trusted publisher:
-   - Repository: `pakbaz/specfleet`
+   - Repository: `pakbaz/spec-fleet`
    - Workflow: `release.yml`
    - Environment: `publish`
 3. In GitHub, create the `publish` environment if it does not already exist.
@@ -113,7 +113,7 @@ ls .specfleet/charters | wc -l   # should be ≥ 8
 ## Troubleshooting
 
 - **`E403 Forbidden` on publish** — the npm Trusted Publisher does not match
-  `pakbaz/specfleet`, `release.yml`, or the `publish` environment.
+  `pakbaz/spec-fleet`, `release.yml`, or the `publish` environment.
 - **`E402 Payment Required`** — `publishConfig.access` isn't `public` (it is, but
   if someone "fixes" it later, scoped packages default to private).
 - **Provenance fails** — `id-token: write` is missing from the workflow's

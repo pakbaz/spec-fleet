@@ -55,13 +55,13 @@
   },
   "license": "MIT",
   "author": "Sepehr Pakbaz",
-  "homepage": "https://github.com/pakbaz/specfleet#readme",
+  "homepage": "https://github.com/pakbaz/spec-fleet#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pakbaz/specfleet.git"
+    "url": "git+https://github.com/pakbaz/spec-fleet.git"
   },
   "bugs": {
-    "url": "https://github.com/pakbaz/specfleet/issues"
+    "url": "https://github.com/pakbaz/spec-fleet/issues"
   },
   "publishConfig": {
     "access": "public",

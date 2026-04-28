@@ -32,7 +32,7 @@ SpecKit-vNext style, spec-first agent orchestration platform.
 
 - README, CLI reference, quickstart, specs, security docs, publishing docs,
   templates, and tests now use SpecFleet naming and `.specfleet/` paths.
-- GitHub repository metadata points to `pakbaz/specfleet`.
+- GitHub repository metadata points to `pakbaz/spec-fleet`.
 - npm OIDC release workflow checks and publishes the `@pakbaz/specfleet` package.
 - Pre-commit hook script invokes `specfleet check --staged`.
 
@@ -162,10 +162,10 @@ Initial public release.
 
 ### Packaging
 
-- Published to npmjs.com as `specfleet` with build provenance.
+- Published to npmjs.com as `@pakbaz/specfleet` with build provenance.
 - ESM-only, Node 20+.
 - Ships `dist/`, `templates/`, `LICENSE`, `README.md`, `CHANGELOG.md`.
 
-[Unreleased]: https://github.com/pakbaz/specfleet/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/pakbaz/specfleet/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/pakbaz/specfleet/releases/tag/v0.1.0
+[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/pakbaz/spec-fleet/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/pakbaz/spec-fleet/releases/tag/v0.1.0
