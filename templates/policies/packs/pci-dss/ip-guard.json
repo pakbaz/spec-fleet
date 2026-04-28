@@ -1,0 +1,48 @@
+{
+  "version": "0.1.0",
+  "mode": "block",
+  "patterns": [
+    {
+      "id": "pci-pan-visa",
+      "name": "Visa PAN (16 digits, starts 4)",
+      "regex": "\\b4\\d{3}[- ]?\\d{4}[- ]?\\d{4}[- ]?\\d{4}\\b",
+      "severity": "critical"
+    },
+    {
+      "id": "pci-pan-mastercard",
+      "name": "Mastercard PAN",
+      "regex": "\\b(5[1-5]\\d{2}|2(2[2-9]\\d|2[3-9]\\d{2}|[3-6]\\d{3}|7[01]\\d{2}|720\\d))[- ]?\\d{4}[- ]?\\d{4}[- ]?\\d{4}\\b",
+      "severity": "critical"
+    },
+    {
+      "id": "pci-pan-amex",
+      "name": "American Express PAN (15 digits, starts 34/37)",
+      "regex": "\\b3[47]\\d{2}[- ]?\\d{6}[- ]?\\d{5}\\b",
+      "severity": "critical"
+    },
+    {
+      "id": "pci-pan-discover",
+      "name": "Discover PAN",
+      "regex": "\\b6(?:011|5\\d{2})[- ]?\\d{4}[- ]?\\d{4}[- ]?\\d{4}\\b",
+      "severity": "critical"
+    },
+    {
+      "id": "pci-pan-generic",
+      "name": "Generic 13-19 digit PAN-shaped sequence",
+      "regex": "\\b\\d{13,19}\\b",
+      "severity": "high"
+    },
+    {
+      "id": "pci-cvv",
+      "name": "CVV/CVC in context",
+      "regex": "(?i)\\b(cvv|cvc|cid|cvv2)\\s*[:=]?\\s*\\d{3,4}\\b",
+      "severity": "critical"
+    },
+    {
+      "id": "pci-track-data",
+      "name": "Magstripe track data (sentinels)",
+      "regex": "%B\\d{13,19}\\^|;\\d{13,19}=",
+      "severity": "critical"
+    }
+  ]
+}

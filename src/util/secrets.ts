@@ -8,6 +8,7 @@ import path from "node:path";
 export interface SecretMatch {
   rule: string;
   index: number;
+  length: number;
   preview: string;
 }
 
@@ -48,6 +49,7 @@ export function findSecrets(text: string): SecretMatch[] {
       matches.push({
         rule,
         index: m.index,
+        length: m[0].length,
         preview: m[0].slice(0, 4) + "…" + m[0].slice(-2),
       });
     }
@@ -62,7 +64,7 @@ export function redact(text: string): { redacted: string; matches: SecretMatch[]
   // Sort descending so substitutions don't shift earlier indices.
   const sorted = [...matches].sort((a, b) => b.index - a.index);
   for (const m of sorted) {
-    out = out.slice(0, m.index) + `[REDACTED:${m.rule}]` + out.slice(m.index + m.preview.length + 1);
+    out = out.slice(0, m.index) + `[REDACTED:${m.rule}]` + out.slice(m.index + m.length);
   }
   return { redacted: out, matches };
 }

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://example.com/eas/mcp-manifest.schema.json",
+  "name": "eas-context",
+  "displayName": "EAS shared org context",
+  "description": "Stdio MCP server that exposes .eas/ (instruction, decisions, project, charters, audit) as tools and resources so any Copilot CLI or VS Code agent can read shared org context without re-loading files.",
+  "command": "eas",
+  "args": ["mcp", "serve"],
+  "scope": "workspace",
+  "_copilotCliExample": {
+    "comment": "Drop the block below into ~/.copilot/mcp-config.json (or your project's .mcp.json) to wire up @eas-context as an MCP server.",
+    "mcpServers": {
+      "eas-context": {
+        "command": "eas",
+        "args": ["mcp", "serve"]
+      }
+    }
+  },
+  "_vscodeExample": {
+    "comment": "VS Code MCP block (settings.json under chat.mcp.servers).",
+    "eas-context": {
+      "command": "eas",
+      "args": ["mcp", "serve"],
+      "env": {}
+    }
+  }
+}

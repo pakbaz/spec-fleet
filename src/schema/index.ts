@@ -102,6 +102,10 @@ export const CharterSchema = z.object({
   requiresHumanGate: z.boolean().default(false),
   // The free-form prompt body (everything after the YAML frontmatter).
   body: z.string().min(20),
+  // Optional cryptographic signature over the charter (full v0.3 sigstore wiring;
+  // v0.2 ships the schema + verifier hook only).
+  signature: z.string().optional(),
+  signed_by: z.string().optional(),
 });
 export type Charter = z.infer<typeof CharterSchema>;
 
@@ -133,6 +137,10 @@ export const AuditEventSchema = z.object({
     "permission.request",
     "policy.block",
     "secret.redacted",
+    "secret.warn",
+    "egress.block",
+    "ip.block",
+    "ip.redacted",
     "budget.warn",
     "budget.block",
     "gate.requested",
@@ -141,5 +149,10 @@ export const AuditEventSchema = z.object({
     "error",
   ]),
   payload: z.record(z.string(), z.unknown()).default({}),
+  // Tamper-evident hash chain (v0.2). Optional in schema for backward-compat
+  // when reading older logs; AuditLog.emit always populates them on write.
+  seq: z.number().int().nonnegative().optional(),
+  prevHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+  hash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
 });
 export type AuditEvent = z.infer<typeof AuditEventSchema>;

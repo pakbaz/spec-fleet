@@ -1,5 +1,6 @@
 /**
  * `eas audit` — Tail/filter audit events from .eas/audit/.
+ *               `eas audit verify` — verify the per-session hash chain.
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -10,6 +11,11 @@ interface AuditOptions {
   since?: string;
   agent?: string;
   tail?: boolean;
+}
+
+interface AuditVerifyOptions {
+  session?: string;
+  all?: boolean;
 }
 
 export async function auditCommand(opts: AuditOptions): Promise<void> {
@@ -64,4 +70,44 @@ function colorFor(kind: string): (s: string) => string {
   if (kind.startsWith("gate.")) return chalk.magenta;
   if (kind.startsWith("session.")) return chalk.green;
   return chalk.white;
+}
+
+/**
+ * `eas audit verify` — recompute the per-session hash chain and report
+ * tamper-evidence status. Pass `--session <id>` for a single session, or
+ * `--all` to verify every session under .eas/audit/.
+ */
+export async function auditVerifyCommand(opts: AuditVerifyOptions): Promise<void> {
+  const rt = await EasRuntime.open();
+  let exitCode = 0;
+  try {
+    let sessions: string[];
+    if (opts.session) {
+      sessions = [opts.session];
+    } else if (opts.all) {
+      sessions = await rt.audit.listSessions();
+    } else {
+      sessions = await rt.audit.listSessions();
+    }
+    if (sessions.length === 0) {
+      console.log(chalk.gray("no audit sessions found"));
+      return;
+    }
+    for (const sid of sessions) {
+      const r = await rt.audit.verify(sid);
+      if (r.ok) {
+        console.log(`${chalk.green("✓")} ${sid}  ${chalk.gray(`(${r.total ?? 0} events)`)}`);
+      } else {
+        exitCode = 1;
+        console.log(
+          `${chalk.red("✖")} ${sid}  ${chalk.red(r.reason ?? "unknown error")}${
+            r.brokenAt !== undefined ? chalk.gray(` [line ${r.brokenAt}]`) : ""
+          }`,
+        );
+      }
+    }
+    if (exitCode !== 0) process.exitCode = exitCode;
+  } finally {
+    await rt.dispose();
+  }
 }

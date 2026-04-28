@@ -1,0 +1,22 @@
+{
+  "//": "EAS IP-guard. Blocks or redacts internal codenames / hostnames in tool args & outputs.",
+  "//mode": "'block' refuses tool calls whose args match; 'redact' replaces matches with [REDACTED:<name>] in args/outputs.",
+  "mode": "block",
+  "patterns": [
+    {
+      "name": "project-codename",
+      "regex": "\\bProject[- ](Atlas|Helios|Nimbus)\\b",
+      "flags": "gi"
+    },
+    {
+      "name": "internal-hostname",
+      "regex": "\\b[a-z0-9-]+\\.corp\\.example\\.internal\\b",
+      "flags": "gi"
+    },
+    {
+      "name": "employee-id",
+      "regex": "\\bEMP-\\d{6}\\b",
+      "flags": "g"
+    }
+  ]
+}

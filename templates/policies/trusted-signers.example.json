@@ -1,0 +1,10 @@
+{
+  "//": "Trusted charter signers. Full sigstore wiring lands in v0.3 — schema only in v0.2.",
+  "keys": [
+    {
+      "id": "ops@example.com",
+      "alg": "ed25519",
+      "pubkey": "REPLACE_WITH_BASE64_PUBLIC_KEY"
+    }
+  ]
+}

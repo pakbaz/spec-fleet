@@ -20,12 +20,17 @@ import {
 import type { Charter } from "../schema/index.js";
 import { AuditLog } from "./audit.js";
 import { checkBudget, estimateMessagesTokens, TokenBudgetExceededError } from "../util/tokens.js";
+import { enforcePostTool, enforcePreTool, isOfflineMode, type PolicyContext } from "./policy.js";
+import type { CompiledIpGuard, EgressPolicy } from "../util/policies.js";
 
 export interface EasSessionOptions {
   charter: Charter;
   workingDirectory: string;
   audit: AuditLog;
   immutablePaths: string[];
+  egress?: EgressPolicy | null;
+  ipGuard?: CompiledIpGuard | null;
+  offline?: boolean;
   // Override permission handler. Defaults to allowlist-based enforcement.
   onPermissionRequest?: (req: PermissionRequest) => PermissionRequestResult | Promise<PermissionRequestResult>;
 }
@@ -54,6 +59,20 @@ export class EasSession {
 
   static async create(client: CopilotClient, opts: EasSessionOptions): Promise<EasSession> {
     const { charter, workingDirectory, audit, immutablePaths } = opts;
+    const offline = opts.offline ?? isOfflineMode();
+    const egress = opts.egress ?? null;
+    const ipGuard = opts.ipGuard ?? null;
+
+    const buildCtx = (sessionId: string): PolicyContext => ({
+      workingDirectory,
+      immutablePaths,
+      egress,
+      ipGuard,
+      offline,
+      audit,
+      agent: charter.name,
+      sessionId,
+    });
 
     // Build the SessionConfig from the charter.
     const config: SessionConfig = {
@@ -74,7 +93,7 @@ export class EasSession {
             sessionId: inv.sessionId,
             agent: charter.name,
             kind: "session.start",
-            payload: { source: input.source, working: workingDirectory },
+            payload: { source: input.source, working: workingDirectory, offline },
           });
           return {};
         },
@@ -96,23 +115,13 @@ export class EasSession {
           return {};
         },
         onPreToolUse: async (input, inv) => {
-          // Block writes to immutable paths by inspecting toolArgs.path.
-          const args = (input.toolArgs ?? {}) as { path?: string; file_path?: string };
-          const target = args.path ?? args.file_path;
-          if (target) {
-            const abs = path.resolve(workingDirectory, target);
-            if (immutablePaths.some((p) => abs === path.resolve(p))) {
-              audit.emit({
-                sessionId: inv.sessionId,
-                agent: charter.name,
-                kind: "policy.block",
-                payload: { reason: "immutable", file: abs, tool: input.toolName },
-              });
-              return {
-                permissionDecision: "deny",
-                permissionDecisionReason: `Path ${abs} is immutable per .eas policy`,
-              };
-            }
+          const ctx = buildCtx(inv.sessionId);
+          const verdict = enforcePreTool(input.toolName, input.toolArgs, ctx);
+          if (verdict.decision === "deny") {
+            return {
+              permissionDecision: "deny",
+              permissionDecisionReason: verdict.reason ?? "Blocked by EAS policy",
+            };
           }
           audit.emit({
             sessionId: inv.sessionId,
@@ -120,15 +129,29 @@ export class EasSession {
             kind: "tool.pre",
             payload: { tool: input.toolName },
           });
+          if (verdict.modifiedArgs !== undefined) {
+            return { permissionDecision: "allow", modifiedArgs: verdict.modifiedArgs };
+          }
           return { permissionDecision: "allow" };
         },
         onPostToolUse: async (input, inv) => {
+          const ctx = buildCtx(inv.sessionId);
+          const out = enforcePostTool(
+            input.toolName,
+            input.toolResult as { textResultForLlm?: string } & Record<string, unknown>,
+            ctx,
+          );
           audit.emit({
             sessionId: inv.sessionId,
             agent: charter.name,
             kind: "tool.post",
             payload: { tool: input.toolName },
           });
+          if (out.modifiedResult) {
+            return {
+              modifiedResult: out.modifiedResult as typeof input.toolResult,
+            };
+          }
           return {};
         },
         onErrorOccurred: async (input, inv) => {
