@@ -1,0 +1,540 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Acme.Retail.Domain</name>
+    </assembly>
+    <members>
+        <member name="T:Acme.Retail.Domain.Entities.AuditEvent">
+            <summary>
+            Tamper-evident audit event (append-only; 7-year retention).
+            Personal data writes MUST emit one of these per <c>.eas/instruction.md</c> data policy.
+            </summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.AuditEvent.Id">
+            <summary>Unique event id.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.AuditEvent.AggregateId">
+            <summary>Aggregate id this event pertains to (partition key).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.AuditEvent.ActorId">
+            <summary>Actor that performed the action (a customer or admin id, or "system").</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.AuditEvent.SubjectId">
+            <summary>Subject the action was performed on (often the customer id).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.AuditEvent.Action">
+            <summary>Symbolic action name (e.g., "customer.profile.updated").</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.AuditEvent.Timestamp">
+            <summary>Timestamp (UTC).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.AuditEvent.Details">
+            <summary>Optional structured detail (must NOT contain PAN/CVV).</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.CartItem">
+            <summary>A single line in a customer's cart.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.CartItem.ItemId">
+            <summary>Per-cart item id (used by PATCH/DELETE endpoints).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.CartItem.ProductId">
+            <summary>The product being added.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.CartItem.ProductName">
+            <summary>Snapshot of the product name at add time.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.CartItem.Quantity">
+            <summary>Quantity (1-based, capped by <see cref="F:Acme.Retail.Domain.Entities.Cart.MaxItemQuantity"/>).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.CartItem.UnitPrice">
+            <summary>Snapshot of the unit price at add time.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.CartItem.Subtotal">
+            <summary>Line subtotal.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.Cart">
+            <summary>A customer's cart aggregate.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.Entities.Cart.MaxItemQuantity">
+            <summary>Maximum quantity per line; business rule.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Cart.CustomerId">
+            <summary>Cart id (1:1 with customer in this MVP).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Cart.Currency">
+            <summary>Currency for all lines (carts are single-currency).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Cart.Items">
+            <summary>Cart lines.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Cart.UpdatedAt">
+            <summary>Last modification timestamp (UTC).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Cart.Total">
+            <summary>Total of all line subtotals.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Entities.Cart.AddItem(Acme.Retail.Domain.Entities.Product,System.Int32)">
+            <summary>
+            Adds a product line to the cart, merging quantities with any existing line for the same product.
+            </summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Entities.Cart.UpdateItemQuantity(System.Guid,System.Int32)">
+            <summary>Updates the quantity of a single line, or removes it if quantity is zero.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Entities.Cart.RemoveItem(System.Guid)">
+            <summary>Removes a single line.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Entities.Cart.Clear">
+            <summary>Empties all lines.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.Category">
+            <summary>A category in the product catalog.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Category.Id">
+            <summary>Unique slug identifier (e.g., "kitchen-knives").</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Category.Region">
+            <summary>Geographic region used as the Cosmos partition key (e.g., "EU", "NA").</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Category.Name">
+            <summary>Display name.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Category.ParentCategoryId">
+            <summary>Optional parent category id (null for root).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Category.SortOrder">
+            <summary>Sort order within siblings.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.Product">
+            <summary>A product in the catalog.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.Id">
+            <summary>Stable product id.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.CategoryId">
+            <summary>Owning category id (used as the Cosmos partition key).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.Name">
+            <summary>Product name (search target).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.Description">
+            <summary>Marketing description (search target).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.Price">
+            <summary>Listing price.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.Sku">
+            <summary>Stock-keeping unit identifier.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.StockLevel">
+            <summary>Current available stock count.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.Tags">
+            <summary>Searchable tag list.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.ImageUrls">
+            <summary>Image URLs (CDN paths).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Product.IsActive">
+            <summary>Whether this product is visible on the storefront.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.Address">
+            <summary>Postal address (shipping or billing).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Address.AddressId">
+            <summary>Per-customer address id.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Address.RecipientName">
+            <summary>Recipient name (separate from any payment cardholder name).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Address.Line1">
+            <summary>Street line 1.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Address.Line2">
+            <summary>Optional street line 2.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Address.City">
+            <summary>City / locality.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Address.Region">
+            <summary>Optional region / state / province.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Address.PostalCode">
+            <summary>Postal code.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Address.CountryCode">
+            <summary>ISO-3166-1 alpha-2 country code.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.PaymentMethod">
+            <summary>
+            Payment instrument metadata. Per <c>.eas/policies/pci.md</c> §4 we may store ONLY the fields
+            below — never PAN, CVV, full track, or cardholder name.
+            </summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.PaymentMethod.PaymentMethodId">
+            <summary>Payment method id (per-customer).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.PaymentMethod.PaymentToken">
+            <summary>Opaque token issued by the payment provider.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.PaymentMethod.Last4">
+            <summary>Last 4 digits of the card (for support / fraud signals only).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.PaymentMethod.Bin">
+            <summary>Bank Identification Number (first 6 digits).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.PaymentMethod.CardBrand">
+            <summary>Card brand (visa/mc/amex/etc.).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.PaymentMethod.ExpiryYearMonth">
+            <summary>Expiry as YYYY-MM (used for "expiring card" reminders).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.PaymentMethod.CreatedAt">
+            <summary>When the customer added this method (UTC).</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.Customer">
+            <summary>Customer profile aggregate (personal data; CMK-encrypted at rest).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.Id">
+            <summary>Stable internal customer id (GUID; not derived from PII per GDPR §5).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.ExternalId">
+            <summary>Entra External ID object id (the <c>oid</c>/<c>sub</c> claim value).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.DisplayName">
+            <summary>Display name.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.Email">
+            <summary>Contact email.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.Addresses">
+            <summary>Saved addresses.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.PaymentMethods">
+            <summary>Saved payment methods (PCI-allowed fields only).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.Preferences">
+            <summary>Marketing/consent preferences.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.CreatedAt">
+            <summary>Account creation timestamp (UTC).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.LastActivityAt">
+            <summary>Last activity timestamp; drives 7-year retention from this point.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Customer.ErasureRequestedAt">
+            <summary>Set when an erasure request is in progress (Art. 17 workflow).</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.CustomerPreferences">
+            <summary>Customer marketing/consent preferences.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.CustomerPreferences.MarketingEmailOptIn">
+            <summary>Whether the customer has opted into marketing email (consent basis).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.CustomerPreferences.ProcessingRestricted">
+            <summary>Whether processing is restricted under Art. 18.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.OrderLine">
+            <summary>One line on a placed order (immutable once written).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.OrderLine.ProductId">
+            <summary>Product id.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.OrderLine.ProductName">
+            <summary>Snapshot of the product name at order time.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.OrderLine.UnitPrice">
+            <summary>Snapshot of unit price at order time.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.OrderLine.Quantity">
+            <summary>Quantity ordered.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.OrderLine.Subtotal">
+            <summary>Line subtotal.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.Order">
+            <summary>
+            Placed order. Immutable history (append-only); 7-year retention per <c>.eas/policies/gdpr.md</c>.
+            Stores only PCI-allowed payment fields per <c>.eas/policies/pci.md</c>.
+            </summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.Id">
+            <summary>Unique order id.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.CustomerId">
+            <summary>Customer who placed the order (partition key).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.Lines">
+            <summary>Order lines.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.Currency">
+            <summary>Currency.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.Total">
+            <summary>Total amount.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.ShippingAddress">
+            <summary>Shipping address snapshot.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.PaymentToken">
+            <summary>Opaque payment token returned by the provider.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.PaymentLast4">
+            <summary>Last 4 digits of the payment instrument (allowable per pci.md §4).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.PaymentCardBrand">
+            <summary>Card brand (allowable per pci.md §4).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.Status">
+            <summary>Order status.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Entities.Order.PlacedAt">
+            <summary>UTC placed timestamp.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Entities.OrderStatus">
+            <summary>Lifecycle status of an order.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.Entities.OrderStatus.Placed">
+            <summary>Order accepted, payment captured.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.Entities.OrderStatus.Processing">
+            <summary>Order being prepared.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.Entities.OrderStatus.Shipped">
+            <summary>Order shipped.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.Entities.OrderStatus.Delivered">
+            <summary>Order delivered.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.Entities.OrderStatus.Cancelled">
+            <summary>Order cancelled.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Repositories.IProductRepository">
+            <summary>Read/write access to the product catalog.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.IProductRepository.SearchAsync(System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>Searches the catalog using the supplied filters.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.IProductRepository.GetAsync(Acme.Retail.Domain.ValueObjects.ProductId,System.String,System.Threading.CancellationToken)">
+            <summary>Loads a single product by id.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Repositories.ICategoryRepository">
+            <summary>Read/write access to category metadata.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.ICategoryRepository.ListAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Lists all categories for the given region.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Repositories.ICartRepository">
+            <summary>Read/write access to per-customer carts.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.ICartRepository.GetAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <summary>Fetches the customer's cart, or null if none exists.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.ICartRepository.SaveAsync(Acme.Retail.Domain.Entities.Cart,System.Threading.CancellationToken)">
+            <summary>Persists (upserts) the cart.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.ICartRepository.DeleteAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <summary>Deletes the cart entirely (used by GDPR erasure).</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Repositories.IOrderRepository">
+            <summary>Append-only access to placed orders.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.IOrderRepository.AddAsync(Acme.Retail.Domain.Entities.Order,System.Threading.CancellationToken)">
+            <summary>Persists a newly-placed order.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.IOrderRepository.ListForCustomerAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <summary>Lists orders for a customer, newest first.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.IOrderRepository.GetAsync(Acme.Retail.Domain.ValueObjects.OrderId,Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <summary>Loads a single order by id.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Repositories.ICustomerRepository">
+            <summary>Read/write access to customer profiles.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.ICustomerRepository.GetAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <summary>Loads a customer by internal id.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.ICustomerRepository.GetByExternalIdAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Loads a customer by Entra external id.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.ICustomerRepository.SaveAsync(Acme.Retail.Domain.Entities.Customer,System.Threading.CancellationToken)">
+            <summary>Inserts or updates a customer.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.ICustomerRepository.DeleteAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <summary>Hard-deletes a customer (GDPR Art. 17 erasure where no legal hold applies).</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Repositories.IAuditRepository">
+            <summary>Append-only access to the audit log.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Repositories.IAuditRepository.AppendAsync(Acme.Retail.Domain.Entities.AuditEvent,System.Threading.CancellationToken)">
+            <summary>Writes a new audit event.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Result`1">
+            <summary>
+            Discriminated success/failure result for domain operations. Avoids exceptions for expected
+            business outcomes (validation, not-found, conflict) while keeping unexpected faults as exceptions.
+            </summary>
+            <typeparam name="T">Success value type.</typeparam>
+        </member>
+        <member name="P:Acme.Retail.Domain.Result`1.IsSuccess">
+            <summary>Whether the operation succeeded.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Result`1.Value">
+            <summary>The success value (only valid when <see cref="P:Acme.Retail.Domain.Result`1.IsSuccess"/> is true).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Result`1.ErrorCode">
+            <summary>Stable, machine-readable error code (only valid on failure).</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Result`1.ErrorMessage">
+            <summary>Human-readable error message (only valid on failure).</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Result`1.Success(`0)">
+            <summary>Construct a success result.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Result`1.Failure(System.String,System.String)">
+            <summary>Construct a failure result.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.DomainErrors">
+            <summary>Standard domain error codes.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.DomainErrors.NotFound">
+            <summary>Aggregate not found.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.DomainErrors.Validation">
+            <summary>Validation failure on input.</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.DomainErrors.RuleViolation">
+            <summary>Business rule violation (e.g., quantity exceeds max).</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.DomainErrors.Conflict">
+            <summary>Concurrency / etag mismatch.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.Services.ProductSearchSpecification">
+            <summary>
+            Pure search filter logic for the catalog (Story 1). No I/O — operates over an in-memory
+            product sequence so it is trivially unit-testable and reusable behind any repository.
+            </summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.Services.ProductSearchSpecification.MaxPageSize">
+            <summary>Maximum allowed page size (DoS guard).</summary>
+        </member>
+        <member name="F:Acme.Retail.Domain.Services.ProductSearchSpecification.DefaultPageSize">
+            <summary>Default page size when none provided.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.Services.ProductSearchSpecification.Apply(System.Collections.Generic.IEnumerable{Acme.Retail.Domain.Entities.Product},System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Applies query/category filters and pagination to the input sequence.
+            </summary>
+            <param name="source">Source products (already loaded by the caller from the repository).</param>
+            <param name="query">Free-text search; matches name, description, or tags (case-insensitive).</param>
+            <param name="categoryId">Optional category filter (exact match).</param>
+            <param name="page">1-based page number (values &lt; 1 are clamped to 1).</param>
+            <param name="pageSize">Page size (values out of range are clamped to <see cref="F:Acme.Retail.Domain.Services.ProductSearchSpecification.DefaultPageSize"/> /
+            <see cref="F:Acme.Retail.Domain.Services.ProductSearchSpecification.MaxPageSize"/>).</param>
+            <returns>The filtered, ordered, and paginated subset along with the total match count.</returns>
+        </member>
+        <member name="T:Acme.Retail.Domain.Services.ProductSearchResult">
+            <summary>Paged product search result.</summary>
+            <param name="Items">Products on this page.</param>
+            <param name="TotalCount">Total match count across all pages.</param>
+            <param name="Page">1-based page number actually applied.</param>
+            <param name="PageSize">Page size actually applied.</param>
+        </member>
+        <member name="M:Acme.Retail.Domain.Services.ProductSearchResult.#ctor(System.Collections.Generic.IReadOnlyList{Acme.Retail.Domain.Entities.Product},System.Int32,System.Int32,System.Int32)">
+            <summary>Paged product search result.</summary>
+            <param name="Items">Products on this page.</param>
+            <param name="TotalCount">Total match count across all pages.</param>
+            <param name="Page">1-based page number actually applied.</param>
+            <param name="PageSize">Page size actually applied.</param>
+        </member>
+        <member name="P:Acme.Retail.Domain.Services.ProductSearchResult.Items">
+            <summary>Products on this page.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Services.ProductSearchResult.TotalCount">
+            <summary>Total match count across all pages.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Services.ProductSearchResult.Page">
+            <summary>1-based page number actually applied.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.Services.ProductSearchResult.PageSize">
+            <summary>Page size actually applied.</summary>
+        </member>
+        <member name="T:Acme.Retail.Domain.ValueObjects.ProductId">
+            <summary>Strongly-typed product identifier (GUID-backed).</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.ProductId.#ctor(System.Guid)">
+            <summary>Strongly-typed product identifier (GUID-backed).</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.ProductId.New">
+            <summary>Creates a new random product id.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.ProductId.Parse(System.String)">
+            <summary>Parses from string; throws on invalid input.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.ProductId.ToString">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Domain.ValueObjects.CustomerId">
+            <summary>Strongly-typed customer identifier (GUID-backed).</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.CustomerId.#ctor(System.Guid)">
+            <summary>Strongly-typed customer identifier (GUID-backed).</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.CustomerId.New">
+            <summary>Creates a new random customer id.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.CustomerId.Parse(System.String)">
+            <summary>Parses from string; throws on invalid input.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.CustomerId.ToString">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Domain.ValueObjects.OrderId">
+            <summary>Strongly-typed order identifier (GUID-backed).</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.OrderId.#ctor(System.Guid)">
+            <summary>Strongly-typed order identifier (GUID-backed).</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.OrderId.New">
+            <summary>Creates a new random order id.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.OrderId.Parse(System.String)">
+            <summary>Parses from string; throws on invalid input.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.OrderId.ToString">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Domain.ValueObjects.Money">
+            <summary>
+            Money value object — amount + ISO-4217 currency code. Operations across mismatched currencies throw.
+            </summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.ValueObjects.Money.Amount">
+            <summary>Numeric amount.</summary>
+        </member>
+        <member name="P:Acme.Retail.Domain.ValueObjects.Money.Currency">
+            <summary>ISO-4217 currency code (e.g., "EUR", "USD"). Stored upper-case.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.Money.#ctor(System.Decimal,System.String)">
+            <summary>Creates a money instance.</summary>
+            <param name="amount">Amount; may be negative for refunds.</param>
+            <param name="currency">3-letter ISO-4217 code.</param>
+            <exception cref="T:System.ArgumentException">Thrown when currency is not a 3-letter code.</exception>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.Money.Zero(System.String)">
+            <summary>Zero in the given currency.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.Money.op_Addition(Acme.Retail.Domain.ValueObjects.Money,Acme.Retail.Domain.ValueObjects.Money)">
+            <summary>Adds two money values; both must share currency.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.Money.op_Subtraction(Acme.Retail.Domain.ValueObjects.Money,Acme.Retail.Domain.ValueObjects.Money)">
+            <summary>Subtracts right from left; both must share currency.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.Money.op_Multiply(Acme.Retail.Domain.ValueObjects.Money,System.Int32)">
+            <summary>Scales the amount by an integer multiplier.</summary>
+        </member>
+        <member name="M:Acme.Retail.Domain.ValueObjects.Money.ToString">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

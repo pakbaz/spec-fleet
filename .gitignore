@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.tgz
+.DS_Store
+.vscode/
+.idea/
+coverage/
+.eas/audit/*.jsonl
+.eas/checkpoints/*.md
+.eas/index/
+!.eas/audit/.gitkeep
+!.eas/checkpoints/.gitkeep
+!.eas/index/.gitkeep
+.env
+.env.*
+!.env.example

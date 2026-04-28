@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Acme Retail v1 DTOs (request/response contracts) for the BFF.</Description>
+    <RootNamespace>Acme.Retail.Contracts</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

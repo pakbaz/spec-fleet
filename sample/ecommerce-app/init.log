@@ -1,0 +1,5 @@
+▸ Initializing EAS in /Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app
+  copied corporate instruction from /Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/.eas-staging/instruction.md
+  mirrored 32 charter(s) to .github/agents/
+  skipped guided interview (--non-interactive)
+✓ Initialized. Next: eas plan "<your goal>"

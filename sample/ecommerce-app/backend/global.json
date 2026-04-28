@@ -1,0 +1,8 @@
+{
+  "_comment": "Pin .NET 10 SDK. allowPrerelease covers preview SDKs. rollForward latestFeature lets newer 10.0.x patches satisfy this. If the host machine only has .NET 9 installed, change sdk.version to 9.0.100 and target frameworks in projects to net9.0; the source code is written to compile on either.",
+  "sdk": {
+    "version": "10.0.100",
+    "rollForward": "latestFeature",
+    "allowPrerelease": true
+  }
+}

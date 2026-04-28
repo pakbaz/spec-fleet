@@ -1,0 +1,325 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Acme.Retail.Infrastructure</name>
+    </assembly>
+    <members>
+        <member name="T:Acme.Retail.Infrastructure.Auth.AuthSchemes">
+            <summary>Authentication scheme names registered by <c>AddCustomerAuth</c> and <c>AddAdminAuth</c>.</summary>
+        </member>
+        <member name="F:Acme.Retail.Infrastructure.Auth.AuthSchemes.Customer">
+            <summary>Customer (Entra External ID) bearer scheme.</summary>
+        </member>
+        <member name="F:Acme.Retail.Infrastructure.Auth.AuthSchemes.Admin">
+            <summary>Admin (Entra ID) bearer scheme.</summary>
+        </member>
+        <member name="F:Acme.Retail.Infrastructure.Auth.AuthSchemes.CombinedChallenge">
+            <summary>Combined challenge scheme — accepts either above.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Auth.AuthPolicies">
+            <summary>Authorization policy names.</summary>
+        </member>
+        <member name="F:Acme.Retail.Infrastructure.Auth.AuthPolicies.RequireCustomer">
+            <summary>Requires a customer principal (Entra External ID).</summary>
+        </member>
+        <member name="F:Acme.Retail.Infrastructure.Auth.AuthPolicies.RequireAdmin">
+            <summary>Requires an admin principal (Entra ID).</summary>
+        </member>
+        <member name="F:Acme.Retail.Infrastructure.Auth.AuthPolicies.OwnsResource">
+            <summary>Requires that the caller's <c>oid</c>/<c>sub</c> claim matches the <c>{customerId}</c> route value.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Auth.EntraAuthOptions">
+            <summary>Configuration section for an Entra OIDC issuer.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Auth.EntraAuthOptions.Authority">
+            <summary>OIDC authority URL (no trailing slash). E.g., <c>https://login.ciamlogin.com/{tenantId}/v2.0</c>.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Auth.EntraAuthOptions.Audience">
+            <summary>Expected token audience (e.g., <c>api://acme-retail-api</c>).</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Auth.EntraAuthOptions.RequiredRoles">
+            <summary>For admin auth: required role/app-role names.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Auth.EntraAuthExtensions">
+            <summary>
+            DI extension methods that wire up Entra External ID (customers) and Entra ID (admins) JWT bearer
+            authentication. Per <c>.eas/policies/zero-trust.md</c> §1: NO client secrets, authority + audience only.
+            </summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Auth.EntraAuthExtensions.AddCustomerAuth(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>Registers the customer (Entra External ID) bearer scheme + <c>RequireCustomer</c> policy.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Auth.EntraAuthExtensions.AddAdminAuth(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>Registers the admin (Entra ID) bearer scheme + <c>RequireAdmin</c> policy.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Auth.OwnsResourceRequirement">
+            <summary>Authorization requirement: caller's id claim matches a route-bound <c>{customerId}</c>.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Auth.OwnsResourceHandler">
+            <summary>
+            Handler for <see cref="T:Acme.Retail.Infrastructure.Auth.OwnsResourceRequirement"/>. Compares the caller's <c>oid</c> (preferred) or
+            <c>sub</c> claim against the <c>customerId</c> route value. Per <c>.eas/policies/zero-trust.md</c> §2,
+            customers may access only their own data.
+            </summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Auth.OwnsResourceHandler.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor)">
+            <summary>Creates a handler.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Auth.OwnsResourceHandler.HandleRequirementAsync(Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext,Acme.Retail.Infrastructure.Auth.OwnsResourceRequirement)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.CosmosClientFactory">
+            <summary>
+            Builds a single shared <see cref="T:Microsoft.Azure.Cosmos.CosmosClient"/> backed by <see cref="T:Azure.Identity.DefaultAzureCredential"/>.
+            Per <c>.eas/policies/zero-trust.md</c> §1: managed identities only, NO connection strings.
+            </summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.CosmosClientFactory.#ctor(Microsoft.Extensions.Options.IOptions{Acme.Retail.Infrastructure.Cosmos.CosmosOptions})">
+            <summary>Creates a factory from the bound options.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.CosmosClientFactory.Create">
+            <summary>Builds a configured <see cref="T:Microsoft.Azure.Cosmos.CosmosClient"/> using DefaultAzureCredential.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.CosmosDocuments">
+            <summary>
+            Persistence document shapes — the on-disk projection of domain entities. Kept separate from
+            the domain so domain types remain serialisation-agnostic. System.Text.Json (per
+            <c>.eas/instruction.md</c> forbidden list — no Newtonsoft.Json).
+            </summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.CosmosOptions">
+            <summary>Configuration for the Cosmos DB connection. Bound from the <c>Cosmos</c> section.</summary>
+        </member>
+        <member name="F:Acme.Retail.Infrastructure.Cosmos.CosmosOptions.SectionName">
+            <summary>Configuration section name.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosOptions.Endpoint">
+            <summary>Cosmos account endpoint (e.g., <c>https://acme-retail-prod.documents.azure.com:443/</c>).</summary>
+            <remarks>Authentication uses <c>DefaultAzureCredential</c>. Connection strings are forbidden.</remarks>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosOptions.DatabaseName">
+            <summary>Database name. Defaults to <c>acme-retail</c>.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosOptions.Containers">
+            <summary>Container names per <c>.eas/project.md</c>.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.CosmosContainerNames">
+            <summary>Configured container names.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosContainerNames.Products">
+            <summary>Products container name.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosContainerNames.Categories">
+            <summary>Categories container name.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosContainerNames.Carts">
+            <summary>Carts container name.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosContainerNames.Orders">
+            <summary>Orders container name.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosContainerNames.Customers">
+            <summary>Customers container name.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Cosmos.CosmosContainerNames.Audit">
+            <summary>Audit container name.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.Repositories.CartRepository">
+            <summary>Cosmos-backed cart repository. Partition key: <c>/customerId</c>.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CartRepository.#ctor(Microsoft.Azure.Cosmos.CosmosClient,Microsoft.Extensions.Options.IOptions{Acme.Retail.Infrastructure.Cosmos.CosmosOptions})">
+            <summary>Creates a repository over the configured carts container.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CartRepository.GetAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CartRepository.SaveAsync(Acme.Retail.Domain.Entities.Cart,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CartRepository.DeleteAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.Repositories.CustomerRepository">
+            <summary>Cosmos-backed customer repository. Partition key: <c>/customerId</c>.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CustomerRepository.#ctor(Microsoft.Azure.Cosmos.CosmosClient,Microsoft.Extensions.Options.IOptions{Acme.Retail.Infrastructure.Cosmos.CosmosOptions})">
+            <summary>Creates a repository over the configured customers container.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CustomerRepository.GetAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CustomerRepository.GetByExternalIdAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CustomerRepository.SaveAsync(Acme.Retail.Domain.Entities.Customer,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CustomerRepository.DeleteAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.Repositories.CategoryRepository">
+            <summary>Cosmos-backed category repository. Partition key: <c>/region</c>.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CategoryRepository.#ctor(Microsoft.Azure.Cosmos.CosmosClient,Microsoft.Extensions.Options.IOptions{Acme.Retail.Infrastructure.Cosmos.CosmosOptions})">
+            <summary>Creates a repository over the configured categories container.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.CategoryRepository.ListAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.Repositories.AuditRepository">
+            <summary>Cosmos-backed audit repository. Partition key: <c>/aggregateId</c>; append-only.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.AuditRepository.#ctor(Microsoft.Azure.Cosmos.CosmosClient,Microsoft.Extensions.Options.IOptions{Acme.Retail.Infrastructure.Cosmos.CosmosOptions})">
+            <summary>Creates a repository over the configured audit container.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.AuditRepository.AppendAsync(Acme.Retail.Domain.Entities.AuditEvent,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.Repositories.OrderRepository">
+            <summary>Cosmos-backed order repository. Partition key: <c>/customerId</c>; append-only.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.OrderRepository.#ctor(Microsoft.Azure.Cosmos.CosmosClient,Microsoft.Extensions.Options.IOptions{Acme.Retail.Infrastructure.Cosmos.CosmosOptions})">
+            <summary>Creates a repository over the configured orders container.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.OrderRepository.AddAsync(Acme.Retail.Domain.Entities.Order,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.OrderRepository.ListForCustomerAsync(Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.OrderRepository.GetAsync(Acme.Retail.Domain.ValueObjects.OrderId,Acme.Retail.Domain.ValueObjects.CustomerId,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Cosmos.Repositories.ProductRepository">
+            <summary>Cosmos-backed product repository. Partition key: <c>/categoryId</c>.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.ProductRepository.#ctor(Microsoft.Azure.Cosmos.CosmosClient,Microsoft.Extensions.Options.IOptions{Acme.Retail.Infrastructure.Cosmos.CosmosOptions})">
+            <summary>Creates a repository over the configured products container.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.ProductRepository.SearchAsync(System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Cosmos.Repositories.ProductRepository.GetAsync(Acme.Retail.Domain.ValueObjects.ProductId,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Logging.SerilogConfig">
+            <summary>
+            Serilog configuration helpers. The <see cref="T:Acme.Retail.Infrastructure.Logging.ForbiddenFieldRedactionEnricher"/> drops any log
+            property whose name matches one of the PCI-forbidden tokens
+            (<c>pan/cardnumber/cvv/cvc/cardholder/track</c>) before sinks ever see it.
+            </summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Logging.SerilogConfig.WithForbiddenFieldRedaction(Serilog.Configuration.LoggerEnrichmentConfiguration)">
+            <summary>Adds the forbidden-field redaction enricher to a Serilog enricher configuration.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Logging.ForbiddenFieldRedactionEnricher">
+            <summary>Drops any log property whose name matches a PCI-forbidden token.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Logging.ForbiddenFieldRedactionEnricher.Enrich(Serilog.Events.LogEvent,Serilog.Core.ILogEventPropertyFactory)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Payments.IPaymentProvider">
+            <summary>
+            Payment provider abstraction. Implementations MUST tokenise — Acme NEVER receives PAN or CVV.
+            Per ADR-0003 the production provider is selected by config; this sample defaults to a stub.
+            </summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Payments.IPaymentProvider.CreateSessionAsync(System.Decimal,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Begins a payment session. The browser is redirected to <see cref="P:Acme.Retail.Infrastructure.Payments.RedirectResponse.RedirectUrl"/>
+            where the provider hosts the PAN/CVV entry on its own (PCI-Level-1) page.
+            </summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Payments.IPaymentProvider.CompleteAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Completes a session given the provider's session id. Returns the PCI-allowed token + last4 + bin
+            + brand + expiry (<c>null</c> if the session does not exist or was not paid).
+            </summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Payments.RedirectResponse">
+            <summary>Response from <see cref="M:Acme.Retail.Infrastructure.Payments.IPaymentProvider.CreateSessionAsync(System.Decimal,System.String,System.String,System.Threading.CancellationToken)"/>.</summary>
+            <param name="SessionId">Opaque provider session id.</param>
+            <param name="RedirectUrl">URL the SPA must redirect the browser to.</param>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Payments.RedirectResponse.#ctor(System.String,System.String)">
+            <summary>Response from <see cref="M:Acme.Retail.Infrastructure.Payments.IPaymentProvider.CreateSessionAsync(System.Decimal,System.String,System.String,System.Threading.CancellationToken)"/>.</summary>
+            <param name="SessionId">Opaque provider session id.</param>
+            <param name="RedirectUrl">URL the SPA must redirect the browser to.</param>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Payments.RedirectResponse.SessionId">
+            <summary>Opaque provider session id.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Payments.RedirectResponse.RedirectUrl">
+            <summary>URL the SPA must redirect the browser to.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Payments.PaymentToken">
+            <summary>Tokenised payment instrument data — the only payment fields Acme is permitted to store.</summary>
+            <param name="Token">Opaque provider token.</param>
+            <param name="Last4">Last 4 digits of the card.</param>
+            <param name="Bin">First 6 digits (BIN).</param>
+            <param name="CardBrand">Brand (visa/mc/amex).</param>
+            <param name="ExpiryYearMonth">Expiry as YYYY-MM.</param>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Payments.PaymentToken.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>Tokenised payment instrument data — the only payment fields Acme is permitted to store.</summary>
+            <param name="Token">Opaque provider token.</param>
+            <param name="Last4">Last 4 digits of the card.</param>
+            <param name="Bin">First 6 digits (BIN).</param>
+            <param name="CardBrand">Brand (visa/mc/amex).</param>
+            <param name="ExpiryYearMonth">Expiry as YYYY-MM.</param>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Payments.PaymentToken.Token">
+            <summary>Opaque provider token.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Payments.PaymentToken.Last4">
+            <summary>Last 4 digits of the card.</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Payments.PaymentToken.Bin">
+            <summary>First 6 digits (BIN).</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Payments.PaymentToken.CardBrand">
+            <summary>Brand (visa/mc/amex).</summary>
+        </member>
+        <member name="P:Acme.Retail.Infrastructure.Payments.PaymentToken.ExpiryYearMonth">
+            <summary>Expiry as YYYY-MM.</summary>
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Payments.StubPaymentProvider">
+            <summary>
+            Deterministic in-memory stub of <see cref="T:Acme.Retail.Infrastructure.Payments.IPaymentProvider"/>. Used in Dev/Staging and tests.
+            Per ADR-0003 the production provider is swapped via config — the contract above is identical to
+            a real Stripe / Adyen / Braintree integration.
+            </summary>
+            <remarks>
+            This stub never sees a PAN — by design. It returns a fake token derived from the session id.
+            Default test card values (last4=4242, bin=424242, brand=visa) match common provider sandbox cards.
+            </remarks>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Payments.StubPaymentProvider.CreateSessionAsync(System.Decimal,System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Payments.StubPaymentProvider.CompleteAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Acme.Retail.Infrastructure.Telemetry.SensitiveBodyTelemetryFilter">
+            <summary>
+            Application Insights telemetry processor that drops request and dependency *bodies* on routes
+            covered by the PCI scope-reduction policy (<c>.eas/policies/pci.md</c> §2):
+            <list type="bullet">
+              <item><description><c>/payments</c></description></item>
+              <item><description><c>/checkout</c> and any sub-route</description></item>
+              <item><description><c>/account/payment-methods</c></description></item>
+            </list>
+            The metadata (URL path, status, duration) is preserved; only the *body* fields are scrubbed.
+            </summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Telemetry.SensitiveBodyTelemetryFilter.#ctor(Microsoft.ApplicationInsights.Extensibility.ITelemetryProcessor)">
+            <summary>Creates the processor in the chain.</summary>
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Telemetry.SensitiveBodyTelemetryFilter.Process(Microsoft.ApplicationInsights.Channel.ITelemetry)">
+            <inheritdoc />
+        </member>
+        <member name="M:Acme.Retail.Infrastructure.Telemetry.SensitiveBodyTelemetryFilter.IsProtected(System.String)">
+            <summary>Public for unit-test access.</summary>
+        </member>
+    </members>
+</doc>

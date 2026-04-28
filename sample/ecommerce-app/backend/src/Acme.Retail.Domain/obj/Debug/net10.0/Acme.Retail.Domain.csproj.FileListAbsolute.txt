@@ -1,0 +1,13 @@
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/Acme.Retail.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/Acme.Retail.Domain.AssemblyInfoInputs.cache
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/Acme.Retail.Domain.AssemblyInfo.cs
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/Acme.Retail.Domain.csproj.CoreCompileInputs.cache
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/Acme.Retail.Domain.xml
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/bin/Debug/net10.0/Acme.Retail.Domain.deps.json
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/bin/Debug/net10.0/Acme.Retail.Domain.dll
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/bin/Debug/net10.0/Acme.Retail.Domain.pdb
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/bin/Debug/net10.0/Acme.Retail.Domain.xml
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/Acme.Retail.Domain.dll
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/refint/Acme.Retail.Domain.dll
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/Acme.Retail.Domain.pdb
+/Users/pakbaz/code/enteprise-agents-system/sample/ecommerce-app/backend/src/Acme.Retail.Domain/obj/Debug/net10.0/ref/Acme.Retail.Domain.dll

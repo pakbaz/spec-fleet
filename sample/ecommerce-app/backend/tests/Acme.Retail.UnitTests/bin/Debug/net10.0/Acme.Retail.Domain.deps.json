@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Acme.Retail.Domain/1.0.0": {
+        "runtime": {
+          "Acme.Retail.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Acme.Retail.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

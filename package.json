@@ -1,0 +1,63 @@
+{
+  "name": "@eas/cli",
+  "version": "0.1.0",
+  "description": "Enterprise Agents System — autonomous ALM built on GitHub Copilot SDK + CLI fleet",
+  "type": "module",
+  "bin": {
+    "eas": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./runtime": "./dist/runtime/index.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -w -p tsconfig.json",
+    "lint": "eslint 'src/**/*.ts'",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:e2e": "vitest run tests/e2e --testTimeout=180000",
+    "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
+    "doctor": "node ./dist/cli.js doctor",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@github/copilot-sdk": "^0.3.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "fast-glob": "^3.3.2",
+    "gray-matter": "^4.0.3",
+    "ora": "^8.1.1",
+    "yaml": "^2.6.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  },
+  "license": "MIT",
+  "keywords": [
+    "github",
+    "copilot",
+    "enterprise",
+    "agents",
+    "alm",
+    "spec-driven"
+  ]
+}
