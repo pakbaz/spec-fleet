@@ -25,10 +25,11 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          # NOTE: do NOT set registry-url here. setup-node would write
-          # //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} into .npmrc,
-          # and an empty NODE_AUTH_TOKEN defeats OIDC trusted-publisher auth.
-          # npm 11.5.1+ will auth via OIDC automatically when no token is set.
+          registry-url: "https://registry.npmjs.org"
+          # OIDC trusted publishing: id-token: write is set on the job. We do
+          # NOT set NODE_AUTH_TOKEN env on the publish step — npm 11.5.1+
+          # detects the empty _authToken in .npmrc + GitHub Actions OIDC env
+          # and performs the OIDC handshake automatically.
 
       # OIDC trusted publishing requires npm >= 11.5.1
       - name: Upgrade npm to a version that supports OIDC publishing
