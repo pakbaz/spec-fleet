@@ -16,9 +16,21 @@ export async function charterCommand(action: "new" | "list" | "validate", opts: 
   if (action === "new") {
     const name = opts.name;
     if (!name) throw new Error("charter name required (e.g. dev/frontend)");
+    // Reject path traversal: only [a-zA-Z0-9_-] segments separated by '/', no leading slash.
+    if (!/^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*$/.test(name)) {
+      throw new Error(
+        `Invalid charter name: ${name}. Use kebab-case segments separated by '/' (e.g. dev/frontend).`,
+      );
+    }
     const root = await findEasRoot();
     const p = easPaths(root);
-    const file = path.join(p.chartersDir, `${name.includes("/") ? `subagents/${name}` : name}.charter.md`);
+    const relPath = `${name.includes("/") ? `subagents/${name}` : name}.charter.md`;
+    const file = path.resolve(p.chartersDir, relPath);
+    // Defense in depth: refuse if resolved path escapes chartersDir.
+    const chartersDirResolved = path.resolve(p.chartersDir);
+    if (!file.startsWith(chartersDirResolved + path.sep) && file !== chartersDirResolved) {
+      throw new Error(`Refusing to write outside charters dir: ${file}`);
+    }
     await ensureDir(path.dirname(file));
     try {
       await fs.stat(file);

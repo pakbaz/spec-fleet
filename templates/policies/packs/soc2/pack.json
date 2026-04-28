@@ -1,0 +1,38 @@
+{
+  "id": "soc2",
+  "name": "SOC 2 Trust Services Criteria — Starter Pack",
+  "version": "0.1.0",
+  "framework": "AICPA SOC 2 (2017 TSC, rev. 2022)",
+  "controls": [
+    {
+      "id": "CC6.1",
+      "name": "Logical and physical access controls",
+      "hooks": ["egress-allowlist", "ip-guard", "secret-redaction"]
+    },
+    {
+      "id": "CC6.6",
+      "name": "Restrict transmission of sensitive information",
+      "hooks": ["egress-allowlist", "ip-guard"]
+    },
+    {
+      "id": "CC6.7",
+      "name": "Restrict the movement of information to authorized internal/external users",
+      "hooks": ["egress-allowlist", "secret-redaction"]
+    },
+    {
+      "id": "CC7.2",
+      "name": "Monitor system components for anomalies",
+      "hooks": ["audit-hashchain"]
+    },
+    {
+      "id": "CC7.3",
+      "name": "Evaluate security events",
+      "hooks": ["audit-hashchain", "ip-guard"]
+    },
+    {
+      "id": "CC8.1",
+      "name": "Authorize, design, develop, and implement changes",
+      "hooks": ["pre-commit-scan", "audit-hashchain"]
+    }
+  ]
+}

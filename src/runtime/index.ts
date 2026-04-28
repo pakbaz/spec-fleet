@@ -10,6 +10,15 @@ import { AuditLog } from "./audit.js";
 import { EasSession } from "./session.js";
 import { findEasRoot, easPaths, ensureDir, readMaybe } from "../util/paths.js";
 import { loadCustomPatterns, redact } from "../util/secrets.js";
+import {
+  loadEgressPolicy,
+  loadIpGuardPolicy,
+  loadTrustedSigners,
+  type CompiledIpGuard,
+  type EgressPolicy,
+  type TrustedSigners,
+} from "../util/policies.js";
+import { isOfflineMode } from "./policy.js";
 import type { Charter, Decision, Instruction, Project } from "../schema/index.js";
 import { InstructionSchema, ProjectSchema } from "../schema/index.js";
 import matter from "gray-matter";
@@ -26,6 +35,10 @@ export class EasRuntime {
   private chartersByName = new Map<string, Charter>();
   readonly paths: ReturnType<typeof easPaths>;
   readonly audit: AuditLog;
+  egress: EgressPolicy | null = null;
+  ipGuard: CompiledIpGuard | null = null;
+  trustedSigners: TrustedSigners | null = null;
+  offline = false;
 
   private constructor(public readonly root: string) {
     this.paths = easPaths(root);
@@ -42,6 +55,10 @@ export class EasRuntime {
   async load(): Promise<void> {
     await this.audit.init();
     await loadCustomPatterns(this.paths.policiesDir);
+    this.egress = await loadEgressPolicy(this.paths.policiesDir);
+    this.ipGuard = await loadIpGuardPolicy(this.paths.policiesDir);
+    this.trustedSigners = await loadTrustedSigners(this.paths.policiesDir);
+    this.offline = isOfflineMode();
     this.charters = await loadAllCharters(this.paths.chartersDir);
     this.chartersByName = new Map(this.charters.map((c) => [c.name, c]));
     // Mirror charters to .github/agents for graceful degradation.
@@ -94,6 +111,9 @@ export class EasRuntime {
       workingDirectory: this.root,
       audit: this.audit,
       immutablePaths,
+      egress: this.egress,
+      ipGuard: this.ipGuard,
+      offline: this.offline,
     });
   }
 

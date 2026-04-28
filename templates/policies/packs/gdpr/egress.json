@@ -1,0 +1,22 @@
+{
+  "version": "0.1.0",
+  "mode": "redact",
+  "default": "deny",
+  "allow": [
+    "github.com",
+    "*.github.com",
+    "registry.npmjs.org",
+    "pypi.org",
+    "*.pypi.org",
+    "*.azurewebsites.net",
+    "*.eu.azurewebsites.net",
+    "*.westeurope.cloudapp.azure.com",
+    "*.northeurope.cloudapp.azure.com",
+    "login.microsoftonline.com"
+  ],
+  "deny": [
+    "*.pastebin.com",
+    "*.transfer.sh"
+  ],
+  "notes": "Allow list biased toward EU/EEA regions. Article 44 transfers outside the EEA require an adequacy decision, SCCs, or BCRs — review before adding non-EU endpoints."
+}

@@ -1,0 +1,41 @@
+{
+  "version": "0.1.0",
+  "mode": "redact",
+  "patterns": [
+    {
+      "id": "soc2-aws-access-key",
+      "name": "AWS Access Key ID",
+      "regex": "AKIA[0-9A-Z]{16}",
+      "severity": "high",
+      "replacement": "[REDACTED:AWS_KEY]"
+    },
+    {
+      "id": "soc2-azure-conn-string",
+      "name": "Azure Storage connection string",
+      "regex": "DefaultEndpointsProtocol=https;AccountName=[A-Za-z0-9]+;AccountKey=[A-Za-z0-9+/=]+",
+      "severity": "high",
+      "replacement": "[REDACTED:AZURE_CONN]"
+    },
+    {
+      "id": "soc2-private-key",
+      "name": "PEM private key block",
+      "regex": "-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----",
+      "severity": "critical",
+      "replacement": "[REDACTED:PRIVATE_KEY]"
+    },
+    {
+      "id": "soc2-jwt",
+      "name": "JSON Web Token",
+      "regex": "eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}",
+      "severity": "medium",
+      "replacement": "[REDACTED:JWT]"
+    },
+    {
+      "id": "soc2-generic-bearer",
+      "name": "Bearer token in header",
+      "regex": "(?i)authorization:\\s*bearer\\s+[A-Za-z0-9._\\-]+",
+      "severity": "high",
+      "replacement": "Authorization: Bearer [REDACTED]"
+    }
+  ]
+}

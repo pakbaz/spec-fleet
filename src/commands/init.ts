@@ -43,6 +43,14 @@ export async function initCommand(opts: InitOptions): Promise<void> {
   // 2. Custom instruction.md
   if (opts.instruction) {
     const src = path.resolve(opts.instruction);
+    // lstat (not stat) so we don't follow a symlink to a sensitive file.
+    const st = await fs.lstat(src);
+    if (st.isSymbolicLink()) {
+      throw new Error(`--instruction must not be a symlink: ${src}`);
+    }
+    if (!st.isFile()) {
+      throw new Error(`--instruction must point to a regular file: ${src}`);
+    }
     await fs.copyFile(src, p.instruction);
     console.log(chalk.gray(`  copied corporate instruction from ${src}`));
   }

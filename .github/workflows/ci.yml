@@ -1,0 +1,57 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+      # Prove the published tarball is installable + functional
+      - name: Pack and smoke-test
+        run: |
+          npm pack
+          TGZ=$(ls pakbaz-eas-*.tgz)
+          mkdir -p /tmp/eas-smoke && cd /tmp/eas-smoke
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund "$GITHUB_WORKSPACE/$TGZ"
+          mkdir target && cd target
+          ../node_modules/.bin/eas --version
+          ../node_modules/.bin/eas init --non-interactive
+          test -d .eas/charters
+          test -d .eas/policies
+          test -f .eas/instruction.md
+          # v0.2 surface: new commands respond
+          ../node_modules/.bin/eas mcp serve --help
+          ../node_modules/.bin/eas eval --help
+          ../node_modules/.bin/eas tune --help
+          ../node_modules/.bin/eas audit verify --help
+          ../node_modules/.bin/eas spec new smoke-spec
+          test -f .eas/specs/smoke-spec.spec.md
+          ../node_modules/.bin/eas audit verify --all
+          # v0.2 compliance packs ship
+          test -d .eas/policies/packs/soc2
+          test -d .eas/policies/packs/hipaa
+          test -d .eas/policies/packs/pci-dss
+          test -d .eas/policies/packs/iso27001
+          test -d .eas/policies/packs/gdpr
+          # Air-gap: the CLI must boot with EAS_OFFLINE=1
+          EAS_OFFLINE=1 ../node_modules/.bin/eas --version
+          EAS_OFFLINE=1 ../node_modules/.bin/eas doctor || true

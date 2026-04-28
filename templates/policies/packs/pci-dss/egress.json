@@ -1,0 +1,8 @@
+{
+  "version": "0.1.0",
+  "mode": "block",
+  "default": "deny",
+  "allow": [],
+  "deny": ["*"],
+  "notes": "PCI DSS starter ships with a strict deny-all egress posture. The Cardholder Data Environment (CDE) must only call out to validated, in-scope endpoints. Add only after segmentation review."
+}

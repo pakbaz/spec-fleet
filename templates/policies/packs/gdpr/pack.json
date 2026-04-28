@@ -1,0 +1,38 @@
+{
+  "id": "gdpr",
+  "name": "GDPR — Starter Pack",
+  "version": "0.1.0",
+  "framework": "Regulation (EU) 2016/679 — General Data Protection Regulation",
+  "controls": [
+    {
+      "id": "Art.5",
+      "name": "Principles relating to processing of personal data",
+      "hooks": ["ip-guard", "secret-redaction", "audit-hashchain"]
+    },
+    {
+      "id": "Art.25",
+      "name": "Data protection by design and by default",
+      "hooks": ["pre-commit-scan", "ip-guard"]
+    },
+    {
+      "id": "Art.30",
+      "name": "Records of processing activities",
+      "hooks": ["audit-hashchain"]
+    },
+    {
+      "id": "Art.32",
+      "name": "Security of processing",
+      "hooks": ["egress-allowlist", "ip-guard", "secret-redaction"]
+    },
+    {
+      "id": "Art.33",
+      "name": "Notification of personal data breach",
+      "hooks": ["audit-hashchain"]
+    },
+    {
+      "id": "Art.44",
+      "name": "General principle for transfers (third-country transfers)",
+      "hooks": ["egress-allowlist"]
+    }
+  ]
+}
