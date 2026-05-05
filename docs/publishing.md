@@ -1,5 +1,6 @@
 # Publishing `@pakbaz/specfleet`
 
+<!-- markdownlint-disable MD031 MD060 -->
 This document is for **maintainers** cutting a new release of the SpecFleet CLI to
 [npmjs.com](https://www.npmjs.com/package/@pakbaz/specfleet).
 
@@ -107,7 +108,7 @@ npx @pakbaz/specfleet@latest --version
 # In a scratch dir:
 mkdir /tmp/specfleet-postpub && cd /tmp/specfleet-postpub
 npx @pakbaz/specfleet@latest init --non-interactive
-ls .specfleet/charters | wc -l   # should be ≥ 8
+ls .specfleet/charters | wc -l   # should be 7 (orchestrator/architect/dev/test/devsecops/compliance/sre)
 ```
 
 ## Troubleshooting

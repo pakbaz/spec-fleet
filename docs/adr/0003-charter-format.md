@@ -1,27 +1,45 @@
-# ADR-0003: Charter format — Markdown frontmatter
+# ADR-0003: Charter format as flat task contracts
 
 ## Status
-Accepted (MVP).
+
+Accepted with v0.6 revisions.
 
 ## Context
-Agents need a versioned, reviewable contract. The Copilot CLI consumes
-`.agent.md` (markdown + YAML frontmatter), Spec Kit uses `*.spec.md`, Squad
-uses YAML in `agents/`. We want one format that is human-friendly, fits PR
-review, and can be mirrored to `.github/agents/`.
+
+Agents need a versioned, reviewable contract that Copilot CLI can also consume
+directly. v0.5 used a hierarchical charter graph with roles, tiers, parents,
+declared spawns, signatures, skills, and human gates. That made the framework
+feel heavier than the current Spec-Kit and Copilot CLI ecosystem needs.
 
 ## Decision
-Use **`<name>.charter.md`** — YAML frontmatter (validated by `CharterSchema`)
-+ markdown body (the prompt). The schema declares: name, displayName, role,
-tier, parent, description, `maxContextTokens`, `allowedTools`, `spawns`,
-`mcpServers`, `skills`, `model`, `requiresHumanGate`, body.
 
-Charters are namespaced with `/` (e.g. `dev/frontend`); when mirrored to
-`.github/agents/` the slash is flattened to `-` to satisfy the CLI's flat
-namespace.
+Use one flat markdown file per charter:
+
+```yaml
+---
+name: dev
+description: Implements code for the active spec.
+maxContextTokens: 60000
+allowedTools: []
+mcpServers: []
+instructionsApplyTo: []
+---
+```
+
+The body is a task contract with `## Goal`, `## Inputs`, `## Output`, and
+`## Constraints`. It must avoid persona phrasing such as "You are the X agent".
+
+Charter names are kebab-case with no slashes. `mirrorCharters()` writes each
+file to `.github/agents/<name>.agent.md` with Copilot CLI-compatible
+frontmatter (`name`, `description`, optional `tools`, optional `model`).
 
 ## Consequences
-+ Reviewable (PR-friendly).
-+ Mirrors cleanly into the CLI's expected format.
-+ Easy to scaffold (`specfleet config new charter`).
-- Two paths to the same agent (charter + mirror) — must keep in sync;
-  `mirrorCharters` runs on every `SpecFleetRuntime.open()`.
+
+- Reviewable in PRs and easy to understand.
+- Mirrors cleanly into Copilot CLI custom agents.
+- No predeclared subagent graph to keep in sync with Copilot CLI runtime
+  behavior.
+- Existing v0.5 charters need migration; `specfleet init --from-v5` archives
+  them and scaffolds the new shape.
+- Human approval gates move out of charter schema and into normal PR / branch
+  protection / reviewer workflow.

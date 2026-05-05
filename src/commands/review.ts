@@ -1,60 +1,33 @@
 /**
- * `specfleet review` — Run Compliance + Architect agents over the current diff.
- * For MVP we collect `git diff --staged` (falling back to working tree) and
- * delegate it to each role agent in an isolated session.
+ * `specfleet review <spec-id>` — Phase 7. Cross-model review.
+ *
+ * The implementation phase ran with `models.default` (e.g. Claude Sonnet);
+ * review runs with `models.review` (e.g. GPT-5.1) so we don't ask the same
+ * model to grade its own work. See ADR-0005.
  */
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import chalk from "chalk";
-import { SpecFleetRuntime } from "../runtime/index.js";
+import { Workspace } from "../runtime/workspace.js";
+import { runPhase, defaultCharterForPhase, type SharedPhaseCommandOptions } from "./_phase.js";
 
-const exec = promisify(execFile);
-
-export async function reviewCommand(): Promise<void> {
-  const rt = await SpecFleetRuntime.open();
-  try {
-    const diff = await collectDiff(rt.root);
-    if (!diff.trim()) {
-      console.log(chalk.yellow("No changes to review."));
-      return;
-    }
-    const charters = rt.listCharters();
-    const targets = ["compliance", "architect"]
-      .map((role) => charters.find((c) => c.role === role && c.tier === "role"))
-      .filter((c): c is NonNullable<typeof c> => Boolean(c));
-
-    if (targets.length === 0) {
-      console.log(chalk.yellow("No compliance/architect charters found."));
-      return;
-    }
-
-    for (const c of targets) {
-      console.log(chalk.cyan(`▸ ${c.name}`));
-      const res = await rt.delegate(rt.rootCharter().name, c.name, [
-        `Review the following diff against your charter and the corporate instruction.md.`,
-        `Return findings as a markdown table: | severity | rule | file | message |.`,
-        ``,
-        "```diff",
-        diff.slice(0, 200_000), // cap to keep within budget
-        "```",
-      ].join("\n"));
-      console.log(res.output);
-      if (res.redactedSecrets > 0) {
-        console.log(chalk.yellow(`  ⚠ ${res.redactedSecrets} secret(s) redacted`));
-      }
-    }
-  } finally {
-    await rt.dispose();
-  }
+export interface ReviewOptions extends SharedPhaseCommandOptions {
+  /** Force same-model review (skip cross-model). */
+  sameModel?: boolean;
 }
 
-async function collectDiff(root: string): Promise<string> {
-  try {
-    const { stdout } = await exec("git", ["diff", "--staged"], { cwd: root, maxBuffer: 50 * 1024 * 1024 });
-    if (stdout.trim()) return stdout;
-    const { stdout: wt } = await exec("git", ["diff"], { cwd: root, maxBuffer: 50 * 1024 * 1024 });
-    return wt;
-  } catch {
-    return "";
-  }
+export async function reviewCommand(specId: string, opts: ReviewOptions = {}): Promise<void> {
+  if (!specId) throw new Error("spec id required");
+  const ws = await Workspace.open();
+  const charter = opts.charter ?? defaultCharterForPhase("review");
+  await runPhase({
+    ws,
+    phase: "review",
+    specId,
+    charter,
+    useReviewModel: !opts.sameModel,
+    model: opts.model,
+    allowTool: opts.allowTool,
+    nonInteractive: opts.nonInteractive,
+    dryRun: opts.dryRun,
+  });
+  console.log(chalk.green(`✓ Reviewed ${specId}`));
 }

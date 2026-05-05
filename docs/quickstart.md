@@ -1,52 +1,43 @@
-# SpecFleet Quick Start
+# SpecFleet Quick Start (v0.6)
 
-Get from zero to a working autonomous-agent ALM run in under 10 minutes.
+Zero to a fully reviewed feature on Copilot CLI in under 10 minutes.
 
 ---
 
 ## 1. Prerequisites
 
 | Requirement | Why |
-|---|---|
+| --- | --- |
 | **Node.js ≥ 20** | SpecFleet is ESM + TypeScript |
-| **GitHub Copilot CLI** signed in (`copilot --version`) | The SDK reuses Copilot auth |
-| **A Copilot-enabled GitHub account** (Pro/Business/Enterprise) | Required by the SDK |
-| **Git** | SpecFleet reads `git diff` for `specfleet review` |
+| **GitHub Copilot CLI** signed in (`copilot --version`) | We shell out to it |
+| **A Copilot-enabled GitHub account** | Required by Copilot CLI |
+| **Git** | SpecFleet reads `git diff --cached` for `check --staged` |
 
-> SpecFleet does **not** ship a separate auth flow. It piggybacks on whatever
-> credentials your local `copilot` CLI has cached.
+SpecFleet does **not** ship a separate auth flow — it inherits whatever
+credentials `copilot` already has.
 
 ---
 
-## 2. Install SpecFleet
+## 2. Install
 
 From npm:
 
 ```bash
 npm install -g @pakbaz/specfleet
-specfleet --version
+specfleet --version          # → 0.6.0
 ```
 
-Or from source:
+From source:
 
 ```bash
-git clone https://github.com/<your-org>/specfleet.git
-cd specfleet
-npm install
-npm run build
-npm link               # exposes `specfleet` on your PATH
-```
-
-Verify:
-
-```bash
-specfleet --version          # → 0.5.1
-specfleet --help
+git clone https://github.com/pakbaz/spec-fleet.git
+cd spec-fleet
+npm install && npm run build && npm link
 ```
 
 ---
 
-## 3. Greenfield: brand-new project in 90 seconds
+## 3. Initialize a workspace
 
 ```bash
 mkdir ~/code/todo-api && cd ~/code/todo-api
@@ -54,191 +45,120 @@ git init
 specfleet init --non-interactive
 ```
 
-What you get:
+What lands on disk:
 
-```
+```text
 .specfleet/
-  instruction.md        ← corporate standards (sample NoviMart Corp included)
-  charters/             ← 29 agent charters (orchestrator + 6 roles + 19 subagents)
-  policies/secrets.json ← built-in secret patterns + extension point
-  mcp/                  ← scoped MCP server manifests
-  skills/               ← lazy-loaded markdown procedures
-  audit/                ← JSONL audit log (one file per session)
-  decisions.md          ← append-only ADR-lite log written by agents
+  instruction.md        ← corporate / project constitution (immutable in reviews)
+  project.md            ← stack + layout summary (write this yourself)
+  config.json           ← models.default + models.review
+  charters/             ← 7 charters (orchestrator/architect/dev/test/devsecops/compliance/sre)
+  skills/               ← reusable how-tos
+  specs/                ← per-spec artefacts go here
+  scratchpad/           ← shared working memory per spec
+  runs/                 ← JSONL transcripts of every dispatch
 .github/
-  agents/               ← flat mirror of charters for graceful degradation
-                          (developers running plain `copilot` inherit the same prompts)
+  agents/               ← mirror of charters → run `copilot --agent dev` directly
+  prompts/              ← 8 specfleet.<phase>.prompt.md files
+  instructions/         ← 3 path-scoped instructions (coding-style/testing/compliance)
+  copilot-instructions.md
 ```
 
-Customize the corporate standards before running anything:
+Customise the constitution before any phase runs:
 
 ```bash
-$EDITOR .specfleet/instruction.md       # set your runtimes, frameworks, forbidden libs, contacts
-```
-
-> **Tip:** in a real org, drop your team's `instruction.md` into a private
-> repo and pass it via `specfleet init --instruction /path/to/your-corp.md`. The
-> file is **immutable** at runtime — agents cannot rewrite it.
-
----
-
-## 4. Plan → Implement
-
-```bash
-specfleet plan "Build a TODO REST API in Express with file-based JSON storage, full CRUD, request validation, and Vitest tests"
-```
-
-The Main Orchestrator returns a YAML task list under `.specfleet/plans/<timestamp>.md`:
-
-```yaml
-## Tasks
-- id: scaffold
-  agent: dev
-  subagent: backend
-  title: Scaffold Express app + folder layout
-  brief: Create src/, routes/, models/, tests/. Wire JSON file persistence.
-- id: crud
-  agent: dev
-  subagent: backend
-  title: Implement /todos CRUD
-  depends_on: [scaffold]
-- id: tests
-  agent: test
-  subagent: api
-  title: Vitest API tests for all endpoints
-  depends_on: [crud]
-- id: ci
-  agent: devsecops
-  subagent: cicd
-  title: GitHub Actions workflow
-  depends_on: [tests]
-```
-
-Review and edit, then execute:
-
-```bash
-specfleet run --all
-```
-
-SpecFleet spawns each task in an **isolated SDK session** with its own charter
-prompt, tool allowlist, and ≤80K token budget. The orchestrator never holds
-the dev's working code; the dev never sees the test runner's stack traces.
-
----
-
-## 5. Brownfield: onboard an existing repo
-
-```bash
-cd ~/code/legacy-monolith
-specfleet init --mode brownfield --non-interactive
-```
-
-Brownfield mode runs a stack heuristic (package.json / pyproject.toml /
-go.mod / pom.xml / Cargo.toml + Dockerfile) and drafts `.specfleet/project.md` —
-the agents' cheat sheet for the codebase. **Edit it** before planning:
-
-```bash
-specfleet config edit                            # opens .specfleet/instruction.md
-$EDITOR .specfleet/project.md                    # edit the project cheat sheet
-specfleet plan "Add OpenTelemetry instrumentation to all HTTP handlers"
-specfleet run --all
+$EDITOR .specfleet/instruction.md
+$EDITOR .specfleet/project.md
 ```
 
 ---
 
-## 6. Review changes
+## 4. The eight-phase pipeline
 
-After agents have edited files (or before you commit anything they wrote):
-
-```bash
-git add -A
-specfleet review                        # Compliance + Architect re-review the staged diff
-```
-
-Review output is appended to `.specfleet/decisions.md` and surfaced inline.
-
----
-
-## 7. Observe and audit
+Once for each feature:
 
 ```bash
-specfleet status                        # snapshot: charters, plans, recent audit, pending gates
-specfleet log --tail                    # stream JSONL events live
-specfleet log --since 1h --agent dev/backend
-specfleet log <sessionId>               # replay one session as a redacted timeline
-specfleet check                         # validate .specfleet/ integrity (charter graph, MCP refs, caps)
-specfleet check --deep                  # also re-verify the audit hash chain
+specfleet specify    "todo-api"      --description "REST API with JSON storage, CRUD, validation"
+specfleet clarify    todo-api
+specfleet plan       todo-api
+specfleet tasks      todo-api
+specfleet analyze    todo-api
+specfleet implement  todo-api
+specfleet review     todo-api        # uses models.review automatically (cross-model gate)
+specfleet checklist  todo-api
 ```
 
-Every prompt, tool call, permission decision, and policy block is recorded
-in `.specfleet/audit/<sessionId>.jsonl`.
+Each command:
+
+1. Renders `.github/prompts/specfleet.<phase>.prompt.md` against the
+   spec's artefacts.
+2. Spawns `copilot -p - --agent <charter> --no-interactive` and pipes the
+   prompt via stdin.
+3. Writes the model's response into the matching artefact file under
+   `.specfleet/specs/<spec-id>/`.
+4. Advances the spec's status.
+
+You can override the charter (`--charter architect`) or model
+(`--model gpt-5.1`) per call.
 
 ---
 
-## 8. Customize charters and configuration
+## 5. Review the result
 
-Everything agent-related lives under `.specfleet/`. The `specfleet config` command is
-the single entry point for inspecting and editing it:
+`specfleet review` writes `.specfleet/specs/<id>/review.md` using the
+**review model** (defaults to `gpt-5.1`) so a different model than the one
+that implemented the change gates the diff. Pass `--same-model` to bypass
+this if you really want the implementer to also review.
+
+---
+
+## 6. Sanity checks
 
 ```bash
-specfleet config list                                    # every wired config in one table
-specfleet config show dev                                # print the dev charter
-specfleet config edit sre                                # open sre charter in $EDITOR
-specfleet config new charter dev/graphql                 # scaffold a new subagent charter
-specfleet config validate                                # CI-friendly schema check
-specfleet config diff                                    # drift vs bundled templates
+specfleet check                # validates charters / mirror / Copilot CLI / prompts / MCP manifests
+specfleet check --staged       # secret scan over `git diff --cached`
+specfleet check --fix          # re-mirrors charters
 ```
 
-The mirror to `.github/agents/` is regenerated automatically on save, so
-plain `copilot` users inherit the new agent.
-
 ---
 
-## 9. CI integration
+## 7. Optional: shared scratchpad as MCP server
 
-In your repo root, create `.github/workflows/specfleet-review.yml`:
-
-```yaml
-name: SpecFleet Review
-on: [pull_request]
-jobs:
-  review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - run: npm i -g @pakbaz/specfleet
-      - run: specfleet check
-      - run: specfleet review
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```bash
+specfleet mcp serve            # stdio JSON-RPC; expose to Copilot CLI via .mcp.json
 ```
 
-Pair it with a `CODEOWNERS` rule (template at
-`templates/CODEOWNERS.example`) so any PR that touches
-`.specfleet/instruction.md` requires a security/compliance reviewer.
+Tools exposed: `query_charter`, `query_constitution`, `query_project`,
+`scratchpad_read`, `scratchpad_append`, `scratchpad_search`,
+`scratchpad_archive`. All seven default off — you only enable them per
+charter via `mcpServers: ["specfleet"]`.
 
 ---
 
-## 10. Troubleshooting
+## 8. Migrating from v0.5
 
-| Symptom | Fix |
-|---|---|
-| `No .specfleet/ directory found` | Run `specfleet init` in the repo root |
-| `Charter "x" references missing parent "y"` | Run `specfleet config validate`; either add `y` or remove the reference |
-| `TokenBudgetExceededError` | The agent's prompt + history exceeds its `maxContextTokens`. Split the task or raise the cap (≤95K) in its charter. |
-| `policy.block` events in audit log | An agent attempted a write to an immutable path or used a tool outside its allowlist — expected behavior, review the charter |
-| `permissionGate denied: not-in-allowlist` | Add the tool to the charter's `allowedTools` if intended |
-| Agent runs but produces nothing useful | Inspect with `specfleet log <sessionId>` — every prompt and tool call is there |
+```bash
+specfleet init --from-v5
+```
+
+Archives the old `.specfleet/{audit,checkpoints,index,plans,instruction.md}`
+into `.specfleet/_v5-archive/` and re-scaffolds the v0.6 layout. See
+[migration-from-0.5.md](migration-from-0.5.md) for the full rewrite.
 
 ---
 
-## What's next
+## 9. Try the samples
 
-- [`docs/architecture.md`](architecture.md) — three-tier hierarchy and budget enforcement
-- [`docs/adr/`](adr/) — design decisions (hybrid runtime, token budget, charter format)
-- [`README.md`](../README.md) — full feature reference
+Two end-to-end samples ship with SpecFleet — pick the one that matches
+your situation:
 
-Welcome to autonomous ALM. 🚀
+| Sample | Mode | Stack | Spec walked through |
+|--------|------|-------|---------------------|
+| [`sample/novimart-app/`](../sample/novimart-app/) | greenfield | .NET 10 + React/Vite + Cosmos | `checkout-hardening` (401 sign-in alert) |
+| [`sample/hermes-telemetry/`](../sample/hermes-telemetry/) | brownfield | Go 1.22 (stdlib only) | `origin-allowlist` (CORS loopback fix) |
+
+Each sample includes a fully populated `.specfleet/` workspace, all 7
+phase artefacts for one feature, the matching scratchpad and run log,
+and a `.github/` mirror — so you can read what a finished SpecFleet
+spec looks like end to end before running your own.
+

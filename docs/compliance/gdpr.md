@@ -1,5 +1,14 @@
 # GDPR — SpecFleet Coverage
 
+<!-- markdownlint-disable MD060 -->
+
+> **v0.6 status — historical reference.** Compliance packs
+> (`specfleet init --with-pack <name>`) and the audit hash-chain
+> primitive were v0.5 features and are gone in v0.6. See
+> [migration-from-0.5.md](../migration-from-0.5.md). Map the GDPR
+> targets below onto the v0.6 primitives — committed charters,
+> cross-model review, `specfleet check`, and git history.
+
 **Regulation (EU) 2016/679 — the General Data Protection Regulation
 (GDPR)** — governs the processing of personal data of individuals in the
 EU/EEA. SpecFleet focuses on technical and organisational measures from
@@ -18,16 +27,12 @@ third-country transfer rules from Article 44. The GDPR pack ships in
 | Art. 33  | Notification of personal data breach                | `audit-hashchain`                                       | Tamper-evident timeline supports the 72-hour notification clock.              |
 | Art. 44  | General principle for third-country transfers       | `egress-allowlist`                                      | Allow list defaults to EU/EEA endpoints; non-EEA hosts require justification. |
 
-## How to enable
+## v0.5 pack behavior
 
-```bash
-specfleet init --with-pack gdpr
-```
-
-After enabling, review `.specfleet/policies/packs/gdpr/egress.json`. Article 44
-requires an adequacy decision, Standard Contractual Clauses (SCCs), or
-Binding Corporate Rules (BCRs) before personal data may flow to a
-third country.
+In v0.5, `specfleet init --with-pack gdpr` created a GDPR policy pack and an
+egress allowlist. In v0.6 there is no pack installer; capture GDPR controls in
+`.specfleet/instruction.md`, require evidence in `checklist.md`, and keep
+cross-border transfer decisions in normal project docs or ADRs.
 
 ## Disclaimer
 

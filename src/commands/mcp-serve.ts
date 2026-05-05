@@ -1,23 +1,33 @@
 /**
- * `specfleet mcp serve` — Stdio JSON-RPC 2.0 MCP server that exposes SpecFleet context
- * (decisions, charters, project, audit) as MCP tools and resources so a
- * Copilot CLI / VS Code instance can query org context without re-reading
- * files. Pure Node, no extra deps.
+ * `specfleet mcp serve` — Stdio JSON-RPC 2.0 MCP server.
  *
- * Contract:
- *   stdin:  newline-delimited JSON-RPC 2.0 requests
- *   stdout: newline-delimited JSON-RPC 2.0 responses
+ * v0.6 surface (lean by design):
  *
- * Methods implemented: initialize, tools/list, tools/call, resources/list,
- * resources/read. Notifications (no `id`) are accepted and ignored.
+ *   tools/
+ *     query_charter      ↦ raw charter markdown
+ *     query_project      ↦ project.md
+ *     query_constitution ↦ instruction.md
+ *     scratchpad_read    ↦ markdown of .specfleet/scratchpad/<spec_id>.md
+ *     scratchpad_append  ↦ append to a section
+ *     scratchpad_search  ↦ substring hits with section/line
+ *     scratchpad_archive ↦ rotate to scratchpad/archive/
+ *
+ *   resources/
+ *     specfleet://constitution
+ *     specfleet://project
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
-import fg from "fast-glob";
-import matter from "gray-matter";
 import { findSpecFleetRoot, specFleetPaths, readMaybe } from "../util/paths.js";
-import { AuditLog } from "../runtime/audit.js";
+import {
+  appendScratchpad,
+  archiveScratchpad,
+  readScratchpad,
+  searchScratchpad,
+  isScratchpadSection,
+  SCRATCHPAD_SECTIONS,
+} from "../runtime/scratchpad.js";
 
 export interface McpServeOptions {
   dir?: string;
@@ -38,71 +48,85 @@ interface JsonRpcResponse {
 }
 
 const PROTOCOL_VERSION = "2024-11-05";
-const SERVER_INFO = { name: "specfleet-mcp", version: "0.2.0" } as const;
+const SERVER_INFO = { name: "specfleet-mcp", version: "0.6.0" } as const;
 
 const TOOLS = [
   {
-    name: "query_decisions",
-    description: "Search .specfleet/decisions.md for paragraphs matching a substring (case-insensitive).",
-    inputSchema: {
-      type: "object",
-      properties: { q: { type: "string", description: "Substring to search for" } },
-      required: ["q"],
-    },
-  },
-  {
     name: "query_charter",
-    description: "Return the YAML frontmatter and body of a charter by role/name (e.g. 'dev' or 'dev/backend').",
+    description: "Return the raw markdown of a charter by name (e.g. 'dev').",
     inputSchema: {
       type: "object",
-      properties: { role: { type: "string", description: "Charter name (slash-separated for subagents)" } },
-      required: ["role"],
+      properties: { name: { type: "string", description: "Charter name (kebab-case)" } },
+      required: ["name"],
     },
   },
   {
     name: "query_project",
-    description: "Return the contents of .specfleet/project.md.",
+    description: "Return .specfleet/project.md.",
     inputSchema: { type: "object", properties: {} },
   },
   {
-    name: "query_audit",
-    description: "Return the last N audit events, optionally scoped to a sessionId.",
+    name: "query_constitution",
+    description: "Return .specfleet/instruction.md (the project constitution).",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "scratchpad_read",
+    description: "Read the shared scratchpad for a spec (creates an empty one if missing).",
     inputSchema: {
       type: "object",
-      properties: {
-        session: { type: "string", description: "Optional sessionId prefix filter" },
-        limit: { type: "number", description: "Max events (default 50)" },
-      },
+      properties: { spec_id: { type: "string", description: "Spec id (kebab-case)" } },
+      required: ["spec_id"],
     },
   },
   {
-    name: "list_charters",
-    description: "List every charter in .specfleet/charters as { role, path, summary }.",
-    inputSchema: { type: "object", properties: {} },
+    name: "scratchpad_append",
+    description: `Append a note to a scratchpad section. Section ∈ ${SCRATCHPAD_SECTIONS.join(" | ")}.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        spec_id: { type: "string" },
+        section: { type: "string", enum: [...SCRATCHPAD_SECTIONS] },
+        author: { type: "string", description: "Charter name or 'human'" },
+        content: { type: "string" },
+      },
+      required: ["spec_id", "section", "author", "content"],
+    },
+  },
+  {
+    name: "scratchpad_search",
+    description: "Substring search across the scratchpad; returns hits with section + line number.",
+    inputSchema: {
+      type: "object",
+      properties: { spec_id: { type: "string" }, query: { type: "string" } },
+      required: ["spec_id", "query"],
+    },
+  },
+  {
+    name: "scratchpad_archive",
+    description: "Move the scratchpad to `.specfleet/scratchpad/archive/` (call when work is done).",
+    inputSchema: {
+      type: "object",
+      properties: { spec_id: { type: "string" } },
+      required: ["spec_id"],
+    },
   },
 ] as const;
 
 interface PathsLike {
   specFleetDir: string;
-  decisions: string;
-  project: string;
   instruction: string;
+  project: string;
   chartersDir: string;
-  auditDir: string;
+  scratchpadDir: string;
+  scratchpadArchive: string;
 }
 
-/**
- * Pure JSON-RPC handler. Exported for unit testing.
- * Returns a response, or null for notifications.
- */
 export async function handleMcpRequest(
   req: JsonRpcRequest,
   paths: PathsLike,
 ): Promise<JsonRpcResponse | null> {
-  if (req.id === undefined || req.id === null) {
-    // Notification — no response.
-    return null;
-  }
+  if (req.id === undefined || req.id === null) return null;
   const id = req.id;
   try {
     const result = await dispatch(req.method, req.params ?? {}, paths);
@@ -139,8 +163,7 @@ async function dispatch(
     case "resources/list":
       return {
         resources: [
-          { uri: "specfleet://instruction", name: "instruction.md", mimeType: "text/markdown" },
-          { uri: "specfleet://decisions", name: "decisions.md", mimeType: "text/markdown" },
+          { uri: "specfleet://constitution", name: "instruction.md", mimeType: "text/markdown" },
           { uri: "specfleet://project", name: "project.md", mimeType: "text/markdown" },
         ],
       };
@@ -157,10 +180,8 @@ async function dispatch(
 
 function resolveResourceUri(uri: string, p: PathsLike): string {
   switch (uri) {
-    case "specfleet://instruction":
+    case "specfleet://constitution":
       return p.instruction;
-    case "specfleet://decisions":
-      return p.decisions;
     case "specfleet://project":
       return p.project;
     default:
@@ -174,47 +195,54 @@ async function callTool(
   p: PathsLike,
 ): Promise<string> {
   switch (name) {
-    case "query_decisions": {
-      const q = String(args.q ?? "").toLowerCase();
-      if (!q) throw new Error("q required");
-      const raw = (await readMaybe(p.decisions)) ?? "";
-      const paras = raw.split(/\n\s*\n/).filter((para) => para.toLowerCase().includes(q));
-      return paras.length ? paras.join("\n\n---\n\n") : "(no matches)";
-    }
     case "query_charter": {
-      const role = String(args.role ?? "");
-      if (!role) throw new Error("role required");
-      const flat = path.join(p.chartersDir, `${role}.charter.md`);
-      const nested = path.join(p.chartersDir, "subagents", `${role}.charter.md`);
-      const raw = (await readMaybe(flat)) ?? (await readMaybe(nested));
-      if (!raw) throw new Error(`charter not found: ${role}`);
+      const n = String(args.name ?? "");
+      if (!n) throw new Error("name required");
+      const file = path.join(p.chartersDir, `${n}.charter.md`);
+      const raw = await readMaybe(file);
+      if (!raw) throw new Error(`charter not found: ${n}`);
       return raw;
     }
     case "query_project":
       return (await readMaybe(p.project)) ?? "(project.md not initialized)";
-    case "query_audit": {
-      const session = args.session ? String(args.session) : undefined;
-      const limit = typeof args.limit === "number" ? args.limit : 50;
-      const log = new AuditLog(p.auditDir);
-      await log.init();
-      const events = await log.readAll(session ? { sessionId: session } : undefined);
-      const tail = events.slice(-limit);
-      return JSON.stringify(tail, null, 2);
+    case "query_constitution":
+      return (await readMaybe(p.instruction)) ?? "(instruction.md not initialized)";
+    case "scratchpad_read": {
+      const specId = String(args.spec_id ?? "");
+      if (!specId) throw new Error("spec_id required");
+      const file = path.join(p.scratchpadDir, `${specId}.md`);
+      return await readScratchpad(file, specId);
     }
-    case "list_charters": {
-      const files = await fg("**/*.charter.md", { cwd: p.chartersDir, absolute: true });
-      const out: { role: string; path: string; summary: string }[] = [];
-      for (const f of files) {
-        const raw = await fs.readFile(f, "utf8");
-        const fm = matter(raw);
-        const data = fm.data as { name?: string; description?: string };
-        out.push({
-          role: data.name ?? path.basename(f, ".charter.md"),
-          path: path.relative(p.specFleetDir, f),
-          summary: (data.description ?? "").slice(0, 200),
-        });
+    case "scratchpad_append": {
+      const specId = String(args.spec_id ?? "");
+      const section = String(args.section ?? "");
+      const author = String(args.author ?? "");
+      const content = String(args.content ?? "");
+      if (!specId || !section || !author || !content) {
+        throw new Error("spec_id, section, author, content all required");
       }
-      return JSON.stringify(out, null, 2);
+      if (!isScratchpadSection(section)) {
+        throw new Error(`section must be one of: ${SCRATCHPAD_SECTIONS.join(", ")}`);
+      }
+      const file = path.join(p.scratchpadDir, `${specId}.md`);
+      await appendScratchpad(file, specId, { section, author, content });
+      return "ok";
+    }
+    case "scratchpad_search": {
+      const specId = String(args.spec_id ?? "");
+      const query = String(args.query ?? "");
+      if (!specId || !query) throw new Error("spec_id and query required");
+      const file = path.join(p.scratchpadDir, `${specId}.md`);
+      const content = await readScratchpad(file, specId);
+      const hits = searchScratchpad(content, query);
+      return JSON.stringify(hits, null, 2);
+    }
+    case "scratchpad_archive": {
+      const specId = String(args.spec_id ?? "");
+      if (!specId) throw new Error("spec_id required");
+      const file = path.join(p.scratchpadDir, `${specId}.md`);
+      const result = await archiveScratchpad(file, p.scratchpadArchive);
+      return JSON.stringify(result, null, 2);
     }
     default:
       throw new Error(`Unknown tool: ${name}`);
@@ -224,6 +252,8 @@ async function callTool(
 export async function mcpServeCommand(opts: McpServeOptions = {}): Promise<void> {
   const root = await findSpecFleetRoot(opts.dir ?? process.cwd());
   const p = specFleetPaths(root);
+  await fs.mkdir(p.scratchpadDir, { recursive: true });
+  await fs.mkdir(p.scratchpadArchive, { recursive: true });
 
   const rl = readline.createInterface({ input: process.stdin, terminal: false });
   rl.on("line", async (line) => {
@@ -238,7 +268,5 @@ export async function mcpServeCommand(opts: McpServeOptions = {}): Promise<void>
     const resp = await handleMcpRequest(req, p);
     if (resp) process.stdout.write(JSON.stringify(resp) + "\n");
   });
-
-  // Hold the event loop open until stdin closes.
   await new Promise<void>((resolve) => rl.on("close", () => resolve()));
 }

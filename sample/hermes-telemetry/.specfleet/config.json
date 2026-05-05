@@ -1,0 +1,9 @@
+{
+  "models": {
+    "default": "claude-sonnet-4.5",
+    "review": "gpt-5.1"
+  },
+  "defaultAllowTool": [],
+  "defaultMaxContextTokens": 60000,
+  "defaultMcpServers": []
+}

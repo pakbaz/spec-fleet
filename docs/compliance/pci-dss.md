@@ -1,5 +1,14 @@
 # PCI DSS v4.0 — SpecFleet Coverage
 
+<!-- markdownlint-disable MD060 -->
+
+> **v0.6 status — historical reference.** Compliance packs
+> (`specfleet init --with-pack <name>`) and the audit hash-chain
+> primitive were v0.5 features and are gone in v0.6. See
+> [migration-from-0.5.md](../migration-from-0.5.md). The v0.6
+> implementation path is committed charters + cross-model review +
+> `specfleet check` + git history.
+
 The **Payment Card Industry Data Security Standard (PCI DSS) v4.0**, issued
 by the PCI Security Standards Council, specifies 12 high-level requirements
 for any system that stores, processes, or transmits cardholder data. SpecFleet
@@ -19,14 +28,12 @@ posture.
 | Req-8       | Identify users and authenticate access                               | `secret-redaction`                  | Prevents auth tokens from being echoed in logs or transcripts.                  |
 | Req-10      | Log and monitor all access                                           | `audit-hashchain`                   | Tamper-evident log of every agent action affecting the CDE.                     |
 
-## How to enable
+## v0.5 pack behavior
 
-```bash
-specfleet init --with-pack pci-dss
-```
-
-The egress allow list ships **empty** — add only endpoints that have been
-through CDE segmentation review with your QSA.
+In v0.5, `specfleet init --with-pack pci-dss` created a PCI DSS policy pack
+with an empty egress allowlist. In v0.6 there is no pack installer; keep the
+CDE boundary in project docs, encode non-negotiable controls in
+`.specfleet/instruction.md`, and require evidence in `checklist.md`.
 
 ## Disclaimer
 

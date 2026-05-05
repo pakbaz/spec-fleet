@@ -1,5 +1,14 @@
 # HIPAA — SpecFleet Coverage
 
+<!-- markdownlint-disable MD060 -->
+> **v0.6 status — historical reference.** Compliance packs
+> (`specfleet init --with-pack <name>`) and the audit hash-chain
+> primitive were v0.5 features and are gone in v0.6. See
+> [migration-from-0.5.md](../migration-from-0.5.md). The mappings below
+> still describe useful targets; the v0.6 implementation path is
+> committed charters + cross-model review + `specfleet check` + git
+> history.
+
 The U.S. **Health Insurance Portability and Accountability Act (HIPAA)
 Security Rule** (45 CFR Part 164, Subpart C) sets administrative, physical,
 and technical safeguards for electronic Protected Health Information
@@ -19,14 +28,12 @@ than redacting it.
 | 164.312(c)(1)    | Integrity                          | `audit-hashchain`                         | Cryptographic linkage detects retroactive tampering.                                 |
 | 164.312(e)(1)    | Transmission security              | `egress-allowlist`, `ip-guard`            | TLS enforced upstream; PHI patterns blocked from leaving the boundary.               |
 
-## How to enable
+## v0.5 pack behavior
 
-```bash
-specfleet init --with-pack hipaa
-```
-
-After enabling, edit `.specfleet/policies/packs/hipaa/egress.json` and add only
-endpoints covered by an executed Business Associate Agreement (BAA).
+In v0.5, `specfleet init --with-pack hipaa` created a HIPAA policy pack and
+expected users to add only BAA-covered endpoints to its egress allowlist. In
+v0.6 there is no pack installer; capture PHI rules in `.specfleet/instruction.md`
+and require BAA evidence in `checklist.md`.
 
 ## Disclaimer
 

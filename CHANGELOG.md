@@ -1,11 +1,97 @@
 # Changelog
 
+<!-- markdownlint-disable MD024 -->
+
 All notable changes to `@pakbaz/specfleet` will be documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [0.6.0] — 2026-05-05
+
+SpecFleet v0.6 is a deliberate **simplification**: a thin shim over the
+GitHub Copilot CLI that runs the Spec-Kit eight-phase pipeline. The SDK
+dependency is gone, the policy DSL is gone, the audit hash chain is
+gone, and the hierarchical subagent system is gone. What remains is
+sharp and lean. Run `specfleet init --from-v5` to migrate.
+
+### Breaking
+
+- **Dropped `@github/copilot-sdk` (and `ajv`/`ajv-formats`) deps.** All
+  dispatch goes through `copilot -p -` via `spawn`. See
+  [ADR-0004](docs/adr/0004-thin-shim.md).
+- **Charter shape** — removed `displayName`, `role`, `tier`, `parent`,
+  `spawns`, `signature`. Only `name` (kebab-case, no slashes),
+  `description`, `body` are required. Body uses Goal/Inputs/Output/
+  Constraints headings — **no personas**.
+- **Removed CLI verbs**: `audit`, `eval`, `sre`, `tune`, `replay`,
+  `log`, `status`, `run`, `onboard`, `install-hooks`, `precommit-scan`,
+  `doctor`, `charter`, `spec`. See
+  [migration-from-0.5.md](docs/migration-from-0.5.md) for replacements.
+- **`plan`** is now a Spec-Kit phase verb (`specfleet plan <spec-id>`),
+  not a freeform brief verb. Use `specfleet specify` to start a spec.
+- **`review`** is now Phase 7 (cross-model review) — no longer the
+  rebase-risk audit from v0.5.
+- **Workspace layout** — `.specfleet/{audit,checkpoints,index,plans,
+  policies/packs}` are removed. New layout: `.specfleet/specs/<id>/`,
+  `.specfleet/scratchpad/`, `.specfleet/runs/`, `.specfleet/config.json`.
+- **MCP servers default off**. Per-charter `mcpServers: []` until the
+  user opts in (community Spec-Kit guidance).
+
+### Added
+
+- **Eight-phase pipeline**: `specify`, `clarify`, `plan`, `tasks`,
+  `analyze`, `implement`, `review`, `checklist`. See
+  [docs/spec-pipeline.md](docs/spec-pipeline.md).
+- **Cross-model review by default** (`models.default = claude-sonnet-4.5`,
+  `models.review = gpt-5.1`). Configurable in `.specfleet/config.json`,
+  override per call with `--model` or `SPECFLEET_REVIEW_MODEL`. See
+  [ADR-0005](docs/adr/0005-cross-model-review.md).
+- **Shared scratchpad** — `.specfleet/scratchpad/<id>.md` with four
+  canonical sections (Findings/Decisions/Open Questions/Files Touched),
+  surfaced as MCP tools by `specfleet mcp serve`.
+- **`specfleet init --from-v5`** — archives the v0.5 layout into
+  `.specfleet/_v5-archive/` and re-scaffolds v0.6.
+- **`.github/prompts/specfleet.<phase>.prompt.md`** × 8 — phase prompts
+  with mustache-lite placeholders, mirrored on `init`.
+- **`.github/instructions/{coding-style,testing,compliance}.instructions.md`** —
+  three path-scoped instruction files using `applyTo` frontmatter.
+- **`.github/copilot-instructions.md`** — repo-wide guidance pointing
+  at `.specfleet/` and `.github/`.
+- **`SPECFLEET_COPILOT_BINARY`** env var — override the `copilot`
+  binary for tests / dev sandboxing.
+
+### Changed
+
+- Default `maxContextTokens` lowered from 80K → **60K** (95K hard
+  ceiling unchanged).
+- `init` now emits a `.specfleet/project.md` template alongside
+  `instruction.md`.
+- `check` consolidates `doctor`, `precommit-scan`, and post-init
+  validation into one verb (`--staged` for secret scan, `--fix` for
+  charter re-mirror).
+
+### Removed
+
+- `@github/copilot-sdk`, `ajv`, `ajv-formats` from dependencies.
+- All policy enforcement code (`src/util/policies.ts`, `src/util/sign.ts`,
+  `src/runtime/policy.ts`, `src/runtime/audit.ts`,
+  `src/runtime/interview.ts`, `src/runtime/session.ts`).
+
+### Samples
+
+- **`sample/novimart-app/`** rewritten for v0.6 — replaced the v0.5
+  policy/subagent layout with the eight-phase `.specfleet/specs/`
+  layout. One finished spec (`checkout-hardening`) ships with all 7
+  phase artefacts plus scratchpad + run transcript, exercising real
+  TypeScript code in `frontend/src/lib/api/client.ts` and
+  `frontend/src/features/checkout/CheckoutPage.tsx`.
+- **`sample/hermes-telemetry/`** added — a stdlib-only Go telemetry
+  service used as the brownfield demo. The spec
+  `origin-allowlist` walks the eight phases against pre-existing code,
+  fixing a CORS-equivalence bug between `localhost` and `127.0.0.1`.
 
 ## [0.5.1] — 2026-04-28
 
@@ -229,7 +315,7 @@ Initial public release.
 - Append-only audit log of every prompt, tool use, permission request, and
   policy block.
 - Sample full-stack NoviMart app under `sample/novimart-app/` (.NET 10 BFF
-  + React/Vite, Bicep IaC, GitHub Actions, 4 walkthroughs, 3 compliance docs).
+  plus React/Vite, Bicep IaC, GitHub Actions, 4 walkthroughs, 3 compliance docs).
 
 ### Packaging
 
@@ -237,7 +323,9 @@ Initial public release.
 - ESM-only, Node 20+.
 - Ships `dist/`, `templates/`, `LICENSE`, `README.md`, `CHANGELOG.md`.
 
-[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/pakbaz/spec-fleet/compare/v0.5.1...v0.6.0
+[0.5.1]: https://github.com/pakbaz/spec-fleet/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/pakbaz/spec-fleet/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/pakbaz/spec-fleet/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/pakbaz/spec-fleet/compare/v0.3.0...v0.4.0

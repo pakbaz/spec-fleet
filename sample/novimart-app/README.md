@@ -1,60 +1,53 @@
-# NoviMart — SpecFleet Sample
+# NoviMart — SpecFleet v0.6 sample
 
-> A complete, runnable demonstration of the **SpecFleet** governing a
-> production-style full-stack application: a .NET 10 BFF API, a React + TypeScript SPA, Azure
-> Cosmos DB persistence, Entra External ID for customers, full IaC via Bicep + `azd`, and a CI/CD
-> pipeline. Wrapped end-to-end with SpecFleet charters that enforce GDPR, PCI scope reduction, and
-> Zero Trust controls.
+A complete, runnable e-commerce app built on .NET 10 + React + Azure,
+governed end-to-end by SpecFleet v0.6. Use this as a reference for what a
+production codebase governed by the lean Spec-Kit-style pipeline (8 phase
+verbs, 7 flat charters, instructions + prompt files mirrored to
+`.github/`) looks like in practice.
+
+> **Greenfield mode.** The `.specfleet/project.md` is in `mode: greenfield`.
+> See `sample/hermes-telemetry/` for the brownfield equivalent.
 
 ---
 
-## What's in this sample?
+## Layout
 
-```
+```text
 sample/novimart-app/
-├── .specfleet/                           # The corporate spec — admin-owned, immutable in CI
-│   ├── instruction.md              # NoviMart standards (the "constitution")
-│   ├── project.md                  # Project-level scope & NFRs
-│   ├── decisions.md                # ADR log (append-only)
-│   ├── charters/                   # 30+ agent / subagent role definitions
-│   ├── policies/                   # GDPR, PCI, Zero Trust policy text
-│   ├── plans/                      # Story plans authored by `specfleet plan`
-│   ├── audit/                      # Tool-call audit log (JSONL)
-│   ├── checkpoints/                # Compacted session memory
-│   └── skills/                     # Lazy-loaded procedures
+├── .specfleet/                       # SpecFleet workspace (source of truth)
+│   ├── instruction.md                # NoviMart standards (the constitution)
+│   ├── project.md                    # Project mode + primary language
+│   ├── config.json                   # implement / review model split
+│   ├── charters/                     # 7 flat charters (architect, dev, test, …)
+│   ├── skills/                       # reusable lazy-loaded procedures
+│   ├── mcp/                          # MCP server registrations
+│   ├── specs/
+│   │   └── checkout-hardening/       # one finished spec, all 8 phases
+│   │       ├── spec.md
+│   │       ├── clarifications.md
+│   │       ├── plan.md
+│   │       ├── tasks.md
+│   │       ├── analysis.md
+│   │       ├── review.md
+│   │       └── checklist.md
+│   ├── scratchpad/                   # working memory shared across phases
+│   └── runs/                         # transcripts of completed pipeline runs
 │
-├── backend/                        # .NET 10 BFF API
-│   ├── src/NoviMart.Api         # Minimal API host (Program.cs, endpoints)
-│   ├── src/NoviMart.Domain      # Entities, value objects, Result<T>, specs
-│   ├── src/NoviMart.Infrastructure  # Cosmos repos, Entra auth, payment stub
-│   ├── src/NoviMart.Contracts   # Request/response DTOs
-│   └── tests/NoviMart.UnitTests # xUnit + FluentAssertions + NSubstitute
+├── .github/                          # runtime contract, mirrored from .specfleet/
+│   ├── copilot-instructions.md       # what Copilot loads automatically
+│   ├── instructions/                 # coding-style / testing / compliance
+│   ├── prompts/                      # 8 phase prompt files (.prompt.md)
+│   ├── agents/                       # 7 charter agent files (.agent.md)
+│   ├── workflows/                    # ci / cd / security pipelines
+│   └── CODEOWNERS
 │
-├── frontend/                       # React 18 + TypeScript + Vite SPA
-│   ├── src/app                     # Routing, providers, layout
-│   ├── src/features                # catalog | cart | checkout | account
-│   ├── src/lib                     # api client, auth (MSAL), telemetry
-│   ├── src/ui                      # Design system primitives (Drawer, Button, etc.)
-│   └── e2e                         # Playwright smoke tests
-│
-├── infra/                          # Bicep modules (subscription-scope main.bicep)
-│   ├── main.bicep                  # Top-level orchestrator
-│   ├── core.bicep                  # Resource-group-scope module
-│   └── modules/                    # cosmos | containerapps | swa | keyvault | …
-│
-├── docs/                           # Walkthroughs + compliance reference
-│   ├── architecture.md
-│   ├── walkthrough-01-admin-setup.md
-│   ├── walkthrough-02-developer-backend.md
-│   ├── walkthrough-03-developer-frontend.md
-│   ├── walkthrough-04-devops-deployment.md
-│   ├── pci-scope-boundary.md
-│   ├── gdpr-data-flows.md
-│   └── zero-trust-controls.md
-│
-├── .github/workflows               # ci.yml, cd.yml, security.yml
-├── azure.yaml                      # azd service map
-└── Dockerfile                      # API container build
+├── backend/                          # .NET 10 BFF API
+├── frontend/                         # React 18 + TypeScript + Vite SPA
+├── infra/                            # Bicep modules + azd orchestration
+├── docs/                             # architecture + compliance deep-dives
+├── azure.yaml                        # azd service map
+└── Dockerfile                        # API container build
 ```
 
 ---
@@ -65,28 +58,27 @@ sample/novimart-app/
 
 - **.NET 10.0.200+ SDK** (`dotnet --version`)
 - **Node 20+** (`node --version`)
-- **Docker Desktop** (for the API container build & Azure Cosmos emulator if used)
-- **Azure CLI** + **Azure Developer CLI** (`azd version`) — only needed for cloud deployment
-- **SpecFleet CLI** — install from the repo root: `npm i -g .` (this is the meta-runtime; sample
-  works without it but you lose policy enforcement)
+- **Docker Desktop** (only for container build / Cosmos emulator)
+- **Azure CLI** + **Azure Developer CLI** (only for cloud deployment)
+- **SpecFleet CLI** v0.6 (`npx @pakbaz/specfleet --version`)
 
-### Run locally (no Azure required)
+### Run locally — no Azure required
 
 ```bash
-# 1) Backend — API on http://localhost:5000
+# backend on http://localhost:5000
 cd sample/novimart-app/backend
-dotnet test                            # 21+ tests, all passing
+dotnet test
 ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/NoviMart.Api
 
-# 2) Frontend — SPA on http://localhost:5173 (in a new terminal)
+# frontend on http://localhost:5173 (in a new terminal)
 cd sample/novimart-app/frontend
 npm install
-npm test                               # vitest + RTL
+npm test                       # vitest + RTL — 54 tests pass
 npm run dev
 ```
 
-By default the SPA points at `http://localhost:5000/api/v1`. Open
-[http://localhost:5173](http://localhost:5173) and browse the (seeded) catalog.
+The SPA points at `http://localhost:5000/api/v1` by default. Open
+[http://localhost:5173](http://localhost:5173) and browse the seeded catalog.
 
 ### Deploy to Azure
 
@@ -97,110 +89,113 @@ azd env new novimart-dev
 azd up
 ```
 
-Full guide → [docs/walkthrough-04-devops-deployment.md](docs/walkthrough-04-devops-deployment.md).
+A typical idle deployment costs $0–$5 / day (Container Apps consumption,
+Cosmos serverless, SWA Free). Tear down with `azd down --purge`.
 
 ---
 
-## Read the walkthroughs (in order)
+## What SpecFleet did here
 
-| # | Walkthrough | Audience | Time |
-|---|-------------|----------|------|
-| 1 | [Admin sets up the SpecFleet spec](docs/walkthrough-01-admin-setup.md) | Platform admin | 30 min |
-| 2 | [Backend dev — Story 1: product search](docs/walkthrough-02-developer-backend.md) | .NET dev | 45 min |
-| 3 | [Frontend dev — Story 2: cart drawer](docs/walkthrough-03-developer-frontend.md) | React dev | 45 min |
-| 4 | [DevOps deploys with `azd up`](docs/walkthrough-04-devops-deployment.md) | DevOps / SRE | 30 min |
+Walk a single, finished spec end-to-end. Open
+[`.specfleet/specs/checkout-hardening/`](.specfleet/specs/checkout-hardening/)
+and read the artefacts in this order:
 
-Each walkthrough shows the **real SpecFleet CLI commands**, the **simulated agent transcripts** for
-the SDK-driven steps, the **gates** that pause for human approval, and the **bugs/issues**
-the subagents catch on the first run.
+| Phase | Artefact | What it shows |
+| --- | --- | --- |
+| `specify` | [spec.md](.specfleet/specs/checkout-hardening/spec.md) | 5 testable requirements + scope + risks |
+| `clarify` | [clarifications.md](.specfleet/specs/checkout-hardening/clarifications.md) | 3 questions resolved before planning |
+| `plan` | [plan.md](.specfleet/specs/checkout-hardening/plan.md) | architecture / data / security / operations / decisions |
+| `tasks` | [tasks.md](.specfleet/specs/checkout-hardening/tasks.md) | 6 ordered, independently testable tasks |
+| `analyze` | [analysis.md](.specfleet/specs/checkout-hardening/analysis.md) | cross-artefact consistency + constitution check |
+| `implement` | [`client.ts`](frontend/src/lib/api/client.ts) + [`CheckoutPage.tsx`](frontend/src/features/checkout/CheckoutPage.tsx) | actual code diff (claude-sonnet-4.5) |
+| `review` | [review.md](.specfleet/specs/checkout-hardening/review.md) | cross-model review (gpt-5.1) — anti-bias mechanic per ADR-0005 |
+| `checklist` | [checklist.md](.specfleet/specs/checkout-hardening/checklist.md) | every requirement mapped to evidence (file:line) |
 
-## Compliance & architecture deep-dives
+A simulated transcript of the run is in
+[`.specfleet/runs/checkout-hardening.log.md`](.specfleet/runs/checkout-hardening.log.md).
 
-- [`architecture.md`](docs/architecture.md) — C4 view, sequence diagrams, BFF rationale
-- [`pci-scope-boundary.md`](docs/pci-scope-boundary.md) — what is in / out of PCI scope and why
-- [`gdpr-data-flows.md`](docs/gdpr-data-flows.md) — personal-data inventory, DSR endpoints, breach playbook
-- [`zero-trust-controls.md`](docs/zero-trust-controls.md) — pillar-by-pillar control mapping
+### The actual fix
+
+When a session expires mid-checkout, the BFF returns 401. Before this spec,
+the SPA showed a generic "couldn't start checkout" toast and the customer
+lost their cart. After this spec, the api client maps 401 → `auth_required`
+and the CheckoutPage renders an amber alert with a **Sign in to continue**
+link returning to `/checkout`.
+
+The change is two files (`client.ts` + `CheckoutPage.tsx`) plus one new
+unit test. Small fix, but a perfect-sized example for the pipeline.
+
+---
+
+## Try the pipeline yourself
+
+```bash
+cd sample/novimart-app
+specfleet check                         # validates .specfleet/ schema + .github/ mirror
+specfleet specify "wishlist support"    # drafts a new spec
+specfleet clarify wishlist-support
+specfleet plan wishlist-support
+specfleet tasks wishlist-support
+specfleet analyze wishlist-support
+specfleet implement wishlist-support
+specfleet review wishlist-support
+specfleet checklist wishlist-support
+```
+
+Each command shells out to GitHub Copilot CLI (`copilot -p -`) with the
+matching charter loaded; nothing is run in-process.
 
 ---
 
 ## Standards demonstrated
 
 | Concern | Implementation |
-|---------|----------------|
-| Language / runtime | .NET 10, cross-platform only (no Windows-specific APIs) |
-| Test coverage | ≥ 90 % gate enforced in CI; current backend coverage: see `dotnet test` output |
-| Architecture | BFF (one API per SPA), SOLID, vertical slices, `Result<T>` over exceptions |
-| Auth | Entra External ID (customers, PKCE) + Entra ID (admin) — JWT only, no cookies |
-| Persistence | Cosmos DB NoSQL, partition keys per container, RBAC data-plane (no keys) |
-| IaC | Bicep modules, subscription-scope orchestrator, `azd` for build/deploy |
-| CI/CD | GitHub Actions: build → test (90 % gate) → security → `azd deploy` |
-| Compliance | GDPR, PCI scope reduction (stubbed payment provider), Zero Trust pillars |
+| --- | --- |
+| Language / runtime | .NET 10, cross-platform only |
+| Test coverage | ≥ 90 % gate enforced in CI |
+| Architecture | BFF, SOLID, vertical slices, `Result<T>` over exceptions |
+| Auth | Entra External ID (customers, PKCE) + Entra ID (admin) — JWT only |
+| Persistence | Cosmos DB NoSQL, RBAC data-plane (no keys) |
+| IaC | Bicep modules, `azd` for build/deploy |
+| CI/CD | GitHub Actions: build → test → security → `azd deploy` |
+| Compliance | GDPR, PCI scope reduction, Zero Trust pillars |
 | Observability | OpenTelemetry → App Insights, Serilog with PII redaction |
 
-Every one of these is **enforced** by an SpecFleet subagent charter — see `.specfleet/charters/` and the
-walkthrough sections that show the subagent firing.
+The SpecFleet `.specfleet/instruction.md` (the "constitution") is the single
+source of truth for these. Every charter and skill loads it; CI rejects
+spec artefacts that contradict it.
 
 ---
 
-## Running the SpecFleet commands against this sample
+## Compliance & architecture deep-dives
 
-```bash
-cd sample/novimart-app
-
-# Validate the .specfleet/ directory is internally consistent
-specfleet check
-
-# Validate every charter parses, has a token cap, and references valid skills/MCP servers
-specfleet config validate
-
-# Show the project's current backlog of plans + their gate state
-specfleet status
-
-# Read recent audit events
-specfleet log --since 1h
-```
-
-For `specfleet plan` / `specfleet run` / `specfleet review` — see the relevant walkthrough; those
-commands require GitHub Copilot SDK auth and exercise the actual sub-agent runtime.
-
----
-
-## Costs & cleanup
-
-A typical idle deployment costs $0–$5 / day (Container Apps consumption tier, Cosmos serverless,
-SWA Free). To delete everything:
-
-```bash
-azd down --purge
-```
-
-`--purge` permanently removes the Key Vault and Cosmos account so they don't count against
-soft-delete quotas.
+- [`architecture.md`](docs/architecture.md) — C4 view + sequence diagrams
+- [`pci-scope-boundary.md`](docs/pci-scope-boundary.md) — what is in / out of PCI scope
+- [`gdpr-data-flows.md`](docs/gdpr-data-flows.md) — personal-data inventory + DSR endpoints
+- [`zero-trust-controls.md`](docs/zero-trust-controls.md) — pillar-by-pillar control mapping
 
 ---
 
 ## Status
 
 | Area | Status |
-|------|--------|
-| `.specfleet/` — charters, policies, sample instruction & project | ✅ Authored |
-| Backend — domain, infrastructure, API host | ✅ Builds clean (0 warnings, 0 errors) |
-| Backend — unit tests | ✅ 21 tests passing (ProductSearchSpecification spec) |
-| Frontend — features, UI primitives, tests | ✅ Authored (see `frontend/README.md` for run instructions) |
-| IaC — Bicep modules + `azure.yaml` | ✅ Authored, `azd up`-ready |
-| CI/CD — GitHub Actions | ✅ `.github/workflows/{ci,cd,security}.yml` present |
-| Walkthroughs (4) | ✅ Complete |
-| Compliance docs (3 + architecture) | ✅ Complete |
-| Real `azd up` against your subscription | ⏳ Requires you to run it; guide is in `walkthrough-04` |
+| --- | --- |
+| `.specfleet/` v0.6 layout (charters, skills, mcp, specs, scratchpad, runs) | ✅ |
+| `.github/` mirror (copilot-instructions, prompts, instructions, agents) | ✅ |
+| Finished sample spec (`checkout-hardening`, 8 phases) | ✅ |
+| Backend builds clean | ✅ 0 warnings, 0 errors |
+| Backend unit tests | ✅ 21 tests pass |
+| Frontend tests | ✅ 54 tests pass |
+| IaC + `azd up` ready | ✅ |
+| Cloud deployment | ⏳ run `azd up` against your subscription |
 
 ---
 
 ## Next steps
 
-1. **Try local first.** Run the backend + frontend locally and click through the catalog and
-   cart. Read `walkthrough-02` and `walkthrough-03` while you do.
-2. **Inspect the charters.** Open `.specfleet/charters/dev.charter.md` and any subagent under
-   `.specfleet/charters/subagents/` — these are the heart of the system.
-3. **Deploy to Azure.** Follow `walkthrough-04` to run `azd up`. Tear down with `azd down`.
-4. **Write your own story.** Add a third user story (e.g., "wishlist") and observe how
-   `specfleet plan` decomposes it across the same agent hierarchy.
+1. **Run it locally.** Backend + frontend, click through catalog and cart.
+2. **Read the spec end-to-end.** `.specfleet/specs/checkout-hardening/`.
+3. **Inspect a charter.** `.specfleet/charters/dev.charter.md` is a good
+   starting point.
+4. **Author your own spec.** Add a wishlist feature using the commands
+   above and watch the eight-phase pipeline produce its artefacts.

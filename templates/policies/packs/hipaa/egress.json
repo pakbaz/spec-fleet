@@ -1,8 +1,0 @@
-{
-  "version": "0.1.0",
-  "mode": "block",
-  "default": "deny",
-  "allow": [],
-  "deny": ["*"],
-  "notes": "HIPAA starter ships with a strict deny-all egress posture. Add only HIPAA-eligible, BAA-covered endpoints (e.g. specific *.azurewebsites.net, *.privatelink.* hosts your covered entity has reviewed)."
-}

@@ -1,5 +1,7 @@
 # Providing Organizational Context to AI Agents
 
+<!-- markdownlint-disable MD036 MD060 -->
+
 There are four common ways to ground an AI coding agent in your
 organization's standards, product knowledge, and business goals. Each has a
 different trade-off between **freshness**, **governance**, **per-role
@@ -84,7 +86,7 @@ session's system prompt, and enforces the declared `allowedTools` /
 - **Per-role tone and scope.** Dev sees coding standards; Compliance sees
   the SOC 2 control map. Neither carries the other's payload.
 - **Centralized governance.** Charters live in `.specfleet/charters/`, owned by
-  CODEOWNERS, validated by `specfleet config validate`.
+  CODEOWNERS, validated by `specfleet check`.
 - **Deterministic.** Same charter + same brief → same boundaries on every
   run, on every developer's machine.
 - **Layered.** A charter can `extends:` another, so a baseline org charter
@@ -109,14 +111,14 @@ Protocol](https://modelcontextprotocol.io) over stdio or HTTP and exposes
 **tools** the agent can call to fetch context on demand.
 
 **How it works.** The agent host registers the MCP server (`mcp.json`).
-At runtime, the model sees a tool list (`query_decisions`,
-`query_charter`, `query_audit`, …) and calls them when it needs context.
+At runtime, the model sees a tool list (`query_charter`,
+`query_constitution`, `scratchpad_read`, …) and calls them when it needs context.
 The server returns fresh data from whatever backing store you point it at
 — filesystem, database, internal API.
 
-SpecFleet ships `specfleet mcp serve` (v0.2) which exposes the org's `decisions.md`,
-charters, project notes, and audit log over stdio MCP for any consumer
-that supports MCP (Copilot CLI, VS Code, Claude Desktop, etc.).
+SpecFleet ships `specfleet mcp serve` which exposes per-spec scratchpads,
+charters, the constitution, and project notes over stdio MCP for any
+consumer that supports MCP (Copilot CLI, VS Code, Claude Desktop, etc.).
 
 **Strengths**
 
@@ -171,12 +173,12 @@ moves faster than the charter file does.
 Concretely:
 
 - Author one charter per role under `.specfleet/charters/` (strategy 3).
-- Run `specfleet mcp serve` to expose `decisions.md`, project notes, and the
-  charter library to every agent (strategy 4).
+- Run `specfleet mcp serve` to expose scratchpads, project notes, the
+  constitution, and the charter library to every agent (strategy 4).
 - Optionally also publish a thin `.github/copilot-instructions.md`
   (strategy 1) for developers using Copilot directly without the SpecFleet
   runtime.
 - Use Copilot Spaces (strategy 2) for human onboarding docs that don't
   need to feed automated runs.
 
-This is the architecture SpecFleet v0.2 ships out of the box.
+This is the architecture SpecFleet v0.6 ships out of the box.
