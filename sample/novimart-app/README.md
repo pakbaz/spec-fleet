@@ -1,16 +1,22 @@
 # NoviMart — SpecFleet Sample
 
-> A complete, runnable demonstration of the **SpecFleet** governing a
-> production-style full-stack application: a .NET 10 BFF API, a React + TypeScript SPA, Azure
-> Cosmos DB persistence, Entra External ID for customers, full IaC via Bicep + `azd`, and a CI/CD
-> pipeline. Wrapped end-to-end with SpecFleet charters that enforce GDPR, PCI scope reduction, and
-> Zero Trust controls.
+> **Legacy fixture:** this sample was authored for SpecFleet v0.5 and is
+> preserved as historical evidence of the former SDK-driven runtime,
+> hierarchical subagents, policy packs, audit log, and walkthrough flow. The
+> current v0.6 CLI is intentionally leaner; use the root README and docs for
+> current commands.
+
+A complete, runnable demonstration of the **SpecFleet** governing a
+production-style full-stack application: a .NET 10 BFF API, a React + TypeScript SPA, Azure
+Cosmos DB persistence, Entra External ID for customers, full IaC via Bicep + `azd`, and a CI/CD
+pipeline. Wrapped end-to-end with SpecFleet charters that enforce GDPR, PCI scope reduction, and
+Zero Trust controls.
 
 ---
 
 ## What's in this sample?
 
-```
+```text
 sample/novimart-app/
 ├── .specfleet/                           # The corporate spec — admin-owned, immutable in CI
 │   ├── instruction.md              # NoviMart standards (the "constitution")
@@ -67,8 +73,8 @@ sample/novimart-app/
 - **Node 20+** (`node --version`)
 - **Docker Desktop** (for the API container build & Azure Cosmos emulator if used)
 - **Azure CLI** + **Azure Developer CLI** (`azd version`) — only needed for cloud deployment
-- **SpecFleet CLI** — install from the repo root: `npm i -g .` (this is the meta-runtime; sample
-  works without it but you lose policy enforcement)
+- **SpecFleet CLI v0.5** — only needed if you want to replay the legacy
+   walkthrough commands exactly. With v0.6, migrate a copy first.
 
 ### Run locally (no Azure required)
 
@@ -104,15 +110,16 @@ Full guide → [docs/walkthrough-04-devops-deployment.md](docs/walkthrough-04-de
 ## Read the walkthroughs (in order)
 
 | # | Walkthrough | Audience | Time |
-|---|-------------|----------|------|
+| --- | --- | --- | --- |
 | 1 | [Admin sets up the SpecFleet spec](docs/walkthrough-01-admin-setup.md) | Platform admin | 30 min |
 | 2 | [Backend dev — Story 1: product search](docs/walkthrough-02-developer-backend.md) | .NET dev | 45 min |
 | 3 | [Frontend dev — Story 2: cart drawer](docs/walkthrough-03-developer-frontend.md) | React dev | 45 min |
 | 4 | [DevOps deploys with `azd up`](docs/walkthrough-04-devops-deployment.md) | DevOps / SRE | 30 min |
 
-Each walkthrough shows the **real SpecFleet CLI commands**, the **simulated agent transcripts** for
-the SDK-driven steps, the **gates** that pause for human approval, and the **bugs/issues**
-the subagents catch on the first run.
+Each walkthrough shows the **legacy v0.5 SpecFleet CLI commands**, the
+**simulated agent transcripts** for the SDK-driven steps, the **gates** that
+pause for human approval, and the **bugs/issues** the subagents catch on the
+first run.
 
 ## Compliance & architecture deep-dives
 
@@ -126,7 +133,7 @@ the subagents catch on the first run.
 ## Standards demonstrated
 
 | Concern | Implementation |
-|---------|----------------|
+| --- | --- |
 | Language / runtime | .NET 10, cross-platform only (no Windows-specific APIs) |
 | Test coverage | ≥ 90 % gate enforced in CI; current backend coverage: see `dotnet test` output |
 | Architecture | BFF (one API per SPA), SOLID, vertical slices, `Result<T>` over exceptions |
@@ -137,31 +144,28 @@ the subagents catch on the first run.
 | Compliance | GDPR, PCI scope reduction (stubbed payment provider), Zero Trust pillars |
 | Observability | OpenTelemetry → App Insights, Serilog with PII redaction |
 
-Every one of these is **enforced** by an SpecFleet subagent charter — see `.specfleet/charters/` and the
-walkthrough sections that show the subagent firing.
+Every one of these was **enforced** by a v0.5 SpecFleet subagent charter — see
+`.specfleet/charters/` and the walkthrough sections that show the legacy
+subagent flow.
 
 ---
 
-## Running the SpecFleet commands against this sample
+## Using this sample with SpecFleet v0.6
+
+The checked-in `.specfleet/` directory intentionally remains in v0.5 format.
+The current v0.6 CLI will reject the legacy charter fields (`displayName`,
+`role`, `tier`, `parent`, `spawns`, `requiresHumanGate`) until you migrate a
+copy of the sample:
 
 ```bash
 cd sample/novimart-app
-
-# Validate the .specfleet/ directory is internally consistent
+specfleet init --from-v5
 specfleet check
-
-# Validate every charter parses, has a token cap, and references valid skills/MCP servers
-specfleet config validate
-
-# Show the project's current backlog of plans + their gate state
-specfleet status
-
-# Read recent audit events
-specfleet log --since 1h
+specfleet specify "novimart checkout hardening" --description "modernize one flow using the v0.6 pipeline"
 ```
 
-For `specfleet plan` / `specfleet run` / `specfleet review` — see the relevant walkthrough; those
-commands require GitHub Copilot SDK auth and exercise the actual sub-agent runtime.
+Do that in a branch or throwaway copy if you still want to inspect the v0.5
+files in place.
 
 ---
 
@@ -182,8 +186,8 @@ soft-delete quotas.
 ## Status
 
 | Area | Status |
-|------|--------|
-| `.specfleet/` — charters, policies, sample instruction & project | ✅ Authored |
+| --- | --- |
+| `.specfleet/` — v0.5 charters, policies, sample instruction & project | ✅ Preserved legacy fixture |
 | Backend — domain, infrastructure, API host | ✅ Builds clean (0 warnings, 0 errors) |
 | Backend — unit tests | ✅ 21 tests passing (ProductSearchSpecification spec) |
 | Frontend — features, UI primitives, tests | ✅ Authored (see `frontend/README.md` for run instructions) |

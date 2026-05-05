@@ -1,32 +1,36 @@
 #!/usr/bin/env node
 /**
- * specfleet — SpecFleet CLI (v0.4 surface)
+ * specfleet — SpecFleet CLI v0.6
  *
- * 10 visible commands:
- *   Lifecycle:   init · plan · run · review · status
- *   Reflection:  check · log · config · spec
- *   Services:    mcp serve   (+ specialized: sre triage)
+ * Spec-Kit pipeline (8 verbs):
+ *   specify · clarify · plan · tasks · analyze · implement · review · checklist
+ *
+ * Operations (3 verbs):
+ *   init · check · config
+ *
+ * Services:
+ *   mcp serve
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Command } from "commander";
-import chalk from "chalk";
 
 import { initCommand } from "./commands/init.js";
-import { planCommand } from "./commands/plan.js";
-import { runCommand } from "./commands/run.js";
-import { statusCommand } from "./commands/status.js";
-import { reviewCommand } from "./commands/review.js";
 import { checkCommand } from "./commands/check.js";
-import { logCommand } from "./commands/log.js";
 import { configCommand } from "./commands/config.js";
 import { mcpServeCommand } from "./commands/mcp-serve.js";
-import { specCommand } from "./commands/spec.js";
-import { sreCommand } from "./commands/sre.js";
+
+import { specifyCommand } from "./commands/specify.js";
+import { clarifyCommand } from "./commands/clarify.js";
+import { planCommand } from "./commands/plan.js";
+import { tasksCommand } from "./commands/tasks.js";
+import { analyzeCommand } from "./commands/analyze.js";
+import { implementCommand } from "./commands/implement.js";
+import { reviewCommand } from "./commands/review.js";
+import { checklistCommand } from "./commands/checklist.js";
 
 const __filename = fileURLToPath(import.meta.url);
-// dist/cli.js -> ../package.json
 const PKG_VERSION = (() => {
   try {
     const pkgPath = join(dirname(__filename), "..", "package.json");
@@ -41,149 +45,158 @@ const program = new Command();
 
 program
   .name("specfleet")
-  .description("SpecFleet — autonomous ALM with hierarchical Copilot agents")
-  .version(PKG_VERSION)
-  .option("--offline", "Air-gap mode: deny all egress regardless of allowlist")
-  .hook("preAction", (thisCmd) => {
-    if (thisCmd.opts().offline) process.env.SPECFLEET_OFFLINE = "1";
-  });
+  .description("SpecFleet — a thin Spec-Kit pipeline over GitHub Copilot CLI")
+  .version(PKG_VERSION);
 
-// =====================================================================
-// Lifecycle (5 verbs)
-// =====================================================================
+// ---------- Operations ----------
 
 program
   .command("init")
-  .description("Bootstrap or upgrade .specfleet/ — detects greenfield / brownfield / existing repos")
+  .description("Bootstrap or upgrade .specfleet/ + .github/ scaffolding")
   .option("-d, --dir <path>", "Target directory (default: cwd)")
-  .option(
-    "--mode <mode>",
-    "Skip the prompt: greenfield | brownfield | modify | upgrade | overwrite",
-  )
-  .option("--non-interactive", "Skip prompts and the guided interview (use safe defaults)")
-  .option("--instruction <path>", "Path to a corporate instruction.md to copy in")
-  .option("--no-hooks", "Don't install the git pre-commit hook")
-  .option("--hooks-only", "Just (re)install the git pre-commit hook and exit")
+  .option("--mode <mode>", "greenfield | brownfield | upgrade | overwrite")
+  .option("--non-interactive", "Use safe defaults; no prompts")
+  .option("--instruction <path>", "Path to a corporate instruction.md")
+  .option("--from-v5", "Migrate an existing v0.5 .specfleet/ in place")
   .option("--force", "Required for --mode overwrite")
   .action(initCommand);
 
 program
-  .command("plan [goal...]")
-  .description("Decompose a goal into tasks across role agents")
-  .option("--out <path>", "Write plan to file (default: .specfleet/plans/<timestamp>.md)")
-  .option("--from-spec <id>", "Seed the plan from .specfleet/specs/<id>.spec.md")
-  .action((goal: string[], opts) => planCommand((goal ?? []).join(" "), opts));
-
-program
-  .command("run")
-  .description("Execute the next ready task (or all) with autopilot + human gates")
-  .option("--task <id>", "Run a specific task ID")
-  .option("--all", "Run every ready task to completion")
-  .option("--no-gates", "Disable human approval gates (dangerous)")
-  .action(runCommand);
-
-program
-  .command("review")
-  .description("Compliance + Architect re-review of pending changes")
-  .action(reviewCommand);
-
-program
-  .command("status")
-  .description("Show active sessions, subagent tasks, and gates awaiting approval")
-  .action(statusCommand);
-
-// =====================================================================
-// Reflection (4 verbs)
-// =====================================================================
-
-program
   .command("check")
-  .description("Health & quality: doctor + chain verify (default), --eval, --tune, --staged, --deep")
-  .option("--deep", "Run doctor + audit-chain verify across all sessions")
-  .option("--audit", "Only run audit-chain verify")
-  .option("--session <id>", "(--audit) Verify one audit session")
-  .option("--all", "(--audit) Verify every audit session")
-  .option("--eval", "Run the evaluation harness against benchmarks")
-  .option("--tune", "Aggregate eval failures and emit advisory charter-edit diff")
-  .option("--staged", "Scan the staged git diff (used by the pre-commit hook)")
-  .option("--fix", "Auto-fix trivial drift (e.g. re-mirror charters)")
-  .option("--charter <role>", "(--eval) Only run benchmarks for this charter")
-  .option("--bench <path>", "(--eval) Custom benchmarks dir")
-  .option("--limit <n>", "(--eval) Cap number of benchmarks", (v) => parseInt(v, 10))
-  .option("--since <iso>", "(--tune) Only include scoreboard rows after this timestamp")
+  .description("Validate charters, mirror, MCP manifests, and Copilot CLI availability")
+  .option("--staged", "Run secrets scanner on staged files (pre-commit hook)")
+  .option("--fix", "Re-mirror charters when missing")
   .action(checkCommand);
-
-program
-  .command("log [sessionId]")
-  .description("Tail audit events (no arg) or replay a session as a redacted timeline")
-  .option("--since <iso>", "(tail) Only events after this ISO timestamp")
-  .option("--agent <name>", "(tail) Filter by agent name")
-  .option("--tail", "(tail) Follow new events (like tail -f)")
-  .option("--from <seq>", "(replay) Start sequence index", (v) => parseInt(v, 10))
-  .option("--limit <n>", "(replay) Max events to print", (v) => parseInt(v, 10))
-  .action((sessionId: string | undefined, opts) => logCommand(sessionId, opts));
 
 const config = program
   .command("config")
-  .description("Inspect & edit orchestrator instructions, charters, policies, MCP, skills");
+  .description("Inspect and edit .specfleet/config.json");
+
 config
-  .command("show [target]")
-  .description('Print one config (default: orchestrator). e.g. "dev", "policy:egress"')
-  .option("--no-redact", "Don't redact secret patterns when printing")
-  .action((target: string | undefined, opts) =>
-    configCommand("show", target, { noRedact: opts.redact === false }),
-  );
+  .command("show", { isDefault: true })
+  .description("Print the resolved workspace config")
+  .action(() => configCommand("show"));
+
+config
+  .command("set <key> <value>")
+  .description("Set a dotted key (e.g. models.review=gpt-5.1)")
+  .action((key: string, value: string) => configCommand("set", { key, value }));
+
 config
   .command("list")
-  .description("Table of every wired config (kind / name / path / modified)")
-  .action(() => configCommand("list", undefined));
-config
-  .command("edit [target]")
-  .description("Open in $EDITOR; re-validates on close")
-  .action((target: string | undefined) => configCommand("edit", target));
-config
-  .command("new <kind> <name>")
-  .description("Scaffold a new config. Kinds: charter | policy | mcp | skill")
-  .action((kind: string, name: string) => configCommand("new", undefined, { kind, name }));
-config
-  .command("validate")
-  .description("Schema-check every config; exits non-zero on failure")
-  .action(() => configCommand("validate", undefined));
-config
-  .command("diff")
-  .description("Drift between local configs and bundled reference templates")
-  .action(() => configCommand("diff", undefined));
+  .description("List charters, prompts, instructions, and MCP servers")
+  .action(() => configCommand("list"));
 
-const spec = program.command("spec").description("Author and list specs (GSD / Spec-Kit shape)");
-spec
-  .command("new <name>")
-  .description("Scaffold a new spec under .specfleet/specs/")
-  .action((name: string) => specCommand("new", { name }));
-spec
-  .command("list")
-  .description("List all specs")
-  .action(() => specCommand("list", {}));
-
-// =====================================================================
-// Services
-// =====================================================================
-
-const mcp = program.command("mcp").description("Model Context Protocol integrations");
+const mcp = program.command("mcp").description("MCP services");
 mcp
   .command("serve")
-  .description("Run the SpecFleet MCP server over stdio")
-  .option("-d, --dir <path>", "Project root (default: cwd)")
-  .action((opts) => mcpServeCommand(opts));
+  .description("Run the SpecFleet MCP server (stdio JSON-RPC)")
+  .option("-d, --dir <path>", "Workspace root (default: search from cwd)")
+  .action(mcpServeCommand);
 
-const sre = program.command("sre").description("SRE operations");
-sre
-  .command("triage")
-  .description("Triage recent failures (audit + optional SARIF) via the sre charter")
-  .option("--sarif <path>", "Path to a SARIF file (defaults to globbing **/*.sarif)")
-  .action((opts) => sreCommand("triage", opts));
+// ---------- Pipeline ----------
 
-program.parseAsync(process.argv).catch((err: Error) => {
-  console.error(chalk.red(`✖ ${err.message}`));
-  if (process.env.SPECFLEET_DEBUG) console.error(err.stack);
+program
+  .command("specify <name>")
+  .description("Phase 1 — draft a new spec under .specfleet/specs/<id>/spec.md")
+  .option("--description <text>", "One-line description seed")
+  .option("--charter <name>", "Override the charter (default: orchestrator)")
+  .option("--model <id>", "Override the model")
+  .option("--allow-tool <name>", "Allow a Copilot tool for this dispatch (repeatable)", collect)
+  .option("--non-interactive", "Pass --no-interactive to Copilot")
+  .option("--dry-run", "Print response without writing artefacts")
+  .action((name: string, opts) => specifyCommand(name, opts));
+
+program
+  .command("clarify <spec-id>")
+  .description("Phase 2 — surface ambiguous requirements as clarifying questions")
+  .option("--charter <name>", "Override the charter")
+  .option("--model <id>", "Override the model")
+  .option("--allow-tool <name>", "Allow a Copilot tool for this dispatch (repeatable)", collect)
+  .option("--non-interactive", "Pass --no-interactive to Copilot")
+  .option("--answer <q-and-a>", "Pre-supplied answers (repeatable)", collect, [])
+  .option("--dry-run", "Print without writing")
+  .action((specId: string, opts) =>
+    clarifyCommand(specId, {
+      charter: opts.charter,
+      answers: opts.answer,
+      model: opts.model,
+      allowTool: opts.allowTool,
+      nonInteractive: opts.nonInteractive,
+      dryRun: opts.dryRun,
+    }),
+  );
+
+program
+  .command("plan <spec-id>")
+  .description("Phase 3 — produce an architecture plan")
+  .option("--charter <name>", "Override the charter (default: architect)")
+  .option("--model <id>", "Override the model")
+  .option("--allow-tool <name>", "Allow a Copilot tool for this dispatch (repeatable)", collect)
+  .option("--non-interactive", "Pass --no-interactive to Copilot")
+  .option("--dry-run", "Print without writing")
+  .action((specId: string, opts) => planCommand(specId, opts));
+
+program
+  .command("tasks <spec-id>")
+  .description("Phase 4 — decompose plan into ordered tasks")
+  .option("--charter <name>", "Override the charter")
+  .option("--model <id>", "Override the model")
+  .option("--allow-tool <name>", "Allow a Copilot tool for this dispatch (repeatable)", collect)
+  .option("--non-interactive", "Pass --no-interactive to Copilot")
+  .option("--dry-run", "Print without writing")
+  .action((specId: string, opts) => tasksCommand(specId, opts));
+
+program
+  .command("analyze <spec-id>")
+  .description("Phase 5 — pre-implementation risk analysis")
+  .option("--charter <name>", "Override the charter (default: architect)")
+  .option("--model <id>", "Override the model")
+  .option("--allow-tool <name>", "Allow a Copilot tool for this dispatch (repeatable)", collect)
+  .option("--non-interactive", "Pass --no-interactive to Copilot")
+  .option("--dry-run", "Print without writing")
+  .action((specId: string, opts) => analyzeCommand(specId, opts));
+
+program
+  .command("implement <spec-id>")
+  .description("Phase 6 — execute tasks.md (default charter: dev)")
+  .option("--charter <name>", "Override the charter (default: dev)")
+  .option("--model <id>", "Override the model")
+  .option("--allow-tool <name>", "Allow a Copilot tool for this dispatch (repeatable)", collect)
+  .option("--non-interactive", "Pass --no-interactive to Copilot")
+  .option("--task <id>", "Focus on a specific task id")
+  .option("--dry-run", "Print without applying")
+  .action((specId: string, opts) => implementCommand(specId, opts));
+
+program
+  .command("review <spec-id>")
+  .description("Phase 7 — cross-model review (default uses config.models.review)")
+  .option("--charter <name>", "Override the charter (default: architect)")
+  .option("--model <id>", "Override the review model")
+  .option("--allow-tool <name>", "Allow a Copilot tool for this dispatch (repeatable)", collect)
+  .option("--non-interactive", "Pass --no-interactive to Copilot")
+  .option("--same-model", "Force same model as implement (skip cross-model)")
+  .option("--dry-run", "Print without writing")
+  .action((specId: string, opts) => reviewCommand(specId, opts));
+
+program
+  .command("checklist <spec-id>")
+  .description("Phase 8 — post-implement drift detection (compliance)")
+  .option("--charter <name>", "Override the charter (default: compliance)")
+  .option("--model <id>", "Override the model")
+  .option("--allow-tool <name>", "Allow a Copilot tool for this dispatch (repeatable)", collect)
+  .option("--non-interactive", "Pass --no-interactive to Copilot")
+  .option("--dry-run", "Print without writing")
+  .action((specId: string, opts) => checklistCommand(specId, opts));
+
+// ---------- helpers ----------
+
+function collect(value: string, prev: string[] = []): string[] {
+  return [...prev, value];
+}
+
+program.parseAsync(process.argv).catch((err: unknown) => {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error(`error: ${msg}`);
   process.exit(1);
 });

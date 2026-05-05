@@ -49,26 +49,59 @@ jobs:
           mkdir -p /tmp/specfleet-smoke && cd /tmp/specfleet-smoke
           npm init -y >/dev/null
           npm install --no-audit --no-fund "$GITHUB_WORKSPACE/$TGZ"
+          cat > /tmp/specfleet-copilot-stub <<'EOF'
+          #!/usr/bin/env sh
+          if [ "$1" = "--version" ]; then
+            echo "copilot 1.0.0-stub"
+            exit 0
+          fi
+          cat >/dev/null
+          cat <<'OUT'
+          ---
+          id: smoke-spec
+          title: Smoke Spec
+          status: draft
+          ---
+
+          # Smoke Spec
+
+          ## Goal
+          Exercise the packaged SpecFleet CLI without a live Copilot login.
+
+          ## Summary
+          - Files touched: none
+          - Tests added/updated: none
+          - Verification: stubbed
+          - Open questions: none
+          OUT
+          EOF
+          chmod +x /tmp/specfleet-copilot-stub
+          export SPECFLEET_COPILOT_BINARY=/tmp/specfleet-copilot-stub
           mkdir target && cd target
           ../node_modules/.bin/specfleet --version
           ../node_modules/.bin/specfleet init --non-interactive
           test -d .specfleet/charters
-          test -d .specfleet/policies
+          test -d .specfleet/specs
+          test -d .specfleet/scratchpad
+          test -d .specfleet/runs
           test -f .specfleet/instruction.md
-          # v0.4 surface: simplified commands respond
+          test -f .specfleet/config.json
+          test $(find .github/agents -name '*.agent.md' | wc -l) -eq 7
+          test $(find .github/prompts -name 'specfleet.*.prompt.md' | wc -l) -eq 8
+          # v0.6 surface: ops + phase commands respond
           ../node_modules/.bin/specfleet mcp serve --help
           ../node_modules/.bin/specfleet check --help
-          ../node_modules/.bin/specfleet log --help
           ../node_modules/.bin/specfleet config --help
-          ../node_modules/.bin/specfleet spec new smoke-spec
-          test -f .specfleet/specs/smoke-spec.spec.md
-          ../node_modules/.bin/specfleet check --audit
-          # v0.2 compliance packs ship
-          test -d .specfleet/policies/packs/soc2
-          test -d .specfleet/policies/packs/hipaa
-          test -d .specfleet/policies/packs/pci-dss
-          test -d .specfleet/policies/packs/iso27001
-          test -d .specfleet/policies/packs/gdpr
-          # Air-gap: the CLI must boot with SPECFLEET_OFFLINE=1
-          SPECFLEET_OFFLINE=1 ../node_modules/.bin/specfleet --version
-          SPECFLEET_OFFLINE=1 ../node_modules/.bin/specfleet check || true
+          ../node_modules/.bin/specfleet specify "smoke spec" --description "package smoke" --non-interactive
+          ../node_modules/.bin/specfleet clarify smoke-spec --answer "scope: smoke" --non-interactive
+          ../node_modules/.bin/specfleet plan smoke-spec --non-interactive
+          ../node_modules/.bin/specfleet tasks smoke-spec --non-interactive
+          ../node_modules/.bin/specfleet analyze smoke-spec --non-interactive
+          ../node_modules/.bin/specfleet implement smoke-spec --non-interactive
+          ../node_modules/.bin/specfleet review smoke-spec --model stub-review --non-interactive
+          ../node_modules/.bin/specfleet checklist smoke-spec --non-interactive
+          test -f .specfleet/specs/smoke-spec/spec.md
+          test -f .specfleet/specs/smoke-spec/checklist.md
+          test -f .specfleet/scratchpad/smoke-spec.md
+          grep -q 'status: done' .specfleet/specs/smoke-spec/spec.md
+          ../node_modules/.bin/specfleet check

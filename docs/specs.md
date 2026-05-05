@@ -1,106 +1,78 @@
-Questions:
+# Specs in SpecFleet (v0.6)
 
-1. How do we position agents to deliver production ready code faster? i.e. less wasted code
-2. How do I use agents in a structured way so it has maximum knowledge of the product? (i.e. MCP server)
-3. How do we find bugs / maintain code so as our velocity improves we can keep up with identifying and firefighting more bugs? (SRE agent)
-4. How do we leverage AI to help us self-improve the agents and documentation so it self matures? (harness management)
-5. Let's consider SpecKit and other frameworks as well (GSD?) as we move beyond POCs with it.
+A SpecFleet **spec** is the per-feature folder produced by the eight-phase
+pipeline:
 
-Scope - Questions to Address:
+```text
+.specfleet/specs/<spec-id>/
+  spec.md              ← Phase 1: specify
+  clarifications.md    ← Phase 2: clarify
+  plan.md              ← Phase 3: plan
+  tasks.md             ← Phase 4: tasks
+  analysis.md          ← Phase 5: analyze
+  review.md            ← Phase 7: review
+  checklist.md         ← Phase 8: checklist
 
-- How do we position agents to deliver production ready - code faster? i.e. less wasted code
-- How do we use agents in a structured way so it has - maximum knowledge of the product?
-- How do we leverage AI to help us self-improve the agents - and documentation so it self matures? (harness - management)
-- Practical design patterns with Agent Workflows
+.specfleet/scratchpad/<spec-id>.md
+  shared, append-only working memory for Phase 6 implement runs
+```
 
-Four Pillars in Approach:
-- Standardized agents
-- Shared context (org memory)
-- Deterministic workflows
-- Continuous evaluation + improvement loops 
-- Skills, Agents, Instructions and best practices for each
+The `<spec-id>` is kebab-case (auto-slugified from the title on
+`specfleet specify`). The folder is created by `specfleet specify`
+and never moved or renamed — every later phase reads and writes
+into it.
 
-Providing Organizational Context
-- Compare 4 approaches  to providing product / org and business goal context
-Org-level instructions (emerging)
-Copilot Spaces
-Custom agents
-MCP server (Model Context Protocol)
-- Recommended architecture
-Harness management and iterative agent maturity 
+## Spec frontmatter
+
+Every `spec.md` begins with frontmatter validated by
+`SpecFrontmatterSchema`:
+
+```yaml
 ---
+id: payment-flow
+title: Payment Flow
+description: Replace the legacy redirect checkout with an embedded form.
+status: draft        # draft → clarifying → planned → tasked → implementing → reviewed → done
+owner: alice@example.com
+---
+```
 
-## How SpecFleet v0.2 answers this
+The status field advances automatically as phases complete:
 
-Each of the five questions above maps to specific commands, files, and
-docs in this repo as of v0.2.
+| After phase | New status |
+| --- | --- |
+| `specify` | `draft` |
+| `clarify` | `clarifying` |
+| `plan` | `planned` |
+| `tasks` | `tasked` |
+| `analyze` | `tasked` (no transition; analysis is informational) |
+| `implement` | `implementing` |
+| `review` | `reviewed` |
+| `checklist` | `done` |
 
-### Q1 — Production-ready code faster (less wasted code)
+## Authoring conventions
 
-- **`specfleet spec new <name>`** — author a GSD/SpecKit-shaped spec
-  ([`templates/spec.md`](../templates/spec.md)) before any code is
-  written; ambiguity gets resolved on cheap text, not expensive runs.
-- **`specfleet plan --from-spec <id>`** — the orchestrator ingests the spec
-  and decomposes it into per-role briefs, so Dev never starts before
-  Architect has signed off.
-- **Skills library** — production skills under
-  [`templates/skills/`](../templates/skills/)
-  (`security-review`, `perf-review`, `accessibility`, `observability`,
-  `iac-review`, `dependency-hygiene`) are loaded lazily by role agents
-  to enforce a shared "definition of done".
-- **`specfleet check --eval`** — benchmarks against each charter catch regressions
-  in code quality before they ship; see
-  [`docs/harness-management.md`](harness-management.md).
+- **Goal · Background · Requirements · Out of scope · Risks** sections
+  in `spec.md` (the prompt template asks the orchestrator to populate
+  them).
+- **Each `--answer` to `clarify`** is appended verbatim to
+  `clarifications.md` so the dialogue is auditable.
+- **`tasks.md` rows are filterable** by `--task <name>` on
+  `specfleet implement`, so you can run a single task in isolation.
+- **`.specfleet/scratchpad/<spec-id>.md` is shared and append-only.** All
+  `implement` runs write into the same file under the four canonical sections
+  (Findings · Decisions · Open Questions · Files Touched).
 
-### Q2 — Structured product knowledge / MCP
+## What changed from v0.5
 
-- **`specfleet mcp serve`** — stdio MCP server exposing
-  `query_decisions`, `query_charter`, `query_project`, `query_audit`
-  to any consumer (Copilot CLI, VS Code, Claude Desktop).
-- **`.specfleet/decisions.md`** — the canonical org decision log; every
-  accepted tune diff or material design choice lands here and is
-  queryable through MCP.
-- **Charter library** — [`templates/charters/`](../templates/charters/)
-  holds the 32 reviewed role charters that encode product/team norms
-  per agent.
-- **Strategy choice** — see
-  [`docs/context-strategies.md`](context-strategies.md): SpecFleet uses
-  custom charters (governance) **plus** the MCP server (fresh data).
+- v0.5 wrote specs into `.specfleet/plans/<timestamp>.md` plus a
+  separate `.specfleet/checkpoints/`. v0.6 collapses both into the
+  per-spec folder.
+- v0.5 had `specfleet sre triage` consuming SARIF. That feature is out
+  of scope for v0.6 — use GitHub Code Scanning directly.
+- v0.5 emitted hash-chained audit JSONL alongside specs. v0.6 emits
+  plain JSONL run transcripts under `.specfleet/runs/`; spec history
+  lives in git.
 
-### Q3 — SRE bug-finding at velocity
-
-- **`specfleet sre triage`** — consumes SARIF (CodeQL, Semgrep, Trivy…)
-  and the audit log; the `sre` charter produces a triage report at
-  `.specfleet/triage/<ts>.md`.
-- **`templates/skills/security-review.md`** — security-review skill
-  loaded by SRE and Compliance agents.
-- **Other skills** — `perf-review`, `observability`, `iac-review`,
-  `dependency-hygiene` close the rest of the operational loop.
-- **Audit log** — `.specfleet/audit/<sessionId>.jsonl` (hash-chained, see
-  [`docs/security.md`](security.md)) is queryable via MCP, so the
-  SRE agent can correlate runtime events with code changes.
-
-### Q4 — Self-improving harness
-
-- **`specfleet check --eval`** — runs benchmarks under
-  [`templates/benchmarks/`](../templates/benchmarks/), appends one
-  JSON line per benchmark to `.specfleet/eval/scoreboard.jsonl`.
-- **`specfleet check --tune`** — reads the scoreboard + audit + decisions and
-  drafts an advisory unified diff against the relevant charter at
-  `.specfleet/tune/<ts>.diff`. Never auto-applies.
-- **`.specfleet/decisions.md`** — captures the human verdict on each tune
-  diff, closing the loop.
-- **[`docs/harness-management.md`](harness-management.md)** — the
-  full eval → tune → review loop, cadence (per-PR / weekly /
-  monthly / quarterly), and anti-patterns to avoid.
-
-### Q5 — SpecKit / GSD beyond POCs
-
-- **`specfleet spec new <name>`** — `templates/spec.md` is a GSD-shaped
-  spec template (problem, decision, scope, acceptance, risks).
-- **`specfleet spec list`** — enumerate active specs in `.specfleet/specs/`.
-- **`specfleet plan --from-spec <id>`** — the orchestrator's primary
-  on-ramp: every plan can be traced back to a reviewed spec.
-- **`.specfleet/decisions.md`** — the durable product-knowledge surface
-  (queryable via `specfleet mcp serve`) that survives across specs and
-  plans.
+For the per-phase walkthrough see [spec-pipeline.md](spec-pipeline.md).
+For the CLI reference see [cli.md](cli.md).

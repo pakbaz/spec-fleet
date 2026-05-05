@@ -1,5 +1,15 @@
 # SOC 2 — SpecFleet Coverage
 
+<!-- markdownlint-disable MD060 -->
+> **v0.6 status — historical reference.** The compliance "packs"
+> (`specfleet init --with-pack <name>`) and the audit hash-chain
+> primitive referenced below were v0.5 features. v0.6 dropped both as
+> part of the simplification (see
+> [migration-from-0.5.md](../migration-from-0.5.md)). Map your SOC 2
+> controls onto the v0.6 primitives — committed charters, cross-model
+> review, `specfleet check`, and git history of `.specfleet/specs/`.
+> A refreshed coverage matrix is tracked in a future release.
+
 The American Institute of Certified Public Accountants (AICPA) **SOC 2**
 report attests to a service organization's controls relevant to the Trust
 Services Criteria (TSC): Security, Availability, Processing Integrity,
@@ -18,15 +28,13 @@ for every SOC 2 engagement.
 | CC7.3   | Evaluate security events                              | `audit-hashchain`, `ip-guard`                       | Hash-chained events plus DLP findings give investigators a defensible timeline.        |
 | CC8.1   | Authorize, design, develop, implement changes         | `pre-commit-scan`, `audit-hashchain`                | Pre-commit scan blocks risky changes; audit chain attests to the change record.        |
 
-## How to enable
+## v0.5 pack behavior
 
-```bash
-specfleet init --with-pack soc2
-```
-
-The pack writes `egress.json`, `ip-guard.json`, and `pack.json` under
-`.specfleet/policies/packs/soc2/` and registers the controls in
-`.specfleet/instruction.md` under `policies.compliance`.
+In v0.5, `specfleet init --with-pack soc2` wrote `egress.json`,
+`ip-guard.json`, and `pack.json` under a SOC 2 policy pack and registered
+controls in `.specfleet/instruction.md`. In v0.6 there is no pack installer;
+keep SOC 2 invariants in the constitution and verify evidence with the
+checklist phase.
 
 ## Disclaimer
 

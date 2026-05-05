@@ -1,39 +1,36 @@
 /**
- * Zod schemas for .specfleet/ artifacts. The runtime validates every charter, instruction,
- * and project file against these before any agent session is created.
+ * Zod schemas for .specfleet/ artifacts (v0.6).
+ *
+ * v0.6 dropped the persona-heavy charter shape (tier, parent, spawns,
+ * requiresHumanGate, displayName, role, skills) in favour of a task-contract
+ * frontmatter that maps 1:1 onto Copilot CLI agent files.
  */
 import { z } from "zod";
 
-// ---------------- Instruction (corporate, immutable) ----------------
+// ---------------- Constitution (instruction.md) ----------------
+//
+// Lean v0.6 shape: a constitution is a short list of policies + pointers to
+// external docs. We do *not* try to capture every corporate rule in YAML.
+// The body of instruction.md (after the frontmatter) is where the
+// nuanced guidance lives.
 
 export const InstructionSchema = z.object({
   version: z.string().min(1),
   organization: z.string().min(1),
   effectiveDate: z.string(),
   owners: z.array(z.string()).min(1),
-  policies: z
-    .object({
-      coding: z.array(z.string()).default([]),
-      security: z.array(z.string()).default([]),
-      compliance: z.array(z.string()).default([]),
-      operations: z.array(z.string()).default([]),
-      data: z.array(z.string()).default([]),
-    })
-    .default({
-      coding: [],
-      security: [],
-      compliance: [],
-      operations: [],
-      data: [],
-    }),
+  // Each entry is a one-line invariant. Flat list — no categories.
+  principles: z.array(z.string()).default([]),
   approvedRuntimes: z.array(z.string()).default([]),
   approvedFrameworks: z.array(z.string()).default([]),
   forbidden: z.array(z.string()).default([]),
+  // External references the LLM can fetch on demand (URL or repo-relative path).
+  seeAlso: z.array(z.string()).default([]),
   contacts: z.record(z.string(), z.string()).default({}),
 });
 export type Instruction = z.infer<typeof InstructionSchema>;
 
-// ---------------- Project (per-repo, output of guided interview) ----------------
+// ---------------- Project (per-repo cheat sheet) ----------------
 
 export const ProjectSchema = z.object({
   name: z.string().min(1),
@@ -45,114 +42,87 @@ export const ProjectSchema = z.object({
   dataStores: z.array(z.string()).default([]),
   integrations: z.array(z.string()).default([]),
   deploymentTargets: z.array(z.string()).default([]),
-  nfr: z
-    .object({
-      availabilityTier: z.enum(["bronze", "silver", "gold", "platinum"]).default("silver"),
-      performanceP99Ms: z.number().int().positive().default(500),
-      securityTier: z.enum(["standard", "elevated", "regulated"]).default("standard"),
-    })
-    .default({
-      availabilityTier: "silver",
-      performanceP99Ms: 500,
-      securityTier: "standard",
-    }),
   complianceScope: z.array(z.string()).default([]),
   notes: z.string().optional(),
 });
 export type Project = z.infer<typeof ProjectSchema>;
 
-// ---------------- Charter (per agent) ----------------
+// ---------------- Charter (task contract) ----------------
+//
+// v0.6 charter frontmatter is intentionally minimal:
+//   - name                   identifier matching `.github/agents/<name>.agent.md`
+//   - description            one-line purpose (Copilot CLI uses this for routing)
+//   - model                  optional model override (otherwise workspace default)
+//   - maxContextTokens       budget gate before dispatch
+//   - allowedTools           Copilot CLI tool names; empty = inherit defaults
+//   - mcpServers             manifest names in .specfleet/mcp/
+//   - instructionsApplyTo    file globs for path-scoped instructions
+//
+// The body of the charter is the agent prompt. It must be *task-focused*
+// (Goal / Inputs / Output / Constraints) — no "You are the X Agent" personas.
 
-export const CharterRoleSchema = z.enum([
-  "orchestrator",
-  "architect",
-  "dev",
-  "test",
-  "devsecops",
-  "compliance",
-  "sre",
-]);
-export type CharterRole = z.infer<typeof CharterRoleSchema>;
-
-export const CharterTierSchema = z.enum(["root", "role", "subagent", "subsubagent"]);
-export type CharterTier = z.infer<typeof CharterTierSchema>;
+export const CharterNameSchema = z
+  .string()
+  .min(1)
+  .regex(/^[a-z][a-z0-9-]*$/, {
+    message:
+      "Charter name must be lowercase, kebab-case (no slashes — subagents are spawned at runtime, not pre-declared)",
+  });
 
 export const CharterSchema = z.object({
-  name: z.string().min(1).regex(/^[a-z][a-z0-9-]*(\/[a-z][a-z0-9-]*)*$/, {
-    message: "Charter name must be lowercase, kebab-case, optionally namespaced with '/'",
-  }),
-  displayName: z.string().min(1),
-  role: CharterRoleSchema,
-  tier: CharterTierSchema,
-  parent: z.string().optional(),
+  name: CharterNameSchema,
   description: z.string().min(1),
-  // Token budget enforced by SpecFleet runtime. Hard ceiling 95K (5K headroom under 100K).
-  maxContextTokens: z.number().int().positive().max(95_000).default(80_000),
-  // Allowlist of CLI/SDK tool names. Anything else is excludedTools at session boundary.
-  allowedTools: z.array(z.string()).default([]),
-  // Subagents this charter may spawn. Used to plan delegation graph.
-  spawns: z.array(z.string()).default([]),
-  // MCP servers this charter is allowed to use, by manifest name in .specfleet/mcp/.
-  mcpServers: z.array(z.string()).default([]),
-  // Skills to lazy-load on demand (filenames in .specfleet/skills/, no extension).
-  skills: z.array(z.string()).default([]),
-  // Model selection. Optional; runtime picks a default if absent.
   model: z.string().optional(),
-  // If true, requires human approval gate before completing the agent's turn.
-  requiresHumanGate: z.boolean().default(false),
+  // Hard ceiling: 95K (5K headroom under Copilot CLI's 100K context budget).
+  maxContextTokens: z.number().int().positive().max(95_000).default(60_000),
+  allowedTools: z.array(z.string()).default([]),
+  mcpServers: z.array(z.string()).default([]),
+  instructionsApplyTo: z.array(z.string()).default([]),
   // The free-form prompt body (everything after the YAML frontmatter).
   body: z.string().min(20),
-  // Optional cryptographic signature over the charter (full v0.4 sigstore wiring;
-  // v0.2 ships the schema + verifier hook only).
-  signature: z.string().optional(),
-  signed_by: z.string().optional(),
 });
 export type Charter = z.infer<typeof CharterSchema>;
 
-// ---------------- Decisions log (append-only) ----------------
+// ---------------- Run transcript (per `copilot -p` invocation) ----------------
+//
+// The runtime writes one `.specfleet/runs/<run-id>.jsonl` per invocation,
+// capturing what was dispatched and what came back. Copilot CLI's own
+// session-state under ~/.copilot/ remains the authoritative log.
 
-export const DecisionSchema = z.object({
-  id: z.string(),
-  timestamp: z.string(),
-  agent: z.string(),
-  kind: z.enum(["plan", "decision", "gate", "result", "error"]),
-  title: z.string(),
-  body: z.string(),
-  refs: z.array(z.string()).default([]),
-});
-export type Decision = z.infer<typeof DecisionSchema>;
-
-// ---------------- Audit event ----------------
-
-export const AuditEventSchema = z.object({
+export const RunEventSchema = z.object({
   ts: z.string(),
-  sessionId: z.string(),
-  agent: z.string(),
-  kind: z.enum([
-    "session.start",
-    "session.end",
-    "user.prompt",
-    "tool.pre",
-    "tool.post",
-    "permission.request",
-    "policy.block",
-    "secret.redacted",
-    "secret.warn",
-    "egress.block",
-    "ip.block",
-    "ip.redacted",
-    "budget.warn",
-    "budget.block",
-    "gate.requested",
-    "gate.approved",
-    "gate.denied",
-    "error",
+  runId: z.string(),
+  charter: z.string(),
+  phase: z.enum([
+    "specify",
+    "clarify",
+    "plan",
+    "tasks",
+    "analyze",
+    "implement",
+    "review",
+    "checklist",
+    "freeform",
   ]),
+  kind: z.enum(["start", "stdout", "stderr", "exit", "artifact", "budget.warn", "budget.block"]),
   payload: z.record(z.string(), z.unknown()).default({}),
-  // Tamper-evident hash chain (v0.2). Optional in schema for backward-compat
-  // when reading older logs; AuditLog.emit always populates them on write.
-  seq: z.number().int().nonnegative().optional(),
-  prevHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
-  hash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
 });
-export type AuditEvent = z.infer<typeof AuditEventSchema>;
+export type RunEvent = z.infer<typeof RunEventSchema>;
+
+// ---------------- Spec (Spec-Kit shape) ----------------
+//
+// We accept any frontmatter as long as `id` and `title` are present. The
+// pipeline phases are responsible for adding their own sections to the body.
+
+export const SpecFrontmatterSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    status: z
+      .enum(["draft", "clarifying", "planned", "tasked", "implementing", "reviewed", "done"])
+      .default("draft"),
+    created: z.string().optional(),
+    updated: z.string().optional(),
+  })
+  .passthrough();
+export type SpecFrontmatter = z.infer<typeof SpecFrontmatterSchema>;
