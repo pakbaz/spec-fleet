@@ -144,3 +144,21 @@ specfleet init --from-v5
 Archives the old `.specfleet/{audit,checkpoints,index,plans,instruction.md}`
 into `.specfleet/_v5-archive/` and re-scaffolds the v0.6 layout. See
 [migration-from-0.5.md](migration-from-0.5.md) for the full rewrite.
+
+---
+
+## 9. Try the samples
+
+Two end-to-end samples ship with SpecFleet — pick the one that matches
+your situation:
+
+| Sample | Mode | Stack | Spec walked through |
+|--------|------|-------|---------------------|
+| [`sample/novimart-app/`](../sample/novimart-app/) | greenfield | .NET 10 + React/Vite + Cosmos | `checkout-hardening` (401 sign-in alert) |
+| [`sample/hermes-telemetry/`](../sample/hermes-telemetry/) | brownfield | Go 1.22 (stdlib only) | `origin-allowlist` (CORS loopback fix) |
+
+Each sample includes a fully populated `.specfleet/` workspace, all 7
+phase artefacts for one feature, the matching scratchpad and run log,
+and a `.github/` mirror — so you can read what a finished SpecFleet
+spec looks like end to end before running your own.
+

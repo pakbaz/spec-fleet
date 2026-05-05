@@ -140,12 +140,21 @@ and the ADRs under [docs/adr/](docs/adr/).
 - [docs/publishing.md](docs/publishing.md) — release & npm OIDC publishing flow
 - [SECURITY.md](SECURITY.md) — AS-IS / no-support statement
 
-## Sample: NoviMart retail commerce app
+## Samples
 
-A complete demonstration lives in [sample/novimart-app/](sample/novimart-app/) —
-.NET 10 BFF API + React/Vite SPA with Cosmos DB, Entra External ID, and
-stubbed payments. The sample's `.specfleet/instruction.md` shows what a
-fleshed-out corporate constitution looks like.
+Two end-to-end demonstrations ship under [`sample/`](sample/):
+
+- **[sample/novimart-app/](sample/novimart-app/)** — *greenfield*. .NET 10 BFF
+  API + React/Vite SPA with Cosmos DB, Entra External ID, and stubbed
+  payments. Walks through one finished spec (`checkout-hardening`) end to
+  end, including scratchpad and run transcript.
+- **[sample/hermes-telemetry/](sample/hermes-telemetry/)** — *brownfield*.
+  Stdlib-only Go telemetry service adopted into SpecFleet via
+  `specfleet init --mode brownfield`. The first spec (`origin-allowlist`)
+  fixes a CORS-equivalence bug in the dashboard's `Origin` allow-list.
+
+Both samples include `.specfleet/` constitution + project, all 7 phase
+artefacts for one feature, and `.github/` mirror.
 
 ## Contributing
 

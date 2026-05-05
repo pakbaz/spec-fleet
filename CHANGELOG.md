@@ -80,6 +80,19 @@ sharp and lean. Run `specfleet init --from-v5` to migrate.
   `src/runtime/policy.ts`, `src/runtime/audit.ts`,
   `src/runtime/interview.ts`, `src/runtime/session.ts`).
 
+### Samples
+
+- **`sample/novimart-app/`** rewritten for v0.6 — replaced the v0.5
+  policy/subagent layout with the eight-phase `.specfleet/specs/`
+  layout. One finished spec (`checkout-hardening`) ships with all 7
+  phase artefacts plus scratchpad + run transcript, exercising real
+  TypeScript code in `frontend/src/lib/api/client.ts` and
+  `frontend/src/features/checkout/CheckoutPage.tsx`.
+- **`sample/hermes-telemetry/`** added — a stdlib-only Go telemetry
+  service used as the brownfield demo. The spec
+  `origin-allowlist` walks the eight phases against pre-existing code,
+  fixing a CORS-equivalence bug between `localhost` and `127.0.0.1`.
+
 ## [0.5.1] — 2026-04-28
 
 ### Fixed
