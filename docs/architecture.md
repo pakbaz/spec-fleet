@@ -1,6 +1,11 @@
-# SpecFleet Architecture (v0.6)
+# SpecFleet Architecture (v0.7)
 
-SpecFleet v0.6 is **a thin shim over the GitHub Copilot CLI** that runs the
+> **Packaging (v0.7).** SpecFleet is a [Spec Kit extension](extension.md): a manifest
+> (`extension.yml`) plus command files (`speckit.specfleet.*`) that add charters, a shared
+> scratchpad, and a charter-compliance review to the core phases. The thin-shim TypeScript
+> engine described below remains as an optional local runtime / scratchpad MCP server.
+
+SpecFleet's engine is **a thin shim over the GitHub Copilot CLI** that runs the
 Spec-Kit pipeline (specify · clarify · plan · tasks · analyze · implement ·
 review · checklist) with cross-model review and a shared scratchpad for
 multi-charter coordination.

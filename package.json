@@ -1,7 +1,7 @@
 {
   "name": "@pakbaz/specfleet",
-  "version": "0.6.0",
-  "description": "SpecFleet — a lean, thin Spec-Kit pipeline (specify · clarify · plan · tasks · analyze · implement · review · checklist) over GitHub Copilot CLI with cross-model review and a shared scratchpad MCP.",
+  "version": "0.7.0",
+  "description": "SpecFleet \u2014 a lean, thin Spec-Kit pipeline (specify \u00b7 clarify \u00b7 plan \u00b7 tasks \u00b7 analyze \u00b7 implement \u00b7 review \u00b7 checklist) over GitHub Copilot CLI with cross-model review and a shared scratchpad MCP.",
   "type": "module",
   "bin": {
     "specfleet": "./dist/cli.js"

@@ -2,6 +2,13 @@
 
 <!-- markdownlint-disable MD040 MD060 -->
 
+> **As a Spec Kit extension (v0.7).** The eight phases below are the core
+> [Spec Kit](https://github.com/github/spec-kit) workflow. SpecFleet's
+> [extension](extension.md) augments them with charters (`speckit.specfleet.charter`),
+> a shared scratchpad (`speckit.specfleet.scratchpad`), and a charter-compliance review
+> (`speckit.specfleet.review`) — it does not replace the phases. The narrative below also
+> describes how the optional TypeScript engine runs the same phases over Copilot CLI.
+
 SpecFleet runs the [Spec-Kit](https://github.com/github/spec-kit) eight-phase
 spec-driven workflow on top of the GitHub Copilot CLI. Each phase is a
 single `specfleet <verb> <spec-id>` command that:

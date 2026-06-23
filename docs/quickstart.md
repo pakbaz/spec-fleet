@@ -1,6 +1,7 @@
-# SpecFleet Quick Start (v0.6)
+# SpecFleet Quick Start (v0.7)
 
-Zero to a fully reviewed feature on Copilot CLI in under 10 minutes.
+Add charters, a shared scratchpad, and a charter-compliance review to your
+[Spec Kit](https://github.com/github/spec-kit) workflow in under 10 minutes.
 
 ---
 
@@ -8,157 +9,125 @@ Zero to a fully reviewed feature on Copilot CLI in under 10 minutes.
 
 | Requirement | Why |
 | --- | --- |
-| **Node.js ≥ 20** | SpecFleet is ESM + TypeScript |
-| **GitHub Copilot CLI** signed in (`copilot --version`) | We shell out to it |
-| **A Copilot-enabled GitHub account** | Required by Copilot CLI |
-| **Git** | SpecFleet reads `git diff --cached` for `check --staged` |
+| **Spec Kit** (`specify`) ≥ 0.1.0 | SpecFleet installs as a Spec Kit extension |
+| **An AI coding agent** (VS Code Copilot, Claude Code, Cursor, …) | Runs the command files |
+| **Git** | Features live on branches; artifacts are committed |
 
-SpecFleet does **not** ship a separate auth flow — it inherits whatever
-credentials `copilot` already has.
+SpecFleet ships no separate auth flow — it runs inside whatever agent you already use.
 
 ---
 
-## 2. Install
-
-From npm:
+## 2. Install the extension
 
 ```bash
-npm install -g @pakbaz/specfleet
-specfleet --version          # → 0.6.0
+# In a Spec Kit project
+specify extension add specfleet \
+  --from https://github.com/pakbaz/spec-fleet/archive/refs/tags/v0.7.0.zip
+
+specify extension list      # → specfleet (0.7.0) — SpecFleet
 ```
 
-From source:
+Local development checkout instead:
 
 ```bash
 git clone https://github.com/pakbaz/spec-fleet.git
-cd spec-fleet
-npm install && npm run build && npm link
+specify extension add --dev ./spec-fleet
 ```
+
+This registers four commands with your agent: `speckit.specfleet.charter`,
+`speckit.specfleet.scratchpad`, `speckit.specfleet.review`, `speckit.specfleet.check`.
 
 ---
 
-## 3. Initialize a workspace
+## 3. (Optional) configure
 
 ```bash
-mkdir ~/code/todo-api && cd ~/code/todo-api
-git init
-specfleet init --non-interactive
+mkdir -p .specify/extensions/specfleet
+cp specfleet-config.template.yml .specify/extensions/specfleet/specfleet-config.yml
+$EDITOR .specify/extensions/specfleet/specfleet-config.yml
 ```
 
-What lands on disk:
+Set `models.default` (implementation) and `models.review` (must differ — that cross-model
+gate is the point). Defaults are `claude-sonnet-4.5` and `gpt-5.1`.
+
+---
+
+## 4. Use it alongside the core phases
+
+SpecFleet does not drive the pipeline — you keep running the core Spec Kit commands and
+add SpecFleet's layer where it helps:
 
 ```text
-.specfleet/
-  instruction.md        ← corporate / project constitution (immutable in reviews)
-  project.md            ← stack + layout summary (write this yourself)
-  config.json           ← models.default + models.review
-  charters/             ← 7 charters (orchestrator/architect/dev/test/devsecops/compliance/sre)
-  skills/               ← reusable how-tos
-  specs/                ← per-spec artefacts go here
-  scratchpad/           ← shared working memory per spec
-  runs/                 ← JSONL transcripts of every dispatch
-.github/
-  agents/               ← mirror of charters → run `copilot --agent dev` directly
-  prompts/              ← 8 specfleet.<phase>.prompt.md files
-  instructions/         ← 3 path-scoped instructions (coding-style/testing/compliance)
-  copilot-instructions.md
+/speckit.specify   "todo-api: REST API with JSON storage, CRUD, validation"
+/speckit.specfleet.charter architect      # task contract for the design work
+/speckit.plan
+/speckit.tasks
+/speckit.specfleet.scratchpad             # open shared working memory for the feature
+/speckit.implement
+/speckit.specfleet.review                 # cross-model, charter-compliance gate
+/speckit.specfleet.check                  # validate charter + scratchpad integrity
 ```
 
-Customise the constitution before any phase runs:
+Artifacts land next to the core ones, under the feature's `specs/<feature>/` directory:
 
-```bash
-$EDITOR .specfleet/instruction.md
-$EDITOR .specfleet/project.md
+```text
+specs/todo-api/
+  spec.md          ← core Spec Kit
+  plan.md          ← core Spec Kit
+  tasks.md         ← core Spec Kit
+  charter.md       ← speckit.specfleet.charter
+  scratchpad.md    ← speckit.specfleet.scratchpad
+  review.md        ← speckit.specfleet.review
 ```
+
+The optional **hooks** (`before_plan` → charter, `after_tasks` → scratchpad,
+`after_implement` → review) prompt to run these automatically — enable them when you want
+the workflow on autopilot.
 
 ---
 
-## 4. The eight-phase pipeline
+## 5. The charter (task contract)
 
-Once for each feature:
+A charter scopes one feature for one **role** (orchestrator / architect / dev / test /
+devsecops / compliance / sre) with Goal / Inputs / Output / Constraints. It is committed
+to git and read by later phases, so intent stays explicit and reviewable.
 
-```bash
-specfleet specify    "todo-api"      --description "REST API with JSON storage, CRUD, validation"
-specfleet clarify    todo-api
-specfleet plan       todo-api
-specfleet tasks      todo-api
-specfleet analyze    todo-api
-specfleet implement  todo-api
-specfleet review     todo-api        # uses models.review automatically (cross-model gate)
-specfleet checklist  todo-api
-```
+## 6. The shared scratchpad
 
-Each command:
+A four-section working memory — **Findings · Decisions · Open Questions · Files Touched**
+— that every phase appends to (author-prefixed, append-only). Later phases absorb earlier
+findings without re-running prior work.
 
-1. Renders `.github/prompts/specfleet.<phase>.prompt.md` against the
-   spec's artefacts.
-2. Spawns `copilot -p - --agent <charter> --no-interactive` and pipes the
-   prompt via stdin.
-3. Writes the model's response into the matching artefact file under
-   `.specfleet/specs/<spec-id>/`.
-4. Advances the spec's status.
+## 7. The charter-compliance review
 
-You can override the charter (`--charter architect`) or model
-(`--model gpt-5.1`) per call.
+`speckit.specfleet.review` is read-only and meant to run with a *different* model than the
+implementation. It grades the diff against the **charter** and **scratchpad** and emits a
+verdict (`APPROVE` / `REQUEST_CHANGES` / `BLOCK`) with file-cited findings.
 
 ---
 
-## 5. Review the result
+## 8. Optional: shared scratchpad as an MCP server
 
-`specfleet review` writes `.specfleet/specs/<id>/review.md` using the
-**review model** (defaults to `gpt-5.1`) so a different model than the one
-that implemented the change gates the diff. Pass `--same-model` to bypass
-this if you really want the implementer to also review.
-
----
-
-## 6. Sanity checks
+The repository also ships an optional TypeScript engine that can serve the scratchpad over
+MCP for agents that prefer tool calls:
 
 ```bash
-specfleet check                # validates charters / mirror / Copilot CLI / prompts / MCP manifests
-specfleet check --staged       # secret scan over `git diff --cached`
-specfleet check --fix          # re-mirrors charters
+git clone https://github.com/pakbaz/spec-fleet.git && cd spec-fleet
+npm install && npm run build
+node dist/cli.js mcp serve     # stdio JSON-RPC
 ```
 
----
-
-## 7. Optional: shared scratchpad as MCP server
-
-```bash
-specfleet mcp serve            # stdio JSON-RPC; expose to Copilot CLI via .mcp.json
-```
-
-Tools exposed: `query_charter`, `query_constitution`, `query_project`,
-`scratchpad_read`, `scratchpad_append`, `scratchpad_search`,
-`scratchpad_archive`. All seven default off — you only enable them per
-charter via `mcpServers: ["specfleet"]`.
-
----
-
-## 8. Migrating from v0.5
-
-```bash
-specfleet init --from-v5
-```
-
-Archives the old `.specfleet/{audit,checkpoints,index,plans,instruction.md}`
-into `.specfleet/_v5-archive/` and re-scaffolds the v0.6 layout. See
-[migration-from-0.5.md](migration-from-0.5.md) for the full rewrite.
+See [cli.md](cli.md) for the engine and MCP details. It is not required to use the
+extension.
 
 ---
 
 ## 9. Try the samples
 
-Two end-to-end samples ship with SpecFleet — pick the one that matches
-your situation:
+| Sample | Mode | Stack | Feature walked through |
+|--------|------|-------|------------------------|
+| [`sample/novimart-app/`](../sample/novimart-app/) | greenfield | .NET 10 + React/Vite + Cosmos | `checkout-hardening` |
+| [`sample/hermes-telemetry/`](../sample/hermes-telemetry/) | brownfield | Go 1.22 (stdlib only) | `origin-allowlist` |
 
-| Sample | Mode | Stack | Spec walked through |
-|--------|------|-------|---------------------|
-| [`sample/novimart-app/`](../sample/novimart-app/) | greenfield | .NET 10 + React/Vite + Cosmos | `checkout-hardening` (401 sign-in alert) |
-| [`sample/hermes-telemetry/`](../sample/hermes-telemetry/) | brownfield | Go 1.22 (stdlib only) | `origin-allowlist` (CORS loopback fix) |
-
-Each sample includes a fully populated `.specfleet/` workspace, all 7
-phase artefacts for one feature, the matching scratchpad and run log,
-and a `.github/` mirror — so you can read what a finished SpecFleet
-spec looks like end to end before running your own.
-
+Each sample includes a populated workspace with the feature's `charter.md`, `scratchpad`,
+phase artifacts, and review — so you can read a finished SpecFleet feature end to end.

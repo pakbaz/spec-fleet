@@ -1,6 +1,12 @@
-# SpecFleet CLI Reference (v0.6)
+# SpecFleet CLI Reference (optional engine)
 
 <!-- markdownlint-disable MD040 MD060 -->
+
+> **Note (v0.7).** As of v0.7 SpecFleet is packaged as a
+> [Spec Kit extension](extension.md) — install it with `specify extension add specfleet`
+> and use the `speckit.specfleet.*` commands. The TypeScript CLI documented below is an
+> **optional local engine** (and scratchpad MCP server); it is not required to use the
+> extension. See the [README](../README.md) and [quickstart](quickstart.md).
 
 SpecFleet exposes 12 verbs. Everything else (subagent spawning, model
 routing, tool gating) happens inside Copilot CLI itself — SpecFleet is a
