@@ -1,0 +1,82 @@
+schema_version: "1.0"
+
+extension:
+  id: "specfleet"
+  name: "SpecFleet"
+  version: "0.7.0"
+  description: "Charter-driven task contracts and a shared scratchpad working memory that augment the core Spec Kit phases, plus a charter-compliance cross-model review."
+  author: "Sepehr Pakbaz"
+  repository: "https://github.com/pakbaz/spec-fleet"
+  homepage: "https://github.com/pakbaz/spec-fleet"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=0.1.0"
+  commands:
+    - "speckit.plan"
+    - "speckit.tasks"
+    - "speckit.implement"
+
+provides:
+  commands:
+    - name: "speckit.specfleet.charter"
+      file: "commands/charter.md"
+      description: "Author or refresh a charter — a committed task contract (Goal/Inputs/Output/Constraints) with an owning role — for the active feature."
+    - name: "speckit.specfleet.scratchpad"
+      file: "commands/scratchpad.md"
+      description: "Initialize or append to the four-section shared scratchpad working memory for the active feature."
+    - name: "speckit.specfleet.review"
+      file: "commands/review.md"
+      description: "Charter-compliance cross-model review (read-only) that checks the implementation against its charter and scratchpad."
+    - name: "speckit.specfleet.check"
+      file: "commands/check.md"
+      description: "Validate the charters and scratchpad for the active feature and report integrity problems."
+
+  config:
+    - name: "specfleet-config.yml"
+      template: "specfleet-config.template.yml"
+      description: "SpecFleet extension configuration (models, roles, scratchpad sections)."
+      required: false
+
+hooks:
+  before_plan:
+    command: "speckit.specfleet.charter"
+    optional: true
+    prompt: "Author or refresh a SpecFleet charter (task contract) before planning?"
+    description: "Capture a committed task contract that scopes the plan."
+  after_tasks:
+    command: "speckit.specfleet.scratchpad"
+    optional: true
+    prompt: "Initialize the SpecFleet shared scratchpad for this feature?"
+    description: "Create a shared working-memory file so later phases stay coordinated."
+  after_implement:
+    command: "speckit.specfleet.review"
+    optional: true
+    prompt: "Run the SpecFleet charter-compliance cross-model review?"
+    description: "Review the implementation against its charter and scratchpad with a different model."
+
+defaults:
+  models:
+    default: "claude-sonnet-4.5"
+    review: "gpt-5.1"
+  roles:
+    - "orchestrator"
+    - "architect"
+    - "dev"
+    - "test"
+    - "devsecops"
+    - "compliance"
+    - "sre"
+  scratchpad_sections:
+    - "Findings"
+    - "Decisions"
+    - "Open Questions"
+    - "Files Touched"
+
+tags:
+  - "charter"
+  - "scratchpad"
+  - "task-contract"
+  - "cross-model-review"
+  - "working-memory"
+  - "governance"
