@@ -9,6 +9,13 @@ verbs, 7 flat charters, instructions + prompt files mirrored to
 > **Greenfield mode.** The `.specfleet/project.md` is in `mode: greenfield`.
 > See `sample/hermes-telemetry/` for the brownfield equivalent.
 
+> **Installed as a Spec Kit extension (v0.7).** SpecFleet now ships as a
+> [Spec Kit extension](../../docs/extension.md). In a real project you would run
+> `specify extension add specfleet` and then use the `speckit.specfleet.*` commands
+> (`charter`, `scratchpad`, `review`, `check`) alongside the core phases. This sample
+> shows the resulting artifacts: a committed `charter.md` and `scratchpad` per feature,
+> plus the registered extension prompts under `.github/prompts/speckit.specfleet.*`.
+
 ---
 
 ## Layout
@@ -25,6 +32,7 @@ sample/novimart-app/
 │   ├── specs/
 │   │   └── checkout-hardening/       # one finished spec, all 8 phases
 │   │       ├── spec.md
+│   │       ├── charter.md
 │   │       ├── clarifications.md
 │   │       ├── plan.md
 │   │       ├── tasks.md
@@ -38,6 +46,7 @@ sample/novimart-app/
 │   ├── copilot-instructions.md       # what Copilot loads automatically
 │   ├── instructions/                 # coding-style / testing / compliance
 │   ├── prompts/                      # 8 phase prompt files (.prompt.md)
+│   │                                 #   + 4 speckit.specfleet.* extension prompts
 │   ├── agents/                       # 7 charter agent files (.agent.md)
 │   ├── workflows/                    # ci / cd / security pipelines
 │   └── CODEOWNERS

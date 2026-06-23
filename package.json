@@ -1,7 +1,7 @@
 {
   "name": "@pakbaz/specfleet",
   "version": "0.7.0",
-  "description": "SpecFleet \u2014 a lean, thin Spec-Kit pipeline (specify \u00b7 clarify \u00b7 plan \u00b7 tasks \u00b7 analyze \u00b7 implement \u00b7 review \u00b7 checklist) over GitHub Copilot CLI with cross-model review and a shared scratchpad MCP.",
+  "description": "SpecFleet \u2014 a Spec Kit extension that adds charters (task contracts), a shared scratchpad working memory, and a charter-compliance cross-model review to the core Spec Kit phases. Ships an optional TypeScript engine / scratchpad MCP server.",
   "type": "module",
   "bin": {
     "specfleet": "./dist/cli.js"
@@ -14,6 +14,10 @@
   },
   "files": [
     "dist",
+    "extension.yml",
+    "commands",
+    "specfleet-config.template.yml",
+    ".extensionignore",
     "templates/.github",
     "templates/charters",
     "templates/mcp",

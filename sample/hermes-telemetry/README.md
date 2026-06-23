@@ -9,6 +9,13 @@ under it.
 > [`spec-kit-go-brownfield-demo`](https://github.com/mnriem/spec-kit-go-brownfield-demo)
 > pattern. All code here is original.
 
+> **Installed as a Spec Kit extension (v0.7).** SpecFleet ships as a
+> [Spec Kit extension](../../docs/extension.md): `specify extension add specfleet`, then
+> use `speckit.specfleet.*` (`charter`, `scratchpad`, `review`, `check`) alongside the core
+> phases. This sample includes the resulting `charter.md` and `scratchpad` for the
+> `origin-allowlist` feature plus the registered prompts under
+> `.github/prompts/speckit.specfleet.*`.
+
 ## What this sample shows
 
 1. How to onboard an existing Go codebase with `specfleet init --mode brownfield`.
