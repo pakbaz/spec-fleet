@@ -9,6 +9,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-06-23
+
+SpecFleet v0.7 **repackages the project as a [Spec Kit](https://github.com/github/spec-kit)
+extension**. Instead of a standalone CLI that re-runs every phase, SpecFleet is now an
+install-via-`specify extension add` layer that *augments* the core Spec Kit phases with
+charters, a shared scratchpad, and a charter-compliance cross-model review.
+
+### Added
+
+- **`extension.yml`** — Spec Kit extension manifest (`id: specfleet`, schema `1.0`).
+- **`commands/`** — four command files registered as `speckit.specfleet.*`:
+  `charter`, `scratchpad`, `review`, `check`.
+- **Hooks** — optional, prompt-gated integration: `before_plan` → charter,
+  `after_tasks` → scratchpad, `after_implement` → review.
+- **`specfleet-config.template.yml`** — extension config (models, roles, scratchpad
+  sections), loaded from `.specify/extensions/specfleet/specfleet-config.yml`.
+- **`.extensionignore`** — excludes dev-only files from the installed extension copy.
+- **`tests/unit/extension.test.ts`** — validates the manifest, command naming
+  (`speckit.specfleet.<cmd>`), command-file existence/frontmatter, hook events, and a
+  non-overlap guard against the `fleet` extension id.
+- **`docs/extension.md`** — extension guide + community-catalog submission metadata.
+
+### Changed
+
+- **README and docs** rewritten to present SpecFleet as a Spec Kit extension, with an
+  explicit comparison to the community `fleet` (Fleet Orchestrator) extension to keep the
+  two non-overlapping.
+- **Samples** now demonstrate installing the extension and ship `charter.md` artifacts;
+  their `.github/prompts/specfleet.*` were renamed to `speckit.specfleet.*`.
+
+### Notes
+
+- The TypeScript engine under `src/` is retained as an optional local CLI / scratchpad
+  MCP server; it is not required to use the extension.
+
 ## [0.6.0] — 2026-05-05
 
 SpecFleet v0.6 is a deliberate **simplification**: a thin shim over the
@@ -323,7 +358,8 @@ Initial public release.
 - ESM-only, Node 20+.
 - Ships `dist/`, `templates/`, `LICENSE`, `README.md`, `CHANGELOG.md`.
 
-[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/pakbaz/spec-fleet/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/pakbaz/spec-fleet/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/pakbaz/spec-fleet/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/pakbaz/spec-fleet/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/pakbaz/spec-fleet/compare/v0.4.1...v0.5.0

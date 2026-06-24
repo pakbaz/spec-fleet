@@ -143,7 +143,7 @@ scheduled scan.
 ### 6.1 Pre-commit hook (developer-side)
 
 ```bash
-# .git/hooks/pre-commit (sample; provided by `specfleet init`)
+# .git/hooks/pre-commit (sample; wire manually if desired)
 PAN_RE='\b(?:\d[ -]?){13,19}\b'
 KEYWORDS='cardNumber|cvv|cvc|track1|track2|pinBlock|cardholder'
 
