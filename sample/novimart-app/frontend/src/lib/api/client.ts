@@ -26,12 +26,21 @@ async function attachToken(config: InternalAxiosRequestConfig): Promise<Internal
   return config;
 }
 
+function defaultCodeForStatus(status: number): string {
+  // Surface auth-class failures explicitly so the SPA can prompt re-sign-in
+  // (spec: checkout-hardening). Anything else falls back to `api_error`.
+  if (status === 0) return 'network_error';
+  if (status === 401) return 'auth_required';
+  if (status === 403) return 'forbidden';
+  return 'api_error';
+}
+
 function normalizeError(err: AxiosError<Partial<ApiError>>): ApiError {
   const status = err.response?.status ?? 0;
   const data = err.response?.data;
   return {
     status,
-    code: data?.code ?? (status === 0 ? 'network_error' : 'api_error'),
+    code: data?.code ?? defaultCodeForStatus(status),
     message: data?.message ?? err.message,
     ...(data?.details ? { details: data.details } : {}),
   };

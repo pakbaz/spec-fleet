@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
+import type { ApiError } from '@/lib/api/types';
 import { useCreateCheckoutSession } from './api';
 
 export function CheckoutPage() {
@@ -23,6 +24,12 @@ export function CheckoutPage() {
     );
   }
 
+  // spec: checkout-hardening — 401 from the BFF must invite re-authentication
+  // rather than a generic failure (a session expiry mid-checkout is the most
+  // common cause). The api client maps status 401 → code `auth_required`.
+  const apiError = create.error as ApiError | undefined;
+  const isAuthRequired = apiError?.code === 'auth_required';
+
   return (
     <section>
       <h1 className="mb-4 text-2xl font-semibold">Checkout</h1>
@@ -39,7 +46,11 @@ export function CheckoutPage() {
         <Button type="submit" disabled={create.isPending}>
           {create.isPending ? 'Redirecting…' : 'Continue to payment'}
         </Button>
-        {create.isError ? (
+        {isAuthRequired ? (
+          <p role="alert" className="text-sm text-amber-700">
+            Your session expired. <a href="/account/sign-in?return=/checkout" className="underline">Sign in to continue</a>.
+          </p>
+        ) : create.isError ? (
           <p role="alert" className="text-sm text-red-600">
             Couldn’t start checkout — please try again.
           </p>

@@ -128,7 +128,7 @@ no PAN ever touches NoviMart infrastructure. See `pci-scope-boundary.md`.
 These endpoints are implemented in the **production** version of NoviMart; the sample
 includes the contracts and a stub controller in `NoviMart.Api/Endpoints/DsrEndpoint.cs`
 (commented out as TODO; the SpecFleet `compliance/gdpr` subagent flags the missing implementation in
-`specfleet check`).
+`/speckit.specfleet.check`).
 
 ### 4.1 Erasure flow (detailed)
 
@@ -225,8 +225,8 @@ the contents of this document via the following hooks:
 | `onPreToolUse` (write) | Block writes to `customers.*.email` / `customers.*.address*` outside of allowed code paths |
 | `onPostToolUse` (write) | Re-scan the changed file for forbidden field names being **added** to log calls |
 | `onSessionStart` | Verify `Logging.ForbiddenFields` list is intact |
-| `specfleet review --scope=code` | Run `dotnet test --filter Category=Gdpr` (PII redactor regression tests) |
-| `specfleet review --scope=deploy` | Verify Cosmos region matches the customer's stated jurisdiction (sample skips) |
+| `/speckit.specfleet.review` (code focus) | Run `dotnet test --filter Category=Gdpr` (PII redactor regression tests) |
+| `/speckit.specfleet.review` (deploy focus) | Verify Cosmos region matches the customer's stated jurisdiction (sample skips) |
 
 Any failure here is a **hard gate** — the orchestrator pauses and a human must review.
 
