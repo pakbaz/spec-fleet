@@ -13,26 +13,22 @@ needs to be a *different* model to catch the implementer's blind spots.
 
 ## Decision
 
-SpecFleet ships a `.specfleet/config.json` with two model slots:
+SpecFleet uses `.specify/extensions/specfleet/specfleet-config.yml` with two model slots:
 
-```json
-{
-  "models": {
-    "default": "claude-sonnet-4.5",
-    "review": "gpt-5.1"
-  }
-}
+```yaml
+models:
+  default: "claude-sonnet-4.5"
+  review: "gpt-5.1"
 ```
 
-`specfleet review <spec-id>` uses `models.review` automatically. To
-disable cross-model review for a single call, pass `--same-model`. To
-override the review model for a single call, set
-`SPECFLEET_REVIEW_MODEL` in the environment or use `--model`.
+`/speckit.specfleet.review` uses `models.review` from extension settings. To
+disable cross-model review, set `models.review` to the same model in local
+settings and accept the trade-off explicitly.
 
 The pair is intentionally **a Claude default + a GPT review** so that
 *by default* the implementer and reviewer come from different vendors.
 Users who only have one vendor available can override one slot in
-`config.json` and accept the same-vendor review trade-off.
+`specfleet-config.yml` and accept the same-vendor review trade-off.
 
 ## Consequences
 

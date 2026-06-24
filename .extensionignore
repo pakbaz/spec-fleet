@@ -1,0 +1,22 @@
+# .extensionignore — files excluded from the installed extension copy.
+# Patterns are .gitignore-compatible. Keep only what `specify extension add`
+# needs at runtime: extension.yml, commands/, the config template, README,
+# CHANGELOG, and LICENSE.
+
+# Repository validation/development files (not part of the installed extension)
+tests/
+scripts/
+research/
+sample/
+
+# Docs source (the installed copy keeps only README/CHANGELOG/LICENSE)
+docs/
+
+# Tooling / project metadata
+.github/
+node_modules/
+.gitignore
+package.json
+package-lock.json
+vitest.config.ts
+SECURITY.md

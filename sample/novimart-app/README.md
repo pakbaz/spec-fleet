@@ -1,13 +1,19 @@
 # NoviMart — SpecFleet v0.6 sample
 
 A complete, runnable e-commerce app built on .NET 10 + React + Azure,
-governed end-to-end by SpecFleet v0.6. Use this as a reference for what a
-production codebase governed by the lean Spec-Kit-style pipeline (8 phase
-verbs, 7 flat charters, instructions + prompt files mirrored to
-`.github/`) looks like in practice.
+governed end-to-end by Spec Kit plus the SpecFleet extension. Use this as a
+reference for what a production codebase looks like when core `/speckit.*`
+phases are augmented by `/speckit.specfleet.*` governance commands.
 
 > **Greenfield mode.** The `.specfleet/project.md` is in `mode: greenfield`.
 > See `sample/hermes-telemetry/` for the brownfield equivalent.
+
+> **Installed as a Spec Kit extension (v0.7).** SpecFleet now ships as a
+> [Spec Kit extension](../../docs/extension.md). In a real project you would run
+> `specify extension add specfleet` and then use the `speckit.specfleet.*` commands
+> (`charter`, `scratchpad`, `review`, `check`) alongside the core phases. This sample
+> shows the resulting artifacts: a committed `charter.md` and `scratchpad` per feature,
+> plus the registered extension prompts under `.github/prompts/speckit.specfleet.*`.
 
 ---
 
@@ -18,13 +24,12 @@ sample/novimart-app/
 ├── .specfleet/                       # SpecFleet workspace (source of truth)
 │   ├── instruction.md                # NoviMart standards (the constitution)
 │   ├── project.md                    # Project mode + primary language
-│   ├── config.json                   # implement / review model split
 │   ├── charters/                     # 7 flat charters (architect, dev, test, …)
 │   ├── skills/                       # reusable lazy-loaded procedures
-│   ├── mcp/                          # MCP server registrations
 │   ├── specs/
 │   │   └── checkout-hardening/       # one finished spec, all 8 phases
 │   │       ├── spec.md
+│   │       ├── charter.md
 │   │       ├── clarifications.md
 │   │       ├── plan.md
 │   │       ├── tasks.md
@@ -37,11 +42,11 @@ sample/novimart-app/
 ├── .github/                          # runtime contract, mirrored from .specfleet/
 │   ├── copilot-instructions.md       # what Copilot loads automatically
 │   ├── instructions/                 # coding-style / testing / compliance
-│   ├── prompts/                      # 8 phase prompt files (.prompt.md)
+│   ├── prompts/                      # speckit.specfleet.* extension prompts
 │   ├── agents/                       # 7 charter agent files (.agent.md)
-│   ├── workflows/                    # ci / cd / security pipelines
 │   └── CODEOWNERS
 │
+├── .specify/extensions/specfleet/     # SpecFleet extension settings
 ├── backend/                          # .NET 10 BFF API
 ├── frontend/                         # React 18 + TypeScript + Vite SPA
 ├── infra/                            # Bicep modules + azd orchestration
@@ -60,7 +65,7 @@ sample/novimart-app/
 - **Node 20+** (`node --version`)
 - **Docker Desktop** (only for container build / Cosmos emulator)
 - **Azure CLI** + **Azure Developer CLI** (only for cloud deployment)
-- **SpecFleet CLI** v0.6 (`npx @pakbaz/specfleet --version`)
+- **Spec Kit** (`specify`) with the SpecFleet extension installed
 
 ### Run locally — no Azure required
 
@@ -129,21 +134,23 @@ unit test. Small fix, but a perfect-sized example for the pipeline.
 
 ## Try the pipeline yourself
 
-```bash
-cd sample/novimart-app
-specfleet check                         # validates .specfleet/ schema + .github/ mirror
-specfleet specify "wishlist support"    # drafts a new spec
-specfleet clarify wishlist-support
-specfleet plan wishlist-support
-specfleet tasks wishlist-support
-specfleet analyze wishlist-support
-specfleet implement wishlist-support
-specfleet review wishlist-support
-specfleet checklist wishlist-support
+```text
+/speckit.specify "wishlist support"
+/speckit.clarify
+/speckit.specfleet.charter architect
+/speckit.plan
+/speckit.tasks
+/speckit.specfleet.scratchpad
+/speckit.analyze
+/speckit.implement
+/speckit.specfleet.review
+/speckit.checklist
+/speckit.specfleet.check
 ```
 
-Each command shells out to GitHub Copilot CLI (`copilot -p -`) with the
-matching charter loaded; nothing is run in-process.
+The core phases come from Spec Kit. The charter, scratchpad, review, and check
+steps come from the installed SpecFleet extension and read settings from
+`.specify/extensions/specfleet/specfleet-config.yml`.
 
 ---
 
@@ -181,7 +188,7 @@ spec artefacts that contradict it.
 | Area | Status |
 | --- | --- |
 | `.specfleet/` v0.6 layout (charters, skills, mcp, specs, scratchpad, runs) | ✅ |
-| `.github/` mirror (copilot-instructions, prompts, instructions, agents) | ✅ |
+| SpecFleet extension settings under `.specify/extensions/specfleet/` | ✅ |
 | Finished sample spec (`checkout-hardening`, 8 phases) | ✅ |
 | Backend builds clean | ✅ 0 warnings, 0 errors |
 | Backend unit tests | ✅ 21 tests pass |
@@ -197,5 +204,5 @@ spec artefacts that contradict it.
 2. **Read the spec end-to-end.** `.specfleet/specs/checkout-hardening/`.
 3. **Inspect a charter.** `.specfleet/charters/dev.charter.md` is a good
    starting point.
-4. **Author your own spec.** Add a wishlist feature using the commands
+4. **Author your own spec.** Add a wishlist feature using the Spec Kit and SpecFleet extension commands
    above and watch the eight-phase pipeline produce its artefacts.
