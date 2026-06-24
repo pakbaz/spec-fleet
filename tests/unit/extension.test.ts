@@ -23,9 +23,37 @@ const VALID_HOOK_EVENTS = new Set([
   "before_taskstoissues", "after_taskstoissues",
 ]);
 
+// Core Spec Kit commands an extension may declare in `requires.commands`.
+// Mirrors the command surface used by the community Fleet Orchestrator
+// (https://github.com/sharathsatish/spec-kit-fleet) so SpecFleet stays
+// installable on the same Spec Kit baseline.
+const SPECKIT_CORE_COMMANDS = new Set([
+  "speckit.constitution",
+  "speckit.specify",
+  "speckit.clarify",
+  "speckit.plan",
+  "speckit.checklist",
+  "speckit.tasks",
+  "speckit.analyze",
+  "speckit.implement",
+  "speckit.taskstoissues",
+]);
+
 function scalar(key: string): string | undefined {
   const m = manifest.match(new RegExp(`^\\s*${key}:\\s*"?([^"\\n]+)"?\\s*$`, "m"));
   return m?.[1]?.trim();
+}
+
+// Parse the `requires.commands` list (each entry is `- "speckit.<cmd>"`).
+function requiredCommands(): string[] {
+  const reqIdx = manifest.indexOf("\nrequires:");
+  if (reqIdx === -1) return [];
+  const rest = manifest.slice(reqIdx + "\nrequires:".length);
+  const nextTop = rest.search(/^\S/m);
+  const block = nextTop === -1 ? rest : rest.slice(0, nextTop);
+  const cmdsIdx = block.indexOf("commands:");
+  if (cmdsIdx === -1) return [];
+  return [...block.slice(cmdsIdx).matchAll(/-\s*"([^"]+)"/g)].map((m) => m[1]);
 }
 
 // Parse `name:`/`file:` pairs from the provides.commands block.
@@ -57,6 +85,29 @@ describe("SpecFleet Spec-Kit extension manifest", () => {
 
   it("requires a minimum spec-kit version", () => {
     expect(manifest).toMatch(/speckit_version:\s*">=?\d/);
+  });
+
+  it("only requires valid Spec Kit core commands", () => {
+    const required = requiredCommands();
+    expect(required.length).toBeGreaterThan(0);
+    for (const cmd of required) {
+      expect(
+        SPECKIT_CORE_COMMANDS.has(cmd),
+        `requires unknown Spec Kit command: ${cmd}`,
+      ).toBe(true);
+    }
+  });
+
+  it("hooks fire on the phases of the Spec Kit commands it requires", () => {
+    // Every required command should have a phase hook (before_/after_) so the
+    // extension actually augments the core Spec Kit pipeline it depends on.
+    const required = requiredCommands().map((c) => c.replace(/^speckit\./, ""));
+    for (const phase of required) {
+      expect(
+        manifest.includes(`before_${phase}:`) || manifest.includes(`after_${phase}:`),
+        `no hook wired for required command speckit.${phase}`,
+      ).toBe(true);
+    }
   });
 
   it("declares at least one command", () => {

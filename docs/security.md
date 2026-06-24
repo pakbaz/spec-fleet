@@ -17,7 +17,7 @@
 | Secrets in working tree | Accidental leak | `specfleet check --staged` scans `git diff --cached` against built-in patterns + `.specfleet/policies/secrets.json` extension |
 | Run transcripts (`.specfleet/runs/*.jsonl`) | Surfacing PII / secrets in logs | Transcripts include argv plus stdout/stderr chunks; review them like other generated artefacts before committing |
 | Reviewer collusion | The implementer model also reviews its own work | Cross-model review (`models.review`) defaults to a different vendor — see [ADR-0005](adr/0005-cross-model-review.md) |
-| Supply chain | Malicious dependency in the SpecFleet package | Lean dep tree (7 runtime deps); npm provenance attestations on every release |
+| Supply chain | Malicious dependency in the SpecFleet package | Lean dep tree (7 runtime deps); the extension itself ships as version-pinned command files installed from a tagged GitHub release archive |
 
 ## What v0.5 provided that v0.6 does not
 

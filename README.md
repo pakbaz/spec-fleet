@@ -1,7 +1,6 @@
 # SpecFleet — a Spec Kit extension
 
 [![CI](https://github.com/pakbaz/spec-fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/pakbaz/spec-fleet/actions/workflows/ci.yml)
-[![Release](https://github.com/pakbaz/spec-fleet/actions/workflows/release.yml/badge.svg)](https://github.com/pakbaz/spec-fleet/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 > A **[Spec Kit](https://github.com/github/spec-kit) extension** that adds
