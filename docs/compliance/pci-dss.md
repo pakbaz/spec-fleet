@@ -3,11 +3,11 @@
 <!-- markdownlint-disable MD060 -->
 
 > **v0.6 status — historical reference.** Compliance packs
-> (`specfleet init --with-pack <name>`) and the audit hash-chain
+> policy-pack generation and the audit hash-chain
 > primitive were v0.5 features and are gone in v0.6. See
 > [migration-from-0.5.md](../migration-from-0.5.md). The v0.6
 > implementation path is committed charters + cross-model review +
-> `specfleet check` + git history.
+> `/speckit.specfleet.check` + git history.
 
 The **Payment Card Industry Data Security Standard (PCI DSS) v4.0**, issued
 by the PCI Security Standards Council, specifies 12 high-level requirements
@@ -30,7 +30,7 @@ posture.
 
 ## v0.5 pack behavior
 
-In v0.5, `specfleet init --with-pack pci-dss` created a PCI DSS policy pack
+In v0.5, the legacy PCI DSS pack generator created a PCI DSS policy pack
 with an empty egress allowlist. In v0.6 there is no pack installer; keep the
 CDE boundary in project docs, encode non-negotiable controls in
 `.specfleet/instruction.md`, and require evidence in `checklist.md`.

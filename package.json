@@ -1,61 +1,24 @@
 {
-  "name": "@pakbaz/specfleet",
-  "version": "0.6.0",
-  "description": "SpecFleet — a lean, thin Spec-Kit pipeline (specify · clarify · plan · tasks · analyze · implement · review · checklist) over GitHub Copilot CLI with cross-model review and a shared scratchpad MCP.",
+  "name": "spec-fleet",
+  "version": "0.7.0",
+  "private": true,
+  "description": "SpecFleet — a Spec Kit extension that adds charters, shared scratchpad working memory, and charter-compliance review to core Spec Kit phases.",
   "type": "module",
-  "bin": {
-    "specfleet": "./dist/cli.js"
-  },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": "./dist/index.js",
-    "./runtime": "./dist/runtime/index.js"
-  },
-  "files": [
-    "dist",
-    "templates/.github",
-    "templates/charters",
-    "templates/mcp",
-    "templates/skills",
-    "templates/instruction.md",
-    "templates/project.md",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
   "scripts": {
-    "build": "node -e \"import('node:fs').then(({rmSync}) => rmSync('dist', { recursive: true, force: true }))\" && tsc -p tsconfig.json && node -e \"import('node:fs').then(({chmodSync}) => chmodSync('dist/cli.js', 0o755))\"",
-    "dev": "tsc -w -p tsconfig.json",
-    "lint": "eslint 'src/**/*.ts'",
-    "test": "vitest run",
-    "test:unit": "vitest run tests/unit",
-    "test:e2e": "vitest run tests/e2e --testTimeout=180000",
-    "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
-    "check": "node ./dist/cli.js check",
-    "verify:no-telemetry": "node scripts/check-no-telemetry.mjs",
+    "build": "echo \"No standalone CLI build; SpecFleet ships as a Spec Kit extension.\"",
+    "test": "vitest run tests/unit/extension.test.ts",
+    "test:unit": "vitest run tests/unit/extension.test.ts",
+    "format": "prettier --write '*.md' 'docs/**/*.md' 'commands/**/*.md' 'tests/**/*.ts'",
     "version:sync": "node scripts/sync-docs-version.mjs",
-    "version": "node scripts/sync-docs-version.mjs",
-    "prepublishOnly": "npm run build && npm test && npm run verify:no-telemetry"
+    "version": "node scripts/sync-docs-version.mjs"
   },
   "engines": {
     "node": ">=20.0.0"
   },
-  "dependencies": {
-    "chalk": "^5.3.0",
-    "commander": "^12.1.0",
-    "fast-glob": "^3.3.2",
-    "gray-matter": "^4.0.3",
-    "ora": "^8.1.1",
-    "yaml": "^2.6.0",
-    "zod": "^4.3.6"
-  },
   "devDependencies": {
     "@types/node": "^22.9.0",
     "prettier": "^3.3.3",
-    "tsx": "^4.19.2",
-    "typescript": "^5.6.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.9"
   },
   "license": "MIT",
   "author": "Sepehr Pakbaz",
@@ -67,24 +30,14 @@
   "bugs": {
     "url": "https://github.com/pakbaz/spec-fleet/issues"
   },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
-  },
   "keywords": [
-    "github",
-    "copilot",
-    "copilot-cli",
     "spec-kit",
     "spec-driven",
+    "extension",
     "agents",
     "charters",
-    "mcp",
     "cross-model-review",
     "scratchpad",
-    "compliance",
-    "governance",
-    "alm"
+    "governance"
   ]
 }

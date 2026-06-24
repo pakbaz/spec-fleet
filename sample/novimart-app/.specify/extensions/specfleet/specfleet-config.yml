@@ -1,0 +1,31 @@
+# SpecFleet extension configuration
+# Copy this to specfleet-config.yml and customize.
+# Installed location: .specify/extensions/specfleet/specfleet-config.yml
+
+# Model preferences. Review runs with a DIFFERENT model than implementation by
+# default — that cross-model gate is the point. Use exact model names for your IDE,
+# or keep these defaults.
+models:
+  default: "claude-sonnet-4.5"   # implementation / charter authoring
+  review: "gpt-5.1"              # charter-compliance review (must differ from default)
+
+# Valid charter roles. Each charter owns exactly one role.
+roles:
+  - "orchestrator"
+  - "architect"
+  - "dev"
+  - "test"
+  - "devsecops"
+  - "compliance"
+  - "sre"
+
+# The shared scratchpad uses exactly these four sections, in this order.
+# Do not rename or reorder them.
+scratchpad_sections:
+  - "Findings"
+  - "Decisions"
+  - "Open Questions"
+  - "Files Touched"
+
+# Credentials: never commit secrets here. Use environment variables instead,
+# e.g. SPECKIT_SPECFLEET_* picked up by your AI agent.

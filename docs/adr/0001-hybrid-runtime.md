@@ -2,7 +2,7 @@
 
 ## Status
 
-Superseded by [ADR-0004 — Thin shim over Copilot CLI](0004-thin-shim.md) (v0.6).
+Superseded by the extension-only architecture: SpecFleet now ships as Spec Kit command files plus settings, with no local CLI runtime.
 
 ## Context
 

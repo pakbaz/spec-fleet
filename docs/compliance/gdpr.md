@@ -3,11 +3,11 @@
 <!-- markdownlint-disable MD060 -->
 
 > **v0.6 status — historical reference.** Compliance packs
-> (`specfleet init --with-pack <name>`) and the audit hash-chain
+> policy-pack generation and the audit hash-chain
 > primitive were v0.5 features and are gone in v0.6. See
 > [migration-from-0.5.md](../migration-from-0.5.md). Map the GDPR
 > targets below onto the v0.6 primitives — committed charters,
-> cross-model review, `specfleet check`, and git history.
+> cross-model review, `/speckit.specfleet.check`, and git history.
 
 **Regulation (EU) 2016/679 — the General Data Protection Regulation
 (GDPR)** — governs the processing of personal data of individuals in the
@@ -29,7 +29,7 @@ third-country transfer rules from Article 44. The GDPR pack ships in
 
 ## v0.5 pack behavior
 
-In v0.5, `specfleet init --with-pack gdpr` created a GDPR policy pack and an
+In v0.5, the legacy GDPR pack generator created a GDPR policy pack and an
 egress allowlist. In v0.6 there is no pack installer; capture GDPR controls in
 `.specfleet/instruction.md`, require evidence in `checklist.md`, and keep
 cross-border transfer decisions in normal project docs or ADRs.

@@ -1,22 +1,25 @@
-# Copilot guidance for this repo
+# Copilot instructions
 
-This repository uses **SpecFleet** — a thin Spec-Kit pipeline over GitHub Copilot CLI. Treat `.specfleet/` as the source of intent and `.github/` as the runtime contract.
+This repository uses **Spec Kit** for lifecycle phases and the **SpecFleet**
+extension for governance artifacts. Use core `/speckit.*` commands for specify,
+clarify, plan, tasks, analyze, implement, and checklist. Use
+`/speckit.specfleet.*` commands for charter, scratchpad, review, and artifact
+checks.
 
-## Where to find the rules
-- `.specfleet/instruction.md` — the **constitution** (non-negotiable invariants for this repo). Never override.
-- `.specfleet/project.md` — the **project cheat sheet** (stack, integrations, compliance scope).
-- `.github/agents/*.agent.md` — the **charters** (task contracts: goal, inputs, outputs, constraints).
-- `.github/prompts/specfleet.<phase>.prompt.md` — the **8 pipeline prompts** (specify · clarify · plan · tasks · analyze · implement · review · checklist).
-- `.github/instructions/*.instructions.md` — **path-scoped** rules (coding style, testing, compliance).
+## Source of truth
 
-## How to make changes
-- Run `specfleet specify "<feature>"` to start a new spec instead of patching code directly.
-- Each spec lives at `.specfleet/specs/<id>/` and accumulates `spec.md → clarifications.md → plan.md → tasks.md → analysis.md` before any code is written.
-- The implementation phase produces a `## Summary` block and updates `.specfleet/scratchpad/<id>.md`.
-- The review phase runs with a **different model** than implement (configured in `.specfleet/config.json`). The checklist phase verifies every spec requirement has evidence in the working tree.
+- `specs/<feature>/` or the sample's populated feature artifact directory — core
+  spec, plan, tasks, charter, scratchpad, review, and checklist artifacts.
+- `.specify/extensions/specfleet/specfleet-config.yml` — SpecFleet settings
+  (models, valid roles, scratchpad sections).
+- `.github/prompts/speckit.specfleet.*.prompt.md` — registered SpecFleet
+  extension prompts when present.
 
-## Operating principles
-- **Charters are task contracts, not personas.** They describe inputs, outputs, and constraints — never "you are the X agent".
-- **MCP servers are off by default.** Only enable a server in a charter that genuinely needs it.
-- **Token budgets are real.** Each charter has `maxContextTokens`; the runtime refuses prompts that exceed it.
-- **Drift detection is mandatory.** Every implementation finishes with `specfleet checklist <id>` to confirm requirements ↔ evidence.
+## Workflow
+
+1. Start features with `/speckit.specify`.
+2. Add a task contract with `/speckit.specfleet.charter` before planning.
+3. Keep decisions/findings current with `/speckit.specfleet.scratchpad`.
+4. Run `/speckit.specfleet.review` after implementation with the configured
+   review model.
+5. Finish with `/speckit.specfleet.check` to validate SpecFleet artifacts.

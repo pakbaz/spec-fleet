@@ -1,145 +1,59 @@
-# The Eight-Phase Spec-Kit Pipeline
+# Spec Kit pipeline with SpecFleet
 
-<!-- markdownlint-disable MD040 MD060 -->
+SpecFleet no longer provides a separate `specfleet` lifecycle CLI. The lifecycle
+is owned by core Spec Kit commands, and SpecFleet contributes extension commands
+and optional hooks around those phases.
 
-SpecFleet runs the [Spec-Kit](https://github.com/github/spec-kit) eight-phase
-spec-driven workflow on top of the GitHub Copilot CLI. Each phase is a
-single `specfleet <verb> <spec-id>` command that:
+## Core lifecycle
 
-1. Renders `.github/prompts/specfleet.<phase>.prompt.md` with mustache-lite
-   placeholders.
-2. Dispatches `copilot -p - --agent <charter>` with the prompt on stdin.
-3. Writes the response into a per-spec artefact under
-   `.specfleet/specs/<spec-id>/`.
-4. Advances the spec's `status` frontmatter.
+Run the normal Spec Kit phases in your agent:
 
+```text
+/speckit.specify "todo-api"
+/speckit.clarify
+/speckit.plan
+/speckit.tasks
+/speckit.analyze
+/speckit.implement
+/speckit.checklist
 ```
-.specfleet/specs/<spec-id>/
+
+## SpecFleet layer
+
+Add SpecFleet where governance helps:
+
+```text
+/speckit.specfleet.charter architect
+/speckit.specfleet.scratchpad
+/speckit.specfleet.review
+/speckit.specfleet.check
+```
+
+The extension writes its artifacts next to the core Spec Kit artifacts under
+`specs/<feature>/`:
+
+```text
+specs/<feature>/
   spec.md
-  clarifications.md
   plan.md
   tasks.md
-  analysis.md
+  charter.md
+  scratchpad.md
   review.md
-  checklist.md
-
-.specfleet/scratchpad/<spec-id>.md
-  working memory shared across implement runs
 ```
 
-## Phase reference
+## Hooks
 
-### 1. `specify`
+`extension.yml` wires three optional prompts:
 
-```bash
-specfleet specify "todo-api" --description "REST API with JSON storage and CRUD"
-```
+| Hook | Command | Purpose |
+| --- | --- | --- |
+| `before_plan` | `speckit.specfleet.charter` | Capture a task contract before planning |
+| `after_tasks` | `speckit.specfleet.scratchpad` | Open shared working memory after task breakdown |
+| `after_implement` | `speckit.specfleet.review` | Run charter-aware review after implementation |
 
-- **Charter**: orchestrator
-- **Output**: `spec.md` with frontmatter (`id`, `title`, `description`, `status: draft`).
-- **Goal**: capture the user's intent before talking to a model. The
-  prompt asks the orchestrator to flesh out Goal, Background,
-  Requirements, Out of scope, and Risks, then identify ambiguities to
-  resolve in `clarify`.
+## Settings
 
-### 2. `clarify`
-
-```bash
-specfleet clarify todo-api --answer "stack: node 20" --answer "auth: none"
-```
-
-- **Charter**: orchestrator
-- **Output**: `clarifications.md`. Each `--answer` flag is appended verbatim.
-- **Status transition**: `draft → clarifying`
-- **Why this phase**: the spec is rarely complete. Resolving ambiguity
-  *before* planning prevents downstream rework.
-
-### 3. `plan`
-
-```bash
-specfleet plan todo-api
-```
-
-- **Charter**: architect (overridable)
-- **Output**: `plan.md` — high-level approach, components, sequencing.
-- **Status transition**: `clarifying → planned`
-
-### 4. `tasks`
-
-```bash
-specfleet tasks todo-api
-```
-
-- **Charter**: orchestrator
-- **Output**: `tasks.md` — explicit, parallelisable work items.
-- **Status transition**: `planned → tasked`
-
-### 5. `analyze`
-
-```bash
-specfleet analyze todo-api
-```
-
-- **Charter**: architect
-- **Output**: `analysis.md` — risk + dependency analysis written *before*
-  implementation begins. Catches integration concerns the planner missed.
-
-### 6. `implement`
-
-```bash
-specfleet implement todo-api --task crud-endpoints
-```
-
-- **Charter**: dev
-- **Output**: appended to `.specfleet/scratchpad/<spec-id>.md`. Code
-  lands in the working tree as part of the dispatch.
-- **Status transition**: `tasked → implementing`
-- The scratchpad has four canonical sections (Findings · Decisions ·
-  Open Questions · Files Touched). Multiple `implement` runs accumulate
-  there.
-
-### 7. `review` — cross-model gate
-
-```bash
-specfleet review todo-api                  # uses models.review (default: gpt-5.1)
-specfleet review todo-api --same-model     # disable cross-model gate
-```
-
-- **Charter**: architect
-- **Model**: `models.review` (overridable via `--model` or
-  `SPECFLEET_REVIEW_MODEL`).
-- **Output**: `review.md`.
-- **Why a different model**: asking the implementer to grade itself is a
-  known weak gate. We default to a different vendor for review. See
-  [adr/0005-cross-model-review.md](adr/0005-cross-model-review.md).
-
-### 8. `checklist` — post-implement drift
-
-```bash
-specfleet checklist todo-api
-```
-
-- **Charter**: compliance
-- **Output**: `checklist.md`.
-- **Status transition**: `→ done`
-- **Why this phase**: catches drift between `spec.md` and what shipped.
-  The community Spec-Kit meetings called this out as the most common
-  spec-vs-code divergence point.
-
-## Placeholders
-
-Each prompt template understands these placeholders:
-
-| Placeholder | Source |
-|---|---|
-| `{{spec_id}}` | command argument |
-| `{{spec_dir}}` | `.specfleet/specs/<spec-id>` |
-| `{{workspace_root}}` | repo root |
-| `{{instruction_path}}` | `.specfleet/instruction.md` |
-| `{{project_path}}` | `.specfleet/project.md` |
-| `{{constitution}}` | full body of `instruction.md` |
-| `{{user_input}}` | freeform `--description` / `--answer` text |
-
-Substitution is plain string replacement — no logic, no escaping. If a
-placeholder is missing in the rendered output the runtime errors before
-dispatching.
+Settings live in `.specify/extensions/specfleet/specfleet-config.yml`, matching
+Spec Kit extension conventions and the community `fleet` extension pattern.
+Use it for model choices, valid charter roles, and scratchpad section names.
