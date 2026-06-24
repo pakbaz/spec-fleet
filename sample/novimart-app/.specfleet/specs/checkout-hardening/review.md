@@ -10,7 +10,7 @@ implement_model: claude-sonnet-4.5
 # Review — checkout-hardening
 
 Cross-model review. The implementation was produced by `claude-sonnet-4.5`;
-this review was produced by `gpt-5.1` per `.specfleet/config.json`. Anti-bias
+this review was produced by `gpt-5.1` per `.specify/extensions/specfleet/specfleet-config.yml`. Anti-bias
 mechanic per ADR-0005.
 
 ## Files touched

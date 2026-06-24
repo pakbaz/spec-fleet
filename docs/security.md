@@ -1,73 +1,48 @@
-# SpecFleet Security Model (v0.6)
+# SpecFleet Security Model
 
 > **No-warranty statement.** SpecFleet is **AS-IS** (see [SECURITY.md](../SECURITY.md)).
-> v0.6 is a thin shim over the GitHub Copilot CLI — most of the safety
-> properties below come from Copilot CLI itself, the host OS, and the
-> normal pull-request review process. SpecFleet does **not** ship a
-> runtime policy gate; trust is rooted in committed `.specfleet/`
-> artefacts that are reviewed in PRs.
+> It is a Spec Kit extension made of prompt command files and settings. It does
+> not ship a local CLI runtime, MCP server, npm package, or in-process policy gate.
+> Trust is rooted in reviewed, committed artifacts and the user's agent host.
 
 ## Threat model
 
 | Asset | Threat | Mitigation |
 | --- | --- | --- |
-| Corporate engineering standards (`.specfleet/instruction.md`) | Agent rewrites it to bypass standards | Reviewed in PRs; protected by CODEOWNERS (see `templates/CODEOWNERS.example`) |
-| Charter prompts (`.specfleet/charters/*.charter.md`) | Stealth modification of agent behaviour | Reviewed in PRs; mirrored to `.github/agents/` so `git diff` catches drift |
-| Tool surface (e.g. shell, write) | Excessive privilege at runtime | Per-charter `allowedTools` mapped to `--allow-tool` flags; Copilot CLI prompts the user to confirm tool calls |
-| Secrets in working tree | Accidental leak | `specfleet check --staged` scans `git diff --cached` against built-in patterns + `.specfleet/policies/secrets.json` extension |
-| Run transcripts (`.specfleet/runs/*.jsonl`) | Surfacing PII / secrets in logs | Transcripts include argv plus stdout/stderr chunks; review them like other generated artefacts before committing |
-| Reviewer collusion | The implementer model also reviews its own work | Cross-model review (`models.review`) defaults to a different vendor — see [ADR-0005](adr/0005-cross-model-review.md) |
-| Supply chain | Malicious dependency in the SpecFleet package | Lean dep tree (7 runtime deps); npm provenance attestations on every release |
+| Project standards / constitution | Agent rewrites standards to bypass governance | Review in PRs and protect with CODEOWNERS/branch rules |
+| Feature charter (`specs/<feature>/charter.md`) | Stealth modification of task contract | Review in PRs; `/speckit.specfleet.check` validates required structure |
+| Scratchpad (`specs/<feature>/scratchpad.md`) | Losing decisions or rewriting prior findings | Append-only command guidance; `/speckit.specfleet.check` verifies section order |
+| Tool surface (shell/write/network) | Excessive privilege at runtime | Controlled by the user's Spec Kit/agent host, not by SpecFleet |
+| Secrets in artifacts | Accidental leak | `/speckit.specfleet.check` flags obvious credential-shaped strings in charter/scratchpad files |
+| Reviewer collusion | Implementer model reviews its own work | Cross-model review uses `models.review` from `.specify/extensions/specfleet/specfleet-config.yml` |
+| Supply chain | Unexpected package/runtime behavior | No standalone runtime is installed; users install version-pinned command files from a tagged GitHub archive |
 
-## What v0.5 provided that v0.6 does not
+## What SpecFleet does
 
-- **Hash-chained audit log.** v0.6 logs runs as plain JSONL under
-  `.specfleet/runs/`. Tamper-evidence comes from git history of the
-  same files. If you need cryptographic chaining, run a separate
-  signing step in CI.
-- **Runtime permission gate / write-block on `instruction.md`.** v0.6
-  has no in-process gate. The same protection comes from CODEOWNERS +
-  branch protection on the file path.
-- **Policy DSL + Rego packs.** v0.6 has no policy engine. If you need
-  enforceable network or path policies, layer OPA / a sandbox runner
-  underneath your invocation of `specfleet`.
-- **`specfleet sre triage` for SARIF.** Out of scope for v0.6. Use
-  GitHub Code Scanning directly.
+1. **Charter contracts.** `/speckit.specfleet.charter` writes a small,
+   reviewable task contract for the active feature.
+2. **Shared scratchpad.** `/speckit.specfleet.scratchpad` keeps phase-to-phase
+   findings and decisions visible.
+3. **Cross-model review.** `/speckit.specfleet.review` grades implementation
+   against the charter and scratchpad with the configured review model.
+4. **Artifact check.** `/speckit.specfleet.check` validates charter/scratchpad
+   structure and reports obvious secret-like strings.
 
-## What v0.6 still does
+## What SpecFleet does not do
 
-1. **Token budget gate.** Every charter has `maxContextTokens` (default
-   60K, hard ceiling 95K). The runner refuses to dispatch a prompt that
-   exceeds the cap.
-2. **Charter mirror parity.** `specfleet check` re-derives the
-   `.github/agents/` mirror and fails if it drifts from
-   `.specfleet/charters/`.
-3. **Secret-scan gate.** `specfleet check --staged` rejects a commit
-   that introduces a secret matching any built-in pattern or the
-   user's `.specfleet/policies/secrets.json`.
-4. **MCP servers default off.** Charters ship with `mcpServers: []`;
-   each MCP server must be opted in explicitly per charter, matching
-   the community Spec-Kit guidance.
-5. **Cross-model review by default** so the implementer is not the
-   reviewer.
-6. **Path-scoped instructions.** `.github/instructions/<x>.instructions.md`
-   carries `applyTo:` globs so security guidance targets only the right
-   files.
+- It does not enforce sandboxing, network allowlists, or runtime tool policies.
+- It does not run CI, publish packages, or execute a local CLI.
+- It does not replace core Spec Kit phases; use `/speckit.*` for the lifecycle.
 
 ## Operational guidance
 
-- Treat `.specfleet/instruction.md` and `.specfleet/charters/` as
-  high-trust paths in CODEOWNERS.
-- Keep `.specfleet/runs/*.jsonl` out of long-term storage if your
-  prompts include sensitive data — they record prompt byte counts but
-  the underlying transcripts can grow.
-- Do not enable shell/write tools on charters that don't need them —
-  even though Copilot CLI confirms each tool call, fewer surfaces is
-  fewer surprises.
-- Run `specfleet check` in CI on every PR so charter drift cannot land
-  silently.
+- Keep `.specify/extensions/specfleet/specfleet-config.yml` reviewed like other
+  project settings.
+- Treat `specs/<feature>/charter.md`, `scratchpad.md`, and `review.md` as
+  high-trust files during code review.
+- Run `/speckit.specfleet.check` before merging feature work.
+- Keep secrets out of prompts and generated artifacts; the extension check is a
+  guardrail, not a replacement for repository secret scanning.
 
 For compliance overlays (SOC 2, ISO 27001, HIPAA, PCI-DSS, GDPR) see
-[docs/compliance/](compliance/). Those documents map SpecFleet primitives
-to specific controls; some of the v0.5-era capabilities they referenced
-(e.g. policy packs) are out of scope for v0.6 and are noted as such.
+[docs/compliance/](compliance/).
