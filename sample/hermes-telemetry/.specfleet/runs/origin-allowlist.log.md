@@ -1,7 +1,7 @@
 # run log — origin-allowlist
 
 Append-only transcript of phase invocations against this spec. The format
-mirrors what each phase verb appends when it shells out to Copilot CLI.
+mirrors what each phase verb appends when it runs through Spec Kit and SpecFleet extension commands.
 
 ```text
 2026-05-04T10:00:00Z  phase=specify    charter=architect      model=claude-sonnet-4.5  duration=00:04:21  artefacts=spec.md

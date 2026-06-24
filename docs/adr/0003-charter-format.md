@@ -6,10 +6,10 @@ Accepted with v0.6 revisions.
 
 ## Context
 
-Agents need a versioned, reviewable contract that Copilot CLI can also consume
+Agents need a versioned, reviewable contract that Spec Kit extension commands can consume
 directly. v0.5 used a hierarchical charter graph with roles, tiers, parents,
 declared spawns, signatures, skills, and human gates. That made the framework
-feel heavier than the current Spec-Kit and Copilot CLI ecosystem needs.
+feel heavier than the current Spec Kit ecosystem needs.
 
 ## Decision
 
@@ -29,17 +29,17 @@ instructionsApplyTo: []
 The body is a task contract with `## Goal`, `## Inputs`, `## Output`, and
 `## Constraints`. It must avoid persona phrasing such as "You are the X agent".
 
-Charter names are kebab-case with no slashes. `mirrorCharters()` writes each
-file to `.github/agents/<name>.agent.md` with Copilot CLI-compatible
+Charter names are kebab-case with no slashes. Samples may mirror charter
+files to `.github/agents/<name>.agent.md` with agent-host-compatible
 frontmatter (`name`, `description`, optional `tools`, optional `model`).
 
 ## Consequences
 
 - Reviewable in PRs and easy to understand.
-- Mirrors cleanly into Copilot CLI custom agents.
-- No predeclared subagent graph to keep in sync with Copilot CLI runtime
+- Mirrors cleanly into agent-host custom-agent files when a project uses them.
+- No predeclared subagent graph to keep in sync with the agent host
   behavior.
-- Existing v0.5 charters need migration; `specfleet init --from-v5` archives
+- Existing v0.5 charters need migration; the legacy v0.5 migration archived
   them and scaffolds the new shape.
 - Human approval gates move out of charter schema and into normal PR / branch
   protection / reviewer workflow.

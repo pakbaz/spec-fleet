@@ -23,16 +23,7 @@ if (!/^\d+\.\d+\.\d+/.test(version)) {
   process.exit(1);
 }
 
-// Pattern targets — keep this list small and intentional.
-const targets = [
-  {
-    file: "docs/quickstart.md",
-    // matches:  specfleet --version          # → 0.4.0
-    pattern: /(specfleet --version\s+#\s*→\s*)\d+\.\d+\.\d+/g,
-    replace: `$1${version}`,
-  },
-];
-
+// Marker pass handles version markers in markdown files.
 const changed = [];
 
 for (const t of targets) {
