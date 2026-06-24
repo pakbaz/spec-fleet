@@ -10,7 +10,7 @@ implement_model: claude-sonnet-4.5
 # Review — origin-allowlist
 
 Cross-model review. Implementation by `claude-sonnet-4.5`; review by
-`gpt-5.1` per `.specfleet/config.json`. Anti-bias mechanic (ADR-0005).
+`gpt-5.1` per `.specify/extensions/specfleet/specfleet-config.yml`. Anti-bias mechanic (ADR-0005).
 
 ## Files touched
 

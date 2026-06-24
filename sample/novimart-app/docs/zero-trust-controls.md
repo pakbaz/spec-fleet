@@ -20,7 +20,7 @@
 | Infrastructure | Container App ingress HTTPS-only; Cosmos `publicNetworkAccess=Disabled` + private endpoint; Key Vault RBAC + purge-protection | `infra/modules/*.bicep` |
 | Network | Private endpoints for Cosmos & Key Vault; SWA → Container App via public HTTPS with origin allowlist; no SSH/RDP exposed | `infra/modules/network.bicep` |
 | Visibility | OTel traces → App Insights; Serilog → Log Analytics; SpecFleet audit log → file → LA in prod; alerts on anomalous auth failures | `Program.cs`, `.specfleet/audit/` |
-| Automation | SpecFleet subagents enforce policies on every diff; `azd` hooks gate provisioning; CI runs `specfleet review --strict` | `.specfleet/charters/`, `.github/workflows/security.yml` |
+| Automation | SpecFleet subagents enforce policies on every diff; `azd` hooks gate provisioning; CI runs `/speckit.specfleet.review` | `.specfleet/charters/`, `.github/workflows/security.yml` |
 
 ---
 
@@ -127,7 +127,7 @@ Authorization policies, not roles, gate every endpoint:
 | `GET /healthz/**` | (anonymous) | Standard health endpoints |
 
 The SpecFleet `compliance/zero-trust` subagent runs an **endpoint coverage audit** during
-`specfleet review`: it walks every route registration in `Program.cs` and asserts that every
+`/speckit.specfleet.review`: it walks every route registration in `Program.cs` and asserts that every
 non-`/healthz/**`, non-anonymous endpoint has a policy. Violations fail CI.
 
 ### 3.3 Just-in-time elevation
@@ -259,9 +259,9 @@ The `compliance/zero-trust.charter.md` ties everything above to actionable hooks
 | `onPreToolUse` (write) | Reject patterns matching common secrets (AKIA…, eyJ…, ghp_…) |
 | `onPreToolUse` (write) | Reject regression of TLS / HTTPS settings (`requireHttps: false`, `allowInsecure: true`) |
 | `onPostToolUse` (write) | Re-run `specfleet config validate` with full charter set |
-| `specfleet review --scope=code` | Endpoint coverage audit (every non-anonymous route has a policy) |
-| `specfleet review --scope=infra` | Bicep diff: no `publicNetworkAccess: Enabled`, no `enabledForDeployment: true`, no SAS-token usage |
-| `specfleet review --scope=deploy` | Verify runtime resource posture (the deploy walkthrough §5 list) |
+| `/speckit.specfleet.review` (code focus) | Endpoint coverage audit (every non-anonymous route has a policy) |
+| `/speckit.specfleet.review` (infra focus) | Bicep diff: no `publicNetworkAccess: Enabled`, no `enabledForDeployment: true`, no SAS-token usage |
+| `/speckit.specfleet.review` (deploy focus) | Verify runtime resource posture (the deploy walkthrough §5 list) |
 | `azd preprovision` hook | Run all of the above with `--strict` (warnings = fail) |
 
 Any failure is a **hard gate** — orchestrator pauses, audit entry written, human approval

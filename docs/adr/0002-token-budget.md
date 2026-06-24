@@ -6,7 +6,7 @@ Accepted with v0.6 revisions.
 
 ## Context
 
-Copilot CLI has a large but finite context window. SpecFleet still needs a
+the agent host has a large but finite context window. SpecFleet still needs a
 cheap guardrail before dispatch so a phase does not fail after the user has
 already waited on model execution.
 
@@ -36,5 +36,5 @@ it exceeds the owning charter's cap.
 - Budget behavior is predictable and easy to test.
 - The heuristic is approximate; users may still hit model-side limits on unusual
   content.
-- Long-running context management is delegated to Copilot CLI and the shared
+- Long-running context management is delegated to the agent host and the shared
   scratchpad rather than owned by SpecFleet.
