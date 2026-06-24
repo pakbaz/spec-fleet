@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 const ROOT = join(__dirname, "..", "..");
 const manifestPath = join(ROOT, "extension.yml");
 const manifest = readFileSync(manifestPath, "utf8");
+const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 
 const ID_RE = /^[a-z0-9-]+$/;
 const SEMVER_RE = /^\d+\.\d+\.\d+$/;
@@ -148,5 +149,21 @@ describe("SpecFleet Spec-Kit extension manifest", () => {
   it("ships a LICENSE and an .extensionignore", () => {
     expect(existsSync(join(ROOT, "LICENSE"))).toBe(true);
     expect(existsSync(join(ROOT, ".extensionignore"))).toBe(true);
+  });
+
+  it("does not expose or publish a standalone CLI package", () => {
+    expect(pkg.private).toBe(true);
+    expect(pkg.bin).toBeUndefined();
+    expect(pkg.main).toBeUndefined();
+    expect(pkg.exports).toBeUndefined();
+    expect(pkg.publishConfig).toBeUndefined();
+    expect(pkg.files).toBeUndefined();
+    expect(pkg.scripts?.prepublishOnly).toBeUndefined();
+  });
+
+  it("does not ship repository workflows for npm/package automation", () => {
+    const workflowsPath = join(ROOT, ".github", "workflows");
+    const workflows = existsSync(workflowsPath) ? readdirSync(workflowsPath) : [];
+    expect(workflows).toHaveLength(0);
   });
 });

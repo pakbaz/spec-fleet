@@ -32,7 +32,7 @@ commands/
   review.md                   speckit.specfleet.review
   check.md                    speckit.specfleet.check
 specfleet-config.template.yml installed to .specify/extensions/specfleet/specfleet-config.yml
-.extensionignore              excludes src/, tests/, docs/, sample/, etc. from the install
+.extensionignore              excludes tests/, docs/, sample/, tooling, etc. from the install
 ```
 
 The manifest declares four commands and three optional hooks
@@ -84,8 +84,7 @@ Run it with:
 
 ```bash
 npm install
-npm run build
-npm test            # 58 tests incl. extension manifest validation
+npm test            # extension manifest/settings validation
 ```
 
 ## Submitting to the community catalog
@@ -93,7 +92,7 @@ npm test            # 58 tests incl. extension manifest validation
 To list SpecFleet in the Spec Kit community catalog
 ([`extensions/catalog.community.json`](https://github.com/github/spec-kit/blob/main/extensions/catalog.community.json)):
 
-1. Cut a GitHub release tagged `v0.7.0` (the `release` workflow builds the artifact).
+1. Cut a GitHub release tagged `v0.7.0`; Spec Kit installs the source archive for that tag.
 2. File the
    [Extension Submission](https://github.com/github/spec-kit/issues/new?template=extension_submission.yml)
    issue with the metadata below.

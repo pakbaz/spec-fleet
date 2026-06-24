@@ -106,23 +106,7 @@ verdict (`APPROVE` / `REQUEST_CHANGES` / `BLOCK`) with file-cited findings.
 
 ---
 
-## 8. Optional: shared scratchpad as an MCP server
-
-The repository also ships an optional TypeScript engine that can serve the scratchpad over
-MCP for agents that prefer tool calls:
-
-```bash
-git clone https://github.com/pakbaz/spec-fleet.git && cd spec-fleet
-npm install && npm run build
-node dist/cli.js mcp serve     # stdio JSON-RPC
-```
-
-See [cli.md](cli.md) for the engine and MCP details. It is not required to use the
-extension.
-
----
-
-## 9. Try the samples
+## 8. Try the samples
 
 | Sample | Mode | Stack | Feature walked through |
 |--------|------|-------|------------------------|

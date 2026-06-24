@@ -1,6 +1,5 @@
 # SpecFleet — a Spec Kit extension
 
-[![CI](https://github.com/pakbaz/spec-fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/pakbaz/spec-fleet/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 > A **[Spec Kit](https://github.com/github/spec-kit) extension** that adds
@@ -112,20 +111,17 @@ specfleet-config.template.yml extension config template
 .extensionignore              files excluded from the installed copy
 templates/                    charter / skill / constitution source material
 sample/                       two end-to-end demonstrations
-src/                          optional TypeScript engine + scratchpad MCP server
-tests/                        vitest unit + e2e (incl. extension manifest validation)
+tests/                        vitest extension manifest/settings validation
 ```
 
-> **Note on the TypeScript engine.** `src/` ships an optional local CLI/MCP engine
-> that predates the extension packaging. It is not required to use the extension —
-> the extension is pure command files + manifest — but it remains available for
-> running the scratchpad as an MCP server. See [docs/cli.md](docs/cli.md).
+> **No standalone CLI.** SpecFleet is only a Spec Kit extension. Use core
+> `/speckit.*` commands for the lifecycle and `/speckit.specfleet.*` commands for
+> charters, scratchpad, review, and checks.
 
 ## Documentation
 
 - [docs/extension.md](docs/extension.md) — extension guide & catalog submission
 - [docs/quickstart.md](docs/quickstart.md) — 10-minute guide
-- [docs/cli.md](docs/cli.md) — optional TypeScript engine / MCP server
 - [docs/architecture.md](docs/architecture.md) — design
 - [docs/spec-pipeline.md](docs/spec-pipeline.md) — how charters & scratchpad map to phases
 - [docs/security.md](docs/security.md) — threat model
@@ -145,7 +141,7 @@ Two end-to-end demonstrations ship under [`sample/`](sample/):
 
 ## Contributing
 
-PRs welcome. Run `npm install && npm run build && npm test` before submitting; the
+PRs welcome. Run `npm install && npm test` before submitting; the
 suite includes [`tests/unit/extension.test.ts`](tests/unit/extension.test.ts), which
 validates the extension manifest and command files.
 

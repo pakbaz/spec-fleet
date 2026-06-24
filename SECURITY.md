@@ -18,15 +18,14 @@ review, hardening, monitoring, and incident response.
 
 ## Hardening reference
 
-The threat model and the hardening controls for the v0.6 thin-shim
-runtime are documented in [`docs/security.md`](docs/security.md).
-Operators are expected to read that document and configure Copilot CLI,
-repository protection, secret scanning, and MCP access appropriately for
-their environment before use.
+The threat model and hardening guidance for the extension-only runtime are
+documented in [`docs/security.md`](docs/security.md). Operators are expected to
+read that document and configure Spec Kit, their AI agent host, repository
+protection, and secret scanning appropriately for their environment before use.
 
 ## Out of scope
 
-- Vulnerabilities in the GitHub Copilot CLI or any other upstream
+- Vulnerabilities in Spec Kit, the AI agent host, or any other upstream
   dependency.
 - Issues that require an already-compromised local machine.
 - Any expectation of a fix, response, advisory, CVE assignment, or

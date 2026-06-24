@@ -2,11 +2,11 @@
 
 <!-- markdownlint-disable MD060 -->
 > **v0.6 status — historical reference.** Compliance packs
-> (`specfleet init --with-pack <name>`) and the audit hash-chain
+> policy-pack generation and the audit hash-chain
 > primitive were v0.5 features and are gone in v0.6. See
 > [migration-from-0.5.md](../migration-from-0.5.md). The mappings below
 > still describe useful targets; the v0.6 implementation path is
-> committed charters + cross-model review + `specfleet check` + git
+> committed charters + cross-model review + `/speckit.specfleet.check` + git
 > history.
 
 The U.S. **Health Insurance Portability and Accountability Act (HIPAA)
@@ -30,7 +30,7 @@ than redacting it.
 
 ## v0.5 pack behavior
 
-In v0.5, `specfleet init --with-pack hipaa` created a HIPAA policy pack and
+In v0.5, the legacy HIPAA pack generator created a HIPAA policy pack and
 expected users to add only BAA-covered endpoints to its egress allowlist. In
 v0.6 there is no pack installer; capture PHI rules in `.specfleet/instruction.md`
 and require BAA evidence in `checklist.md`.

@@ -18,9 +18,9 @@ under it.
 
 ## What this sample shows
 
-1. How to onboard an existing Go codebase with `specfleet init --mode brownfield`.
-2. How a v0.6 spec captures a real fix on top of pre-existing code.
-3. The full 8-phase pipeline (specify → clarify → plan → tasks → analyze →
+1. How an existing Go codebase can be governed with Spec Kit plus SpecFleet extension artifacts.
+2. How a completed spec captures a real fix on top of pre-existing code.
+3. The full Spec Kit pipeline (specify → clarify → plan → tasks → analyze →
    implement → review → checklist) for one feature: `origin-allowlist`.
 
 ## Running it
@@ -42,7 +42,6 @@ internal/dashboard/          # http.Handler + origin allow-list
 .specfleet/                  # SpecFleet workspace
   instruction.md             # constitution (5 rules, derived from code)
   project.md                 # project cheat sheet (brownfield mode)
-  config.json                # default + reviewer models
   charters/                  # 7 flat charters, mirrored to .github/agents/
   specs/origin-allowlist/    # the one finished spec — all 7 phase files
   scratchpad/origin-allowlist.md
@@ -94,20 +93,23 @@ From [`.specfleet/instruction.md`](.specfleet/instruction.md):
 To re-run the SpecFleet pipeline on a brand-new feature against this
 codebase:
 
-```bash
-cd sample/hermes-telemetry
-specfleet specify "rate-limit /api/events to 60 req/min per IP"
-specfleet clarify --spec rate-limit
-specfleet plan     --spec rate-limit
-specfleet tasks    --spec rate-limit
-specfleet analyze  --spec rate-limit
-specfleet implement --spec rate-limit
-specfleet review   --spec rate-limit
-specfleet checklist --spec rate-limit
+```text
+/speckit.specify "rate-limit /api/events to 60 req/min per IP"
+/speckit.clarify
+/speckit.specfleet.charter dev
+/speckit.plan
+/speckit.tasks
+/speckit.specfleet.scratchpad
+/speckit.analyze
+/speckit.implement
+/speckit.specfleet.review
+/speckit.checklist
+/speckit.specfleet.check
 ```
 
-Each phase invokes the appropriate charter through the Copilot CLI; the
-artefacts land in `.specfleet/specs/rate-limit/`.
+Core lifecycle phases are handled by Spec Kit. SpecFleet contributes only the
+extension commands for charter, scratchpad, review, and artifact checks, using
+settings from `.specify/extensions/specfleet/specfleet-config.yml`.
 
 ## Out of scope for this demo
 

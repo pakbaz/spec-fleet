@@ -2,12 +2,12 @@
 
 <!-- markdownlint-disable MD060 -->
 > **v0.6 status — historical reference.** The compliance "packs"
-> (`specfleet init --with-pack <name>`) and the audit hash-chain
+> policy-pack generation and the audit hash-chain
 > primitive referenced below were v0.5 features. v0.6 dropped both as
 > part of the simplification (see
 > [migration-from-0.5.md](../migration-from-0.5.md)). Map your SOC 2
 > controls onto the v0.6 primitives — committed charters, cross-model
-> review, `specfleet check`, and git history of `.specfleet/specs/`.
+> review, `/speckit.specfleet.check`, and git history of `.specfleet/specs/`.
 > A refreshed coverage matrix is tracked in a future release.
 
 The American Institute of Certified Public Accountants (AICPA) **SOC 2**
@@ -30,7 +30,7 @@ for every SOC 2 engagement.
 
 ## v0.5 pack behavior
 
-In v0.5, `specfleet init --with-pack soc2` wrote `egress.json`,
+In v0.5, the legacy SOC 2 pack generator wrote `egress.json`,
 `ip-guard.json`, and `pack.json` under a SOC 2 policy pack and registered
 controls in `.specfleet/instruction.md`. In v0.6 there is no pack installer;
 keep SOC 2 invariants in the constitution and verify evidence with the

@@ -30,8 +30,7 @@ We follow [Semantic Versioning](https://semver.org/):
 While we're on `0.x`, *every* release may technically break things — we still
 try to honour the table above and call out breaks in `CHANGELOG.md`.
 
-Keep `extension.yml#extension.version` and `package.json#version` in sync (CI
-enforces docs/version drift via `npm run version:sync`).
+Keep `extension.yml#extension.version` and `package.json#version` in sync by running `npm run version:sync` when cutting a release.
 
 ## Cutting a release
 
@@ -71,11 +70,11 @@ specify extension add specfleet \
 specify extension list            # → specfleet (X.Y.Z) — SpecFleet
 ```
 
-The `ci` workflow ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml))
-already builds, tests, and validates the extension manifest on every push and PR,
-including [`tests/unit/extension.test.ts`](../tests/unit/extension.test.ts) which
-checks Spec Kit compatibility (manifest schema, command files, and required
-Spec Kit core commands).
+Run `npm test` before announcing a release. The test suite includes
+[`tests/unit/extension.test.ts`](../tests/unit/extension.test.ts), which checks
+Spec Kit compatibility (manifest schema, command files, settings template, and
+required Spec Kit core commands) and verifies there is no standalone CLI/npm
+publish surface.
 
 ## Hot-fixing a bad release
 
