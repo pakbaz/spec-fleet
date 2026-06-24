@@ -1,9 +1,11 @@
 # ADR-0001: Hybrid SDK runtime + repo-resident artifacts
 
 ## Status
-Accepted (MVP).
+
+Superseded by the extension-only architecture: SpecFleet now ships as Spec Kit command files plus settings, with no local CLI runtime.
 
 ## Context
+
 We need to deliver autonomous ALM with three properties: **enforceable** policy
 (token budgets, allowlists, secret redaction), **reviewable** configuration
 (admins want PRs, not opaque binaries), and **graceful degradation** (devs
@@ -22,15 +24,17 @@ Three options were evaluated:
    audit, or redact.
 
 ## Decision
+
 Adopt option (1) + (3): a **TypeScript `specfleet` CLI** built on `@github/copilot-sdk`
 plus a **`.specfleet/` repo-resident schema**. The runtime is the only path to the
 SDK; charters in `.specfleet/charters/` are the source of truth and are mirrored to
 `.github/agents/` for graceful degradation when devs run `copilot` directly.
 
 ## Consequences
-+ Deterministic enforcement (budget, allowlist, immutability, redaction, audit).
-+ Everything reviewable in PR (charters + policies + mcp + skills).
-+ Graceful degradation via mirror.
+
+- Deterministic enforcement (budget, allowlist, immutability, redaction, audit).
+- Everything reviewable in PR (charters + policies + mcp + skills).
+- Graceful degradation via mirror.
 - Higher build effort than a pure wrapper.
 - Two surfaces (`specfleet` *and* `copilot`) — must keep mirror in sync (handled by
   `mirrorCharters` on every `SpecFleetRuntime.open()`).

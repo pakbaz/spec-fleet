@@ -1,235 +1,149 @@
-# SpecFleet
+# SpecFleet — a Spec Kit extension
 
-[![npm version](https://img.shields.io/npm/v/@pakbaz/specfleet.svg?logo=npm)](https://www.npmjs.com/package/@pakbaz/specfleet)
-[![npm downloads](https://img.shields.io/npm/dm/@pakbaz/specfleet.svg)](https://www.npmjs.com/package/@pakbaz/specfleet)
-[![CI](https://github.com/pakbaz/spec-fleet/actions/workflows/ci.yml/badge.svg)](https://github.com/pakbaz/spec-fleet/actions/workflows/ci.yml)
-[![Release](https://github.com/pakbaz/spec-fleet/actions/workflows/release.yml/badge.svg)](https://github.com/pakbaz/spec-fleet/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/node/v/@pakbaz/specfleet.svg)](package.json)
-[![Provenance](https://img.shields.io/badge/npm-provenance-success?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 
-> Spec-driven agent orchestration for enterprise software delivery — a
-> SpecKit-vNext style CLI built on [GitHub Copilot SDK](https://github.com/github/copilot-sdk)
-> and the GitHub Copilot CLI's fleet/subagent primitives.
+> A **[Spec Kit](https://github.com/github/spec-kit) extension** that adds
+> **charters** (committed task contracts), a **shared scratchpad** working memory,
+> and a **charter-compliance cross-model review** to the core Spec Kit phases.
 
-SpecFleet lets a platform team encode corporate engineering standards once
-(`.specfleet/instruction.md`) and have every greenfield, brownfield, and modernization
-project executed by a hierarchy of role agents (Architect, Dev, Test, DevSecOps,
-Compliance, SRE) → subagents → sub-subagents — each in **its own SDK session**
-with an enforced **<100K token context budget**.
+SpecFleet does **not** replace or orchestrate the core phases — it *augments* them.
+Core Spec Kit gives you `specify · clarify · plan · tasks · analyze · implement ·
+checklist`. SpecFleet layers three things on top:
 
-## What's new in v0.4
+- **Charters** — committed, version-controlled task contracts
+  (Goal / Inputs / Output / Constraints) with one owning **role**
+  (orchestrator / architect / dev / test / devsecops / compliance / sre).
+- **Shared scratchpad** — a four-section working memory (Findings · Decisions ·
+  Open Questions · Files Touched) so later phases absorb earlier findings without
+  re-running prior work.
+- **Charter-compliance review** — a read-only, cross-model gate that grades the
+  implementation against its charter and scratchpad.
 
-v0.4 is the full SpecFleet rebrand. The npm package is `@pakbaz/specfleet`
-and the command is `specfleet`.
+> Current release: **v<!-- x-version -->0.7.0<!-- /x-version -->**
 
-- **SpecFleet positioning.** The product now centers on spec-first agent
-  delivery: specs → orchestrated plans → isolated agent execution → policy and
-  audit loops.
-- **New package + command.** Install `@pakbaz/specfleet`; run `specfleet`.
-- **New project state.** Generated state lives in `.specfleet/`.
-- **Migration path.** Existing `.eas/` projects can run
-  `specfleet init --mode upgrade` to copy state into `.specfleet/`. The legacy
-  directory is left in place for review.
-- **Clean command surface.** The simplified command set remains, now without
-  legacy subcommand aliases.
-- **NoviMart sample.** The sample app is now the fictional NoviMart
-  retail commerce app.
+## How this differs from the `fleet` extension
 
-See [`CHANGELOG.md`](CHANGELOG.md) for the full diff and
-[`docs/cli.md`](docs/cli.md) for the complete command reference.
+The community **[Fleet Orchestrator](https://github.com/sharathsatish/spec-kit-fleet)**
+(`fleet`) chains the whole lifecycle into a single command with human gates and
+parallel subagents. **SpecFleet is intentionally not an orchestrator.** It adds a
+charter + scratchpad governance layer you can use phase-by-phase alongside the core
+commands. Different id (`specfleet`), different commands, no overlap.
 
-## Why
+| | `fleet` (Fleet Orchestrator) | `specfleet` (this extension) |
+| --- | --- | --- |
+| Primary idea | One command runs all phases with gates | Charter + scratchpad layer over individual phases |
+| Commands | `speckit.fleet.run`, `speckit.fleet.review` | `speckit.specfleet.charter` / `.scratchpad` / `.review` / `.check` |
+| Owns the pipeline? | Yes (drives every phase) | No (you keep running core phases) |
+| Distinct artifacts | — | `charter.md`, `scratchpad.md` |
 
-Coding agents like Copilot have a hard context ceiling (~128K tokens). Real
-enterprise work — onboarding a 200K-LoC service, modernizing a Java monolith,
-greenfielding a microservice that must satisfy SOC2 + HIPAA — does not fit. SpecFleet
-solves this by:
+## Install
 
-1. **Decomposition.** A Main Orchestrator turns a goal into small briefs.
-2. **Isolation.** Each brief runs in a fresh subagent session, so one's context
-   never pollutes another's.
-3. **Charters.** Every agent has a versioned, reviewable markdown contract
-   (`*.charter.md`) declaring its tools, MCP scopes, token cap, and prompt body.
-4. **Enforcement.** The `specfleet` runtime is the *only* path to the SDK; it gates
-   permissions, redacts secrets, blocks immutable files, and emits an audit log.
-5. **Reviewability.** Everything that matters lives in `.specfleet/` and is reviewed
-   via PR — no opaque runtime state.
-
-## Quick start
+SpecFleet installs like any other Spec Kit extension:
 
 ```bash
-# 1. Install — pick one
-npm install -g @pakbaz/specfleet      # global install
-# or run without installing:
-npx @pakbaz/specfleet init --non-interactive  # one-off
-# or as a dev dependency in your repo:
-npm install --save-dev @pakbaz/specfleet
+# From a GitHub release (recommended)
+specify extension add specfleet \
+  --from https://github.com/pakbaz/spec-fleet/archive/refs/tags/v0.7.0.zip
 
-# 2. Bootstrap a project — `specfleet init` detects state and asks the right thing
-mkdir ~/code/todo-api && cd ~/code/todo-api && git init
-specfleet init                                 # prompts: greenfield / brownfield / modify
-# Or skip the prompt:
-specfleet init --mode greenfield --non-interactive
+# Local development checkout
+specify extension add --dev /path/to/spec-fleet
 
-# 3. Customize corporate standards
-specfleet config edit orchestrator             # opens .specfleet/instruction.md in $EDITOR
-specfleet config list                          # see every wired charter / policy / MCP / skill
-
-# 4. Plan → Run → Review
-specfleet plan "Build a TODO REST API in Express with Vitest tests"
-specfleet run --all
-specfleet review
-
-# 5. Health & history
-specfleet check                                # fast: doctor + chain verify
-specfleet check --deep                         # also re-verifies every audit chain
-specfleet log                                  # tail recent audit events
-specfleet log <sessionId>                      # replay one session
+# Verify
+specify extension list           # → specfleet (0.7.0) — SpecFleet
 ```
 
-For full walkthroughs see [`docs/quickstart.md`](docs/quickstart.md) and
-[`docs/cli.md`](docs/cli.md).
+After installation the four commands register with your AI agent (for example under
+`.claude/commands/speckit.specfleet.*.md` or your IDE's prompt list).
 
-### Air-gap mode
+## Commands
 
-```bash
-SPECFLEET_OFFLINE=1 specfleet plan "Ship a hello-world endpoint"
-specfleet check --offline
+| Command | What it does | Writes |
+| --- | --- | --- |
+| `speckit.specfleet.charter [role]` | Author/refresh a task contract for the active feature | `specs/<feature>/charter.md` |
+| `speckit.specfleet.scratchpad [section=… author=… content="…"]` | Init/append the four-section shared working memory | `specs/<feature>/scratchpad.md` |
+| `speckit.specfleet.review [feature]` | Charter-compliance cross-model review (read-only) | `specs/<feature>/review.md` |
+| `speckit.specfleet.check [feature]` | Validate charters + scratchpad integrity (read-only) | — (report) |
+
+### Hooks
+
+SpecFleet wires into the core phases without taking them over — every hook is
+**optional** and prompts before running:
+
+| Event | Runs | Purpose |
+| --- | --- | --- |
+| `before_plan` | `speckit.specfleet.charter` | Capture a task contract before planning |
+| `after_tasks` | `speckit.specfleet.scratchpad` | Open shared working memory for the feature |
+| `after_implement` | `speckit.specfleet.review` | Charter-compliance cross-model review |
+
+## Typical flow
+
+```text
+/speckit.specify   "checkout hardening"
+/speckit.specfleet.charter architect      # task contract for the design work
+/speckit.plan
+/speckit.tasks
+/speckit.specfleet.scratchpad             # open the shared working memory
+/speckit.implement
+/speckit.specfleet.review                 # cross-model charter-compliance gate
+/speckit.specfleet.check                  # validate charter + scratchpad
+```
+
+## Configuration
+
+Optional, at `.specify/extensions/specfleet/specfleet-config.yml` (copy from
+[`specfleet-config.template.yml`](specfleet-config.template.yml)):
+
+```yaml
+models:
+  default: "claude-sonnet-4.5"   # implementation / charter authoring
+  review: "gpt-5.1"              # review runs with a DIFFERENT model on purpose
+roles: [orchestrator, architect, dev, test, devsecops, compliance, sre]
+scratchpad_sections: [Findings, Decisions, "Open Questions", "Files Touched"]
 ```
 
 ## Repo layout
 
-```
-src/                  TypeScript source
-  cli.ts              commander entrypoint
-  commands/           one file per `specfleet <cmd>`
-  runtime/            SpecFleetRuntime, SpecFleetSession, charter loader, audit log
-  schema/             Zod schemas for all .specfleet/ artifacts
-  util/               paths, tokens, secrets, policies
-templates/            seeded into .specfleet/ on `specfleet init`
-  charters/           one .charter.md per agent (root + 6 roles + subagents)
-  policies/           egress.json, ip-guard.json, secrets.json, trusted-signers.json
-  mcp/                scoped MCP server manifests
-  skills/             lazy-loaded markdown procedures
-  benchmarks/         eval harness fixtures
-tests/                vitest unit + e2e (142 tests)
+```text
+extension.yml                 Spec Kit extension manifest (id: specfleet)
+commands/                     command files (speckit.specfleet.*)
+  charter.md  scratchpad.md  review.md  check.md
+specfleet-config.template.yml extension config template
+.extensionignore              files excluded from the installed copy
+templates/                    charter / skill / constitution source material
+sample/                       two end-to-end demonstrations
+tests/                        vitest extension manifest/settings validation
 ```
 
-## `specfleet` commands
-
-### Lifecycle
-
-| Command | What it does |
-|---|---|
-| `specfleet init` | Detect repo state → greenfield / brownfield / modify / upgrade. Auto-installs git hook. |
-| `specfleet plan "<goal>"` | Orchestrator decomposes goal into role-agent tasks (`--from-spec <id>` to seed from a spec). |
-| `specfleet run [--task <id>] [--all]` | Execute next ready task (or all). |
-| `specfleet review` | Compliance + Architect re-review of pending changes. |
-| `specfleet status` | Active sessions, subagent tasks, gates awaiting approval. |
-
-### Reflection
-
-| Command | What it does |
-|---|---|
-| `specfleet check` | Health & quality. Default: doctor. `--deep`, `--eval`, `--tune`, `--staged`, `--audit`, `--fix`. |
-| `specfleet log [sessionId]` | No arg → tail audit. With sessionId → redacted replay. |
-| `specfleet config <show\|list\|edit\|new\|validate\|diff>` | Inspect & edit orchestrator + charters + policies + MCP + skills. |
-| `specfleet spec <new\|list>` | Author specs (GSD / Spec-Kit shape); feeds `specfleet plan --from-spec`. |
-
-### Services
-
-| Command | What it does |
-|---|---|
-| `specfleet mcp serve` | Stdio MCP server exposing decisions, charters, project, audit. |
-| `specfleet sre triage` | SARIF + audit → triage report under `.specfleet/triage/<ts>.md`. |
-
-Every command also accepts the global `--offline` flag (equivalent to setting
-`SPECFLEET_OFFLINE=1`).
-
-### Migrating from legacy projects
-
-For an existing project with `.eas/`, run:
-
-```bash
-specfleet init --mode upgrade
-```
-
-That copies legacy state into `.specfleet/` non-destructively. Review the new
-directory, then remove `.eas/` when you no longer need the old package line.
-
-## Architecture
-
-See [`docs/architecture.md`](docs/architecture.md) and the ADRs under
-[`docs/adr/`](docs/adr/).
-
-## Security model
-
-- **`.specfleet/instruction.md` is immutable.** Writes are blocked at the SDK
-  permission gate; PRs that touch it require a CODEOWNERS approval (see
-  `templates/CODEOWNERS.example`).
-- **Tool allowlists per charter.** A charter without `shell` cannot run
-  commands; a charter without `write` cannot mutate the repo.
-- **Scoped MCP servers per charter.** Each charter lists only the MCP servers
-  it may use; manifests live in `.specfleet/mcp/`.
-- **Secret redaction.** Output crossing a session boundary is scanned with
-  built-in + custom patterns (`.specfleet/policies/secrets.json`) and replaced with
-  `[REDACTED:<rule>]`. `specfleet config show` redacts before printing.
-- **Token budget.** Charters declare `maxContextTokens` (default 80K, hard cap
-  95K). The runtime refuses to issue a prompt that would exceed the cap.
-- **Audit log.** Every session start/end, prompt, tool use, permission request,
-  and policy block is appended to `.specfleet/audit/<sessionId>.jsonl`. `specfleet check
-  --deep` verifies the hash chain across every session.
-
-Full details in [`docs/security.md`](docs/security.md). SpecFleet is provided
-**AS-IS** — see [`SECURITY.md`](SECURITY.md).
-
-## Sample: NoviMart retail commerce app
-
-A complete, runnable demonstration of SpecFleet governing a full-stack greenfield app
-lives in [`sample/novimart-app/`](sample/novimart-app/). It includes:
-
-- **.NET 10 BFF API + React/Vite SPA** with Cosmos DB, Entra External ID, and
-  stubbed payments
-- **30+ SpecFleet charters** (orchestrator, role agents, role subagents, compliance
-  subagents)
-- **Bicep IaC + `azd` template** (Container Apps + Static Web Apps + Cosmos +
-  Key Vault)
-- **GitHub Actions** CI/CD with 90% coverage gate, CodeQL, and `specfleet review
-  --strict`
-- **4 walkthroughs** covering admin setup, backend dev, frontend dev, and
-  DevOps deployment.
-
-```bash
-cd sample/novimart-app
-dotnet test backend/NoviMart.sln          # 21+ tests passing
-azd up                                       # deploy to Azure
-```
-
-See [`sample/novimart-app/README.md`](sample/novimart-app/README.md) for the
-full tour.
+> **No standalone CLI.** SpecFleet is only a Spec Kit extension. Use core
+> `/speckit.*` commands for the lifecycle and `/speckit.specfleet.*` commands for
+> charters, scratchpad, review, and checks.
 
 ## Documentation
 
-- [`docs/quickstart.md`](docs/quickstart.md) — 10-step guide
-- [`docs/cli.md`](docs/cli.md) — full command reference
-- [`docs/architecture.md`](docs/architecture.md) + [ADRs](docs/adr/)
-- [`docs/security.md`](docs/security.md) — threat model + hardening
-- [`docs/context-strategies.md`](docs/context-strategies.md) — org-instructions
-  vs Spaces vs custom agents vs MCP
-- [`docs/harness-management.md`](docs/harness-management.md) — eval → tune →
-  review loop
-- [`docs/compliance/`](docs/compliance/) — SOC 2, ISO 27001, HIPAA, PCI-DSS, GDPR
-- [`docs/publishing.md`](docs/publishing.md) — release & npm OIDC publishing flow
-- [`SECURITY.md`](SECURITY.md) — AS-IS / no-support statement
+- [docs/extension.md](docs/extension.md) — extension guide & catalog submission
+- [docs/quickstart.md](docs/quickstart.md) — 10-minute guide
+- [docs/architecture.md](docs/architecture.md) — design
+- [docs/spec-pipeline.md](docs/spec-pipeline.md) — how charters & scratchpad map to phases
+- [docs/security.md](docs/security.md) — threat model
+- [docs/compliance/](docs/compliance/) — SOC 2 / ISO 27001 / HIPAA / PCI-DSS / GDPR notes
+- [SECURITY.md](SECURITY.md) — AS-IS / no-support statement
+
+## Samples
+
+Two end-to-end demonstrations ship under [`sample/`](sample/):
+
+- **[sample/novimart-app/](sample/novimart-app/)** — *greenfield*. .NET 10 BFF API +
+  React/Vite SPA. Walks through one finished feature (`checkout-hardening`) with its
+  charter, scratchpad, and review artifacts.
+- **[sample/hermes-telemetry/](sample/hermes-telemetry/)** — *brownfield*. Stdlib-only
+  Go telemetry service; the first feature (`origin-allowlist`) fixes a CORS-equivalence
+  bug, with charter + scratchpad + review.
 
 ## Contributing
 
-PRs welcome. Run `npm install && npm run build && npm test` before submitting.
-Releases are cut by tagging `vX.Y.Z` on `main`; the [release
-workflow](.github/workflows/release.yml) publishes to npm via the
-[OIDC trusted publisher](https://docs.npmjs.com/trusted-publishers) — no
-long-lived tokens required.
+PRs welcome. Run `npm install && npm test` before submitting; the
+suite includes [`tests/unit/extension.test.ts`](tests/unit/extension.test.ts), which
+validates the extension manifest and command files.
 
 ## License
 

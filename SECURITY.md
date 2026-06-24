@@ -18,15 +18,15 @@ review, hardening, monitoring, and incident response.
 
 ## Hardening reference
 
-The threat model and the hardening controls shipped with the runtime
-are documented in [`docs/security.md`](docs/security.md). Operators are
-expected to read that document and configure policies, allowlists, and
-hooks appropriately for their environment before use.
+The threat model and hardening guidance for the extension-only runtime are
+documented in [`docs/security.md`](docs/security.md). Operators are expected to
+read that document and configure Spec Kit, their AI agent host, repository
+protection, and secret scanning appropriately for their environment before use.
 
 ## Out of scope
 
-- Vulnerabilities in `@github/copilot-sdk`, the GitHub Copilot CLI, or
-  any other upstream dependency.
+- Vulnerabilities in Spec Kit, the AI agent host, or any other upstream
+  dependency.
 - Issues that require an already-compromised local machine.
 - Any expectation of a fix, response, advisory, CVE assignment, or
   coordinated disclosure from this project.

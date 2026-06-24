@@ -1,61 +1,46 @@
-# SpecFleet Architecture
+# Architecture
 
-## Three-tier hierarchy
+SpecFleet is a pure Spec Kit extension. It does not ship a standalone CLI,
+package runtime, workflow runner, or MCP server.
 
+## Components
+
+```text
+extension.yml
+commands/
+  charter.md
+  scratchpad.md
+  review.md
+  check.md
+specfleet-config.template.yml
+tests/unit/extension.test.ts
 ```
-Main Orchestrator (root)
-├── Architect      → SOLID / Readable / Maintainable / Scalable / Interviewer
-├── Dev            → Frontend / Backend / Database / Messaging
-├── Test           → Unit / API / UI / E2E
-├── DevSecOps      → IaC / CI-CD / Deploy / Idempotency
-├── Compliance     → Policies (one per regulatory domain)
-└── SRE            → Availability / Performance / Observability / AIOps
+
+- `extension.yml` declares the extension id (`specfleet`), Spec Kit command
+  requirements, provided commands, optional hooks, defaults, and tags.
+- `commands/` contains the prompt files registered by Spec Kit as
+  `/speckit.specfleet.*` commands.
+- `specfleet-config.template.yml` is copied by users into
+  `.specify/extensions/specfleet/specfleet-config.yml` for settings.
+- `tests/unit/extension.test.ts` validates extension packaging and prevents the
+  repository from reintroducing a standalone npm/CLI surface.
+
+## Runtime model
+
+The user's agent host runs all commands. Core lifecycle work stays in Spec Kit:
+
+```text
+/speckit.specify -> /speckit.plan -> /speckit.tasks -> /speckit.implement
 ```
 
-Each tier runs in an **isolated SDK session**:
+SpecFleet commands augment that lifecycle with governance artifacts:
 
-- The orchestrator never holds Dev's working code in its context.
-- A Dev subagent never holds Test's coverage data.
-- The parent communicates downward via a small **brief**; the child returns a
-  small **structured envelope** (summary + files + follow-ups).
+```text
+/speckit.specfleet.charter
+/speckit.specfleet.scratchpad
+/speckit.specfleet.review
+/speckit.specfleet.check
+```
 
-## Token budget enforcement
-
-| Layer | Mechanism |
-|---|---|
-| Per-charter cap | `maxContextTokens` in frontmatter (≤ 95K) |
-| Pre-flight check | `SpecFleetSession.ask()` estimates + blocks at cap |
-| Compaction | SDK `infiniteSessions: { enabled: true }` |
-| Cross-agent memory | `.specfleet/decisions.md` + `.specfleet/checkpoints/` |
-| RAG (Phase 2) | `.specfleet/index/` — agents query, never dump |
-
-## Governance
-
-| Concern | Mechanism |
-|---|---|
-| Immutable instruction.md | `permissionGate` blocks `write` to it + CODEOWNERS |
-| Tool allowlist | Per-charter `allowedTools` enforced in `permissionGate` |
-| MCP scope | Per-charter `mcpServers` list; `doctor` verifies manifests |
-| Secret redaction | `redact()` over delegate output before parent sees it |
-| Human gates | Per-charter `requiresHumanGate: true` |
-| Audit | JSONL stream per session in `.specfleet/audit/` |
-
-## Brownfield routing
-
-`specfleet onboard` runs a heuristic detector (package.json / pyproject.toml /
-go.mod / pom.xml / Cargo.toml + Dockerfile) and drafts a `project.md`. Phase 2
-will replace this with an Architect-driven RAG-indexed analyzer.
-
-## Modernization (Phase 3)
-
-`specfleet modernize` will load the existing project, generate a wave plan, and
-dispatch each wave through the orchestrator. Long-running waves shell out to
-`copilot --no-interactive -p '<brief>' --agent <name>` (read-heavy parallelism)
-or `copilot /delegate` for cloud execution.
-
-## Graceful degradation
-
-`mirrorCharters` writes flat `.github/agents/*.agent.md` files so a developer
-running `copilot` directly inherits the same prompt + tool allowlist — just
-without runtime enforcement (no audit log, no secret redaction). The repo is
-the source of truth; the runtime is the policy enforcement point.
+No SpecFleet code executes locally; command files instruct the agent how to read
+and write feature artifacts.

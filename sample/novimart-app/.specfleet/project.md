@@ -37,7 +37,7 @@ complianceScope:
   - "gdpr"
   - "pci-dss"
   - "zero-trust"
-notes: "NoviMart is OUT of PCI-DSS CDE scope by design. Payment flows redirect to a tokenising provider (stubbed in this sample). The NoviMart backend never receives PAN or CVV. The PCI Reviewer subagent enforces this boundary."
+notes: "NoviMart is OUT of PCI-DSS CDE scope by design. Payment flows redirect to a tokenising provider (stubbed in this sample). The NoviMart backend never receives PAN or CVV. The compliance charter enforces this boundary at the review phase."
 ---
 
 # NoviMart E-Commerce — Project Spec
@@ -107,8 +107,8 @@ write distribution (categoryId for products spreads writes).
 ## Compliance scope
 
 - **GDPR** — applies (EU customers). Lawful bases: contract for orders, legitimate interest for catalog analytics, consent for marketing email. Subject rights endpoints required on `/api/me/*`.
-- **PCI-DSS** — *out of CDE scope by design*. PCI Reviewer subagent blocks any PR introducing PAN/SAD into NoviMart systems.
-- **Zero Trust** — applied across all six pillars (see `.specfleet/policies/zero-trust.md`).
+- **PCI-DSS** — *out of CDE scope by design*. The compliance charter blocks any spec introducing PAN/SAD into NoviMart systems at the `review` phase.
+- **Zero Trust** — applied across all six pillars (see `docs/zero-trust-controls.md`).
 
 ## Out of scope (this sample)
 
